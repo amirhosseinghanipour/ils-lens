@@ -1,0 +1,14 @@
+seed: 101
+threads: 4
+dtype: float32
+sequence_length: 128
+skip_first: 16
+prompts: 1
+dim_batch: 1
+source_layers: all_before_final
+final_layer_source: analytic_identity_for_upstream_sum
+target: final_block_output_pre_norm
+target_reduction: upstream_sum_over_valid_future_targets
+estimated_seconds: 600
+estimated_disk_mb: 160
+purpose: runtime_benchmark_and_one_prompt_reference_baseline_only

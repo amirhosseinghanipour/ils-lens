@@ -10,6 +10,7 @@ dist/
 data/
 models/
 logs/
+runs/
 references/*/
 .env
 .env.*

@@ -1,5 +1,41 @@
 # Preliminary research results
 
+## Research continuation — 2026-11-05
+
+WikiText-103 is now available locally at dataset revision
+`b08601e04326c79dfdd32d625aee71d232d685c3`. The upstream layer and target
+conventions have been inspected and tested against the local hooks.
+
+A one-prompt, all-layer reference benchmark completed in fp32: J took 223.35 s
+and R took 221.39 s, with about 3.68 GiB peak RSS. These are upstream `jlens.fit`
+sum-convention maps; the final block is analytically identity because the API
+excludes it as a source. This is a runtime benchmark, not a converged baseline.
+
+Cached suffix replay passed tiny-model equivalence tests against full-model
+replay. At blocks 0/7/15/23, one six-epsilon sample took respectively
+2.752/1.916/0.960/0.001 seconds. Interpolating over layers gives approximately
+2.94 days for the configured training and held-out collection, plus about two
+hours for 16-prompt J/R fitting. The resumable primary run was started; no
+completed primary ILS results are claimed here.
+
+The full Qwen2 graph implementation now has a passing tiny-model check for
+clean-logit reconstruction and feature-node intervention agreement under its
+declared freeze. This freezes attention, normalization factors and independent
+feature-source activations. It does not establish an edge's effect in the
+unfrozen model. Clean-centered evaluation avoids fp32 cancellation between
+large transcoder reconstructions and their error corrections; the formula is
+algebraically unchanged.
+
+The searched lens repositories had no 0.5B-named artifact files. A released
+transcoder set, `sackfield/qwen2.5-0.5b-transcoders`, was found at revision
+`fbf244cec60992bb4e79559328d27f0107ddb257`, but its model card specifies
+**Qwen2.5-0.5B base**, not the Instruct model used here. It is not treated as an
+exact-model baseline. Search results are bounded evidence, not proof that no
+other artifacts exist.
+
+The following sections retain the earlier pilot findings. Full research
+conclusions remain pending.
+
 These results describe validation pilots, not a completed Qwen interpretability
 study. The full WikiText baseline comparison, label-tuned J++, calibration,
 trained Qwen transcoders, full attribution graphs, causal random-direction gates,

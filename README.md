@@ -81,3 +81,25 @@ been established. See [RESULTS.md](RESULTS.md) and [REFERENCES.md](REFERENCES.md
 See [CONTRIBUTING.md](CONTRIBUTING.md) for research and contribution standards.
 The original code is MIT licensed; third-party models, data and repositories
 retain their own licenses. See [NOTICE](NOTICE).
+
+## Primary Qwen run
+
+The resumable J/R and donor-collection runner uses the preregistered settings in
+`configs/qwen-main.yaml`: 16 source prompts, independent donor prompts, 7168
+interventions per layer/epsilon, all 24 layers, six epsilons and four horizons.
+On the measured CPU, collection is estimated at about three days. Inspect the
+configuration and benchmark before launching on another machine.
+
+```sh
+export ILS_MODEL_PATH=/path/to/Qwen2.5-0.5B-Instruct
+python scripts/run_qwen_main.py --dataset data/wikitext-103-raw-v1 \
+  --reference references/jacobian-lens --phase benchmark
+python scripts/run_qwen_main.py --dataset data/wikitext-103-raw-v1 \
+  --reference references/jacobian-lens --phase all
+python scripts/fit_qwen_offline.py --run runs/qwen-main
+```
+
+The runner saves atomic per-prompt/per-layer checkpoints under ignored `runs/`.
+The offline fitter requires complete training and held-out collection and uses
+training-fold-only J/R priors. These commands cover only the primary fitting and
+intervention work, not the entire planned research study.

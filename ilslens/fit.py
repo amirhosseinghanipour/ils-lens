@@ -68,7 +68,7 @@ def r2(y, pred):
         return float('nan')
     return (1-(y-pred).square().sum()/denominator).item()
 
-def select(x,y,prompt_ids,priors,lambdas,estimators=('ridge','huber','mom'),seed=0,prior_samples=None):
+def select(x,y,prompt_ids,priors,lambdas,estimators=('ridge','huber','mom'),seed=0,prior_samples=None,fold_prior_provider=None):
     groups = prompt_ids.unique()
     if len(groups)<5:
         raise ValueError('five-fold CV requires five prompts')
@@ -84,6 +84,8 @@ def select(x,y,prompt_ids,priors,lambdas,estimators=('ridge','huber','mom'),seed
                 for group in folds:
                     held = torch.isin(prompt_ids,group)
                     fold_prior = prior_samples[name][~held].mean(0) if prior_samples is not None and name in prior_samples else prior
+                    if fold_prior_provider is not None:
+                        fold_prior = fold_prior_provider(name,prompt_ids[~held].unique())
                     a = fit(x[~held],y[~held],lam,fold_prior,estimator,prompt_ids[~held])
                     predictions[held] = x[held]@a.T
                 results.append(dict(prior=name,lam=lam,estimator=estimator,r2=r2(y,predictions)))

@@ -1,0 +1,18 @@
+[
+  {
+    "layer": 0,
+    "seconds_per_six_epsilon_sample": 2.7518495676631574
+  },
+  {
+    "layer": 7,
+    "seconds_per_six_epsilon_sample": 1.916075261658989
+  },
+  {
+    "layer": 15,
+    "seconds_per_six_epsilon_sample": 0.9597077060025185
+  },
+  {
+    "layer": 23,
+    "seconds_per_six_epsilon_sample": 0.0010907136699339997
+  }
+]
