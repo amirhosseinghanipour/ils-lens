@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this experimental research software, please cite this repository."
+title: "ILS-lens: Interventional Least-Squares Lens Research"
+type: software
+authors:
+  - name: amirhosseinghanipour
+repository-code: "https://github.com/amirhosseinghanipour/ils-lens"
+version: 0.1.0
+license: MIT
+date-released: 2026-11-05

@@ -1,0 +1,209 @@
+{
+  "config": {
+    "seed": 23,
+    "layers": [
+      0,
+      7,
+      15,
+      23
+    ],
+    "length": 128,
+    "position": 32,
+    "epsilon": [
+      0.01,
+      0.05,
+      0.1,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "gamma": [
+      0.0,
+      0.5,
+      0.9,
+      1.0
+    ],
+    "delta_distribution": "unit_isotropic",
+    "estimated_seconds": 120,
+    "estimated_disk_mb": 1,
+    "purpose": "numerical_and_runtime_validation_only",
+    "deviations": [
+      "One synthetic repeated-text prompt; not WikiText and not research evidence.",
+      "No fitted lens; compare finite differences to a local autograd JVP.",
+      "Four representative layers only for timing and numerical validation."
+    ]
+  },
+  "rows": [
+    {
+      "layer": 0,
+      "epsilon": 0.01,
+      "seconds": 0.4921434360148851,
+      "relative_jvp_error": 0.007629910483956337,
+      "effect_norm": 0.0007301999139599502
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.05,
+      "seconds": 0.48059500101953745,
+      "relative_jvp_error": 0.0022499270271509886,
+      "effect_norm": 0.0036429474130272865
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.1,
+      "seconds": 0.4797830870083999,
+      "relative_jvp_error": 0.0012000913266092539,
+      "effect_norm": 0.0072867292910814285
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.25,
+      "seconds": 0.4825213100120891,
+      "relative_jvp_error": 0.006156166084110737,
+      "effect_norm": 0.018207868561148643
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.5,
+      "seconds": 0.4877173099957872,
+      "relative_jvp_error": 0.023858776316046715,
+      "effect_norm": 0.036372777074575424
+    },
+    {
+      "layer": 0,
+      "epsilon": 1.0,
+      "seconds": 0.4807612400036305,
+      "relative_jvp_error": 0.0923691838979721,
+      "effect_norm": 0.07256142795085907
+    },
+    {
+      "layer": 7,
+      "epsilon": 0.01,
+      "seconds": 0.48072065800079145,
+      "relative_jvp_error": 0.008701588958501816,
+      "effect_norm": 0.0005530090420506895
+    },
+    {
+      "layer": 7,
+      "epsilon": 0.05,
+      "seconds": 0.47981247399002314,
+      "relative_jvp_error": 0.0018415440572425723,
+      "effect_norm": 0.002770559396594763
+    },
+    {
+      "layer": 7,
+      "epsilon": 0.1,
+      "seconds": 0.47998769299010746,
+      "relative_jvp_error": 0.0006936702993698418,
+      "effect_norm": 0.005538614466786385
+    },
+    {
+      "layer": 7,
+      "epsilon": 0.25,
+      "seconds": 0.48163363299681805,
+      "relative_jvp_error": 0.0010620786342769861,
+      "effect_norm": 0.013847359456121922
+    },
+    {
+      "layer": 7,
+      "epsilon": 0.5,
+      "seconds": 0.4805990600143559,
+      "relative_jvp_error": 0.003125924151390791,
+      "effect_norm": 0.027696287259459496
+    },
+    {
+      "layer": 7,
+      "epsilon": 1.0,
+      "seconds": 0.4807068489899393,
+      "relative_jvp_error": 0.012312844395637512,
+      "effect_norm": 0.05541772022843361
+    },
+    {
+      "layer": 15,
+      "epsilon": 0.01,
+      "seconds": 0.4806893540080637,
+      "relative_jvp_error": 0.007805284578353167,
+      "effect_norm": 0.00046146311797201633
+    },
+    {
+      "layer": 15,
+      "epsilon": 0.05,
+      "seconds": 0.4828276539919898,
+      "relative_jvp_error": 0.0010871583363041282,
+      "effect_norm": 0.002306432230398059
+    },
+    {
+      "layer": 15,
+      "epsilon": 0.1,
+      "seconds": 0.48040424499777146,
+      "relative_jvp_error": 0.0005870469030924141,
+      "effect_norm": 0.0046136765740811825
+    },
+    {
+      "layer": 15,
+      "epsilon": 0.25,
+      "seconds": 0.4803808980213944,
+      "relative_jvp_error": 0.0003194667515344918,
+      "effect_norm": 0.011532639153301716
+    },
+    {
+      "layer": 15,
+      "epsilon": 0.5,
+      "seconds": 0.48040619198582135,
+      "relative_jvp_error": 0.0008611794910393655,
+      "effect_norm": 0.02305947057902813
+    },
+    {
+      "layer": 15,
+      "epsilon": 1.0,
+      "seconds": 0.48006634501507506,
+      "relative_jvp_error": 0.0034008347429335117,
+      "effect_norm": 0.04607734829187393
+    },
+    {
+      "layer": 23,
+      "epsilon": 0.01,
+      "seconds": 0.48029970898642205,
+      "relative_jvp_error": 0.0001576592621859163,
+      "effect_norm": 0.0001052621882990934
+    },
+    {
+      "layer": 23,
+      "epsilon": 0.05,
+      "seconds": 0.48075139897991903,
+      "relative_jvp_error": 3.216342520317994e-05,
+      "effect_norm": 0.000526315241586417
+    },
+    {
+      "layer": 23,
+      "epsilon": 0.1,
+      "seconds": 0.48033762798877433,
+      "relative_jvp_error": 1.9156994312652387e-05,
+      "effect_norm": 0.001052630483172834
+    },
+    {
+      "layer": 23,
+      "epsilon": 0.25,
+      "seconds": 0.47939631398185156,
+      "relative_jvp_error": 6.253875653783325e-06,
+      "effect_norm": 0.0026315790601074696
+    },
+    {
+      "layer": 23,
+      "epsilon": 0.5,
+      "seconds": 0.4798815610120073,
+      "relative_jvp_error": 3.394146006030496e-06,
+      "effect_norm": 0.005263158120214939
+    },
+    {
+      "layer": 23,
+      "epsilon": 1.0,
+      "seconds": 0.479851274023531,
+      "relative_jvp_error": 1.6085101606222452e-06,
+      "effect_norm": 0.010526315309107304
+    }
+  ],
+  "total_seconds": 14.511748110002372,
+  "maxrss_kib": 3825452,
+  "caveat": "Single prompt/direction numerical pilot. NOT interventional R2 or a causal lens claim."
+}

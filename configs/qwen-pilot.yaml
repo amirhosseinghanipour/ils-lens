@@ -1,0 +1,14 @@
+seed: 23
+layers: [0, 7, 15, 23]
+length: 128
+position: 32
+epsilon: [0.01, 0.05, 0.1, 0.25, 0.5, 1.0]
+gamma: [0.0, 0.5, 0.9, 1.0]
+delta_distribution: unit_isotropic
+estimated_seconds: 120
+estimated_disk_mb: 1
+purpose: numerical_and_runtime_validation_only
+deviations:
+  - One synthetic repeated-text prompt; not WikiText and not research evidence.
+  - No fitted lens; compare finite differences to a local autograd JVP.
+  - Four representative layers only for timing and numerical validation.

@@ -1,0 +1,19 @@
+seed: 17
+layers: 4
+hidden_size: 16
+sequence_length: 128
+skip: 16
+train_steps: 200
+train_batch: 8
+fit_samples: 128
+heldout_samples: 40
+epsilon: 0.05
+gamma: [0.0, 0.5, 0.9, 1.0]
+purpose: synthetic_validation_only
+estimated_seconds: 300
+estimated_disk_mb: 10
+deviations:
+  - Local exact-autograd J and local LRP J; reference repos inaccessible.
+  - J++ omitted, no label-tuned substitute.
+  - One epsilon for toy pilot; full sweep not performed.
+  - Uniform-horizon toy ILS is selected from I/J/R priors by prompt CV.

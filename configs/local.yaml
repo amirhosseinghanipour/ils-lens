@@ -1,0 +1,14 @@
+model: models/Qwen2.5-0.5B-Instruct
+dtype: float32
+device: cpu
+threads: 4
+seed: 0
+sequence_length: 128
+skip: 16
+exclude_final: true
+layer_convention: zero_based_block_output
+target: final_block_output_pre_norm
+epsilon: [0.01, 0.05, 0.1, 0.25, 0.5, 1.0]
+gamma: [0.0, 0.5, 0.9, 1.0]
+samples_per_layer_epsilon: 7168
+status: planned_not_run

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ilslens"
+version = "0.1.0"
+requires-python = ">=3.11"
+description = "Experimental interventional least-squares lenses for transformer interpretability"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "amirhosseinghanipour"}]
+dependencies = ["torch", "numpy", "scipy", "transformers", "datasets", "PyYAML"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3.5"]
+plots = ["matplotlib"]
+
+[project.urls]
+Repository = "https://github.com/amirhosseinghanipour/ils-lens"
+Issues = "https://github.com/amirhosseinghanipour/ils-lens/issues"
+
+[project.scripts]
+ilslens = "ilslens.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ilslens*"]
