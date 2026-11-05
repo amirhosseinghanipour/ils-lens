@@ -1,0 +1,18 @@
+{
+  "seed": 73,
+  "prompts": 8,
+  "source_position": 40,
+  "probe": "STATE",
+  "epsilon_relative_to_state_norm": 0.1,
+  "layers": [
+    0,
+    1,
+    2
+  ],
+  "controls": 100,
+  "estimated_seconds": 180,
+  "estimated_disk_mb": 2,
+  "statistic": "signed change in probability of the true hidden-state ID",
+  "calibration_seed": 80000,
+  "test_seed": 90000
+}

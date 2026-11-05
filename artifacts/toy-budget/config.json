@@ -1,0 +1,18 @@
+{
+  "seed": 83,
+  "training_sequences": 16,
+  "training_tokens": 2048,
+  "steps": 200,
+  "width_multiplier": 8,
+  "top_k": 8,
+  "evaluation_items": 8,
+  "donors_per_item": 32,
+  "epsilon": 0.05,
+  "gamma": 1.0,
+  "source_position": 40,
+  "low_coverage_threshold": 0.5,
+  "low_completeness_threshold": 0.5,
+  "estimated_seconds": 180,
+  "estimated_disk_mb": 2,
+  "graph_freeze": "attention probabilities, norm inverse denominators, independent feature sources"
+}

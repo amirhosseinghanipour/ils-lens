@@ -1,5 +1,11 @@
 # Preliminary research results
 
+The subsequent [toy research extension](TOY_RESULTS.md) reports actual upstream
+J/R/J++ readouts, covariance-matched causal gates, trained toy transcoders and
+per-item budget closure. The earlier pilot below is retained with its original
+scope; statements about unperformed graph/gate work there apply to that pilot
+or the still-incomplete Qwen study.
+
 ## Research continuation — 2026-11-05
 
 WikiText-103 is now available locally at dataset revision

@@ -1,0 +1,10 @@
+{
+  "seconds": 180,
+  "disk_mb": 10,
+  "fit_prompts": 128,
+  "dev_prompts": 32,
+  "test_prompts": 40,
+  "PCA": 16,
+  "reason": "Toy hidden size 16, so 64-dimensional PCA is impossible",
+  "seed": 17
+}

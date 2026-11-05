@@ -8,6 +8,8 @@ core, a four-layer toy HMM experiment, and a local Qwen2.5-0.5B numerical pilot.
 It does not yet contain a completed Qwen benchmark, validated full attribution
 graphs, or evidence that ILS outperforms existing lenses. Null results and
 limitations are reported in [RESULTS.md](RESULTS.md).
+The [toy research extension](TOY_RESULTS.md) includes upstream label-tuned J++,
+random-direction controls, toy transcoders and per-item budget closure.
 
 ## Install
 

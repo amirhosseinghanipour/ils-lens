@@ -1,0 +1,599 @@
+{
+  "rows": [
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 10,
+      "recall": 0.7250000238418579,
+      "ci": [
+        0.574999988079071,
+        0.8500000238418579
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 10,
+      "recall": 0.675000011920929,
+      "ci": [
+        0.5493749976158142,
+        0.8006251454353333
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 10,
+      "recall": 0.6000000238418579,
+      "ci": [
+        0.4749999940395355,
+        0.75
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 10,
+      "recall": 0.22499999403953552,
+      "ci": [
+        0.125,
+        0.3506251275539398
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "logit",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 10,
+      "recall": 0.7250000238418579,
+      "ci": [
+        0.574999988079071,
+        0.8500000238418579
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 10,
+      "recall": 0.9750000238418579,
+      "ci": [
+        0.925000011920929,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 10,
+      "recall": 0.7250000238418579,
+      "ci": [
+        0.574999988079071,
+        0.8500000238418579
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 10,
+      "recall": 0.699999988079071,
+      "ci": [
+        0.574999988079071,
+        0.824999988079071
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 10,
+      "recall": 0.2750000059604645,
+      "ci": [
+        0.15000000596046448,
+        0.42500001192092896
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "ILS",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 10,
+      "recall": 0.9750000238418579,
+      "ci": [
+        0.925000011920929,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 1,
+      "recall": 0.30000001192092896,
+      "ci": [
+        0.17499999701976776,
+        0.44999998807907104
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 10,
+      "recall": 0.9750000238418579,
+      "ci": [
+        0.925000011920929,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 1,
+      "recall": 0.30000001192092896,
+      "ci": [
+        0.17499999701976776,
+        0.44999998807907104
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 10,
+      "recall": 0.9750000238418579,
+      "ci": [
+        0.925000011920929,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 10,
+      "recall": 0.7250000238418579,
+      "ci": [
+        0.574999988079071,
+        0.8500000238418579
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 10,
+      "recall": 0.22499999403953552,
+      "ci": [
+        0.125,
+        0.3506251275539398
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 1,
+      "recall": 0.30000001192092896,
+      "ci": [
+        0.17499999701976776,
+        0.44999998807907104
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J-reference",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 10,
+      "recall": 0.9750000238418579,
+      "ci": [
+        0.925000011920929,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 0,
+      "k": 10,
+      "recall": 0.9750000238418579,
+      "ci": [
+        0.925000011920929,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 1,
+      "k": 10,
+      "recall": 0.7250000238418579,
+      "ci": [
+        0.574999988079071,
+        0.8500000238418579
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 2,
+      "k": 10,
+      "recall": 0.6499999761581421,
+      "ci": [
+        0.5249999761581421,
+        0.7749999761581421
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": 3,
+      "k": 10,
+      "recall": 0.22499999403953552,
+      "ci": [
+        0.125,
+        0.3506251275539398
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "R-reference",
+      "label_tuned": false,
+      "layer": "any_available",
+      "k": 10,
+      "recall": 0.9750000238418579,
+      "ci": [
+        0.925000011920929,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": 0,
+      "k": 1,
+      "recall": 0.7250000238418579,
+      "ci": [
+        0.574999988079071,
+        0.8256251215934753
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": 0,
+      "k": 10,
+      "recall": 1.0,
+      "ci": [
+        1.0,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": 1,
+      "k": 1,
+      "recall": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": 1,
+      "k": 10,
+      "recall": 1.0,
+      "ci": [
+        1.0,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": 2,
+      "k": 1,
+      "recall": 0.02500000037252903,
+      "ci": [
+        0.0,
+        0.07500000298023224
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": 2,
+      "k": 10,
+      "recall": 1.0,
+      "ci": [
+        1.0,
+        1.0
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": "any_available",
+      "k": 1,
+      "recall": 0.7250000238418579,
+      "ci": [
+        0.574999988079071,
+        0.8256251215934753
+      ],
+      "n": 40
+    },
+    {
+      "lens": "J++ (label-tuned)",
+      "label_tuned": true,
+      "layer": "any_available",
+      "k": 10,
+      "recall": 1.0,
+      "ci": [
+        1.0,
+        1.0
+      ],
+      "n": 40
+    }
+  ],
+  "seconds": 13.114906880015042,
+  "estimate": {
+    "seconds": 180,
+    "disk_mb": 10,
+    "fit_prompts": 128,
+    "dev_prompts": 32,
+    "test_prompts": 40,
+    "PCA": 16,
+    "reason": "Toy hidden size 16, so 64-dimensional PCA is impossible",
+    "seed": 17
+  },
+  "caveats": [
+    "Toy only, not Qwen",
+    "J/R/J++ target sums; ILS normalized uniform horizon",
+    "J++ excludes final source layer per reference API; any_available bands differ",
+    "All toy symbols have alphanumeric names, so readout filtering removes none",
+    "Same 128 fitting sequences; J/R/J++ use every valid position, ILS samples one source per sequence",
+    "Readout labels only used for J++ dev weights; evaluation prompts untouched"
+  ]
+}
