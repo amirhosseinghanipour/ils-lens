@@ -1,0 +1,107 @@
+{
+  "config": {
+    "seed": 97,
+    "contexts": 8,
+    "directions_per_context": 16,
+    "N": 128,
+    "epsilons": [
+      0.01,
+      0.001,
+      0.0001
+    ],
+    "gamma": 1.0,
+    "source_position": 32,
+    "lambda_": 0,
+    "estimated_seconds": 60,
+    "estimated_disk_mb": 1,
+    "direction_design": "independently rotated orthogonal basis per context; marginally isotropic, not iid"
+  },
+  "rows": [
+    {
+      "layer": 0,
+      "epsilon": 0.01,
+      "matrix_cosine": 0.9999992847442627,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.001,
+      "matrix_cosine": 0.9999999403953552,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.0001,
+      "matrix_cosine": 0.9999991655349731,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 1,
+      "epsilon": 0.01,
+      "matrix_cosine": 0.9999997615814209,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 1,
+      "epsilon": 0.001,
+      "matrix_cosine": 1.0,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 1,
+      "epsilon": 0.0001,
+      "matrix_cosine": 0.9999995827674866,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 2,
+      "epsilon": 0.01,
+      "matrix_cosine": 0.9999998807907104,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 2,
+      "epsilon": 0.001,
+      "matrix_cosine": 1.0,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 2,
+      "epsilon": 0.0001,
+      "matrix_cosine": 0.9999997615814209,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 3,
+      "epsilon": 0.01,
+      "matrix_cosine": 1.0,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 3,
+      "epsilon": 0.001,
+      "matrix_cosine": 1.0000001192092896,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    },
+    {
+      "layer": 3,
+      "epsilon": 0.0001,
+      "matrix_cosine": 1.0000001192092896,
+      "heldout_top10_overlap": 1.0,
+      "passes": true
+    }
+  ],
+  "seconds": 1.0198943380091805,
+  "caveat": "Horizon-matched local J, not upstream summed J; trained toy only; no evaluation-based epsilon selection"
+}

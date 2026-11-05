@@ -1,0 +1,17 @@
+{
+  "seed": 97,
+  "contexts": 8,
+  "directions_per_context": 16,
+  "N": 128,
+  "epsilons": [
+    0.01,
+    0.001,
+    0.0001
+  ],
+  "gamma": 1.0,
+  "source_position": 32,
+  "lambda_": 0,
+  "estimated_seconds": 60,
+  "estimated_disk_mb": 1,
+  "direction_design": "independently rotated orthogonal basis per context; marginally isotropic, not iid"
+}

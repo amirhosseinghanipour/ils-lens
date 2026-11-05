@@ -12,6 +12,12 @@ parser.add_argument('--threads',type=int,default=4)
 args=parser.parse_args();torch.set_num_threads(args.threads)
 root=Path(args.run);manifest=json.loads((root/'manifest.json').read_text());config=manifest['config']
 out=root/'fits';out.mkdir(exist_ok=True)
+cells=len(args.layers)*len(config['epsilons'])*len(config['gammas'])
+(out/'estimate.json').write_text(json.dumps(dict(
+    cells=cells,estimated_matrix_bytes=cells*896*896*4,
+    rough_seconds_per_cell=180,rough_total_seconds=cells*180,
+    caveat='Unbenchmarked conservative CPU estimate; actual seconds recorded per fitted cell',
+    lambda_candidates=config['lambda_candidates'],priors=['I','J','R'],estimators=config['estimators']),indent=2))
 def load_samples(split,layer):
     files=sorted((root/'samples'/split).glob(f'prompt-*-layer-{layer:02d}.pt'))
     required=config['source_prompts'] if split=='train' else config['heldout_prompts']

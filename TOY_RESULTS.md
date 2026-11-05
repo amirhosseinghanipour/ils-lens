@@ -1,5 +1,13 @@
 # Toy research extension
 
+The trained nonlinear toy also passes the horizon-matched isotropic-limit
+diagnostic at all four layers and all three registered epsilons (.01, .001,
+.0001): matrix cosine ≥ .95 and held-out top-10 overlap ≥ .8. This uses eight
+contexts with a randomly rotated orthogonal basis per context (128 directions
+total), giving balanced covariance. It tests our normalized-horizon J, not the
+upstream summed J; directions are marginally isotropic but not iid. Detailed
+values are in `artifacts/toy-isotropic/`.
+
 These measurements concern the existing four-layer HMM transformer, not the
 0.5B Qwen model. They do not establish generalization across model seeds.
 
