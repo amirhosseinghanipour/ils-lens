@@ -1,0 +1,6 @@
+web_documents: 200000
+chat_documents: 20000
+web_revision: 9bb295ddab0e05d785b879661af7260fed5140fc
+chat_revision: 8049631c405ae6576f93f445c6b8166f76f5505a
+estimated_seconds: 12000
+estimated_disk_bytes: 6000000000

@@ -66,7 +66,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **72 passing
+the specified semantics remain unresolved. The current suite has **73 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -216,7 +216,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 72 small-input tests pass. This includes numerical identities,
+The current 73 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
