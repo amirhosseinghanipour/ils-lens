@@ -79,6 +79,22 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+The Procrustes diagnostic now records raw expert-map dispersion, aligned-map
+dispersion, positive-factor dispersion, and rotation chordal dispersion. For
+square polar factors `A_k = U_k P_k`, the orthogonal solution makes
+`U_k Q_k = U_0` by construction; aligned disagreement therefore reflects the
+remaining `P_k` disagreement. This operation is useful to characterize the maps,
+but its success does not identify rotation as the cause of expert disagreement.
+Conversely, positive-factor disagreement can occur between purely linear maps
+with different gains and is not itself evidence of curvature. A scaling-only
+synthetic test preserves all disagreement after alignment; a mixed rotation and
+scaling test verifies that aligned dispersion equals positive-factor dispersion.
+The primary diagnostic still compares recall, interventional R² and effective
+rank without selecting rotations using labels. Expert fitting provenance is
+checked, and hashes of both expert and readout-state files bind cached results.
+No Qwen Procrustes measurements have been completed.
+
+
 Multilayer causal-gate auditing found that all-zero realized swaps were counted
 as failed directional claims, and nonfinite scores could also silently become
 failures. The band gate now retains zero-displacement interventions and
@@ -153,7 +169,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **97 passing
+the specified semantics remain unresolved. The current suite has **100 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -367,7 +383,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 97 small-input tests pass. This includes numerical identities,
+The current 100 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

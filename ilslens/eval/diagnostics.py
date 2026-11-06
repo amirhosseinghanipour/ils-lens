@@ -12,6 +12,9 @@ def procrustes_experts(matrices):
 
     This is a diagnostic coordinate change, not an equivalent causal map.
     """
+    if matrices.ndim!=3 or matrices.shape[-1]!=matrices.shape[-2] or len(matrices)==0:
+        raise ValueError('Expected nonempty square expert maps')
+    if not torch.isfinite(matrices).all():raise ValueError('Nonfinite expert maps')
     u,s,vh=torch.linalg.svd(matrices)
     rotations=u@vh
     positive=vh.transpose(-1,-2)@torch.diag_embed(s)@vh
@@ -21,9 +24,16 @@ def procrustes_experts(matrices):
         left,_,right=torch.linalg.svd(rotation.T@reference)
         q=left@right
         aligned.append(rotation@q@scale)
-    plain=matrices.mean(0);aligned=torch.stack(aligned).mean(0)
+    plain=matrices.mean(0);aligned_maps=torch.stack(aligned);aligned=aligned_maps.mean(0)
+    def dispersion(values):return (values-values.mean(0)).square().sum(dim=(-1,-2)).mean().item()
+    total=matrices.square().sum(dim=(-1,-2)).mean().item()
+    diagnostics=dict(raw_dispersion=dispersion(matrices),aligned_dispersion=dispersion(aligned_maps),
+        positive_factor_dispersion=dispersion(positive),
+        rotation_chordal_dispersion=dispersion(rotations),
+        mean_expert_squared_norm=total,
+        interpretation='Square polar rotations align to the reference by construction; residual positive-factor disagreement need not be curvature.')
     return dict(plain=plain,aligned=aligned,plain_rank=effective_rank(plain),
-                aligned_rank=effective_rank(aligned))
+                aligned_rank=effective_rank(aligned),polar_diagnostics=diagnostics)
 
 def learning_curve(x,y,prompt_ids,held_x,held_y,prior,lam,estimator='ridge'):
     results=[];d=x.shape[1]
