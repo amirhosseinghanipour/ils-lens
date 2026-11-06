@@ -19,7 +19,7 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
 
-## Full training-vocabulary counts: provenance check corrected
+## Completed full training-vocabulary counts and corrected provenance check
 
 The dead-row mask requires zero-frequency tokens from the complete training
 corpus. The tokenizer-only count runner now binds the saved counts to the pinned
@@ -33,7 +33,7 @@ The pre-run estimate is 7,200 seconds and 2 MB. This preparation uses two CPU
 threads and loads no model weights; it does not move model fitting off the GPU.
 A tiny counting test verifies exact results across flush sizes, empty rows,
 newline counts, unused vocabulary rows, and out-of-vocabulary rejection. The
-complete corpus count has not yet finished, so no dead-token count is reported.
+complete corpus count has now finished; the measured counts are below.
 
 The first production attempt failed before token counting: it compared the loaded
 Dataset fingerprint to the download manifest. The serialized `state.json`
@@ -44,7 +44,22 @@ both identities, and hashes each Arrow file. This fixes a provenance-check bug;
 it changes neither corpus contents nor tokenization. The
 [failure record](artifacts/corpus-frequency-provenance-failure.json) is retained,
 and a save/load regression test covers this case and rejects changed saved
-identity or record count. The corrected count is still pending completion.
+identity or record count. The corrected count completed, and a verified reuse invocation left the saved artifact byte-for-byte unchanged.
+
+The completed count covers **1,801,350 records and 124,881,340 Qwen tokenizer
+tokens**, including the declared newline after each record. Of 151,936 model
+vocabulary rows, 62,776 occur and **89,160 (58.6826%) have zero frequency** in this
+training corpus. This is a census under the fixed tokenization rule, so no sampling
+CI is appropriate. Corpus absence does not imply globally dead or meaningless
+model rows. The prescribed mask will also include tiny unembedding-row norms;
+readout top-10 mask rates remain unmeasured until the readout experiments run.
+
+Actual runner time was 206.34 seconds versus 7,200 seconds estimated. The count
+artifact occupies 1,218,827 bytes versus the 2-MB estimate. See the
+[complete counts](artifacts/wikitext-training-frequencies.pt) and
+[metadata, source hashes, and costs](artifacts/wikitext-training-frequencies.json).
+The failed first attempt remains recorded separately; it produced no counts and
+was not combined with this result. No GPU model computation was used for counting.
 
 ## Completed all-layer normalized-J equivalence validation
 

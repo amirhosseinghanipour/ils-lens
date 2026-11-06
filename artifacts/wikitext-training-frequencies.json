@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "split": "train",
+    "complete_split": true,
+    "records": 1801350,
+    "token_count": 124881340,
+    "seconds": 206.33517412404763,
+    "fingerprint": "68882a077a2468443df8c6782d0e547040ac6c0166c99839cedc0a8bbb40946a",
+    "provenance": {
+      "dataset": {
+        "repository": "Salesforce/wikitext",
+        "config": "wikitext-103-raw-v1",
+        "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+        "rows": {
+          "test": 4358,
+          "train": 1801350,
+          "validation": 3760
+        },
+        "fingerprints": {
+          "test": "6697c89733457768",
+          "train": "b06c41c32c07fc3b",
+          "validation": "a89326bbba55ec04"
+        }
+      },
+      "dataset_storage": {
+        "saved_split_fingerprint": "b06c41c32c07fc3b",
+        "loaded_split_fingerprint": "87cfe39fb693eadb",
+        "state_sha256": "a49be76b39908af1010e32440814ce3154e05173a3287fc3458a249bf614de89",
+        "arrow_sha256": {
+          "data-00000-of-00002.arrow": "91568625faf129091f8a0d1e9f20ea26c5fbfdd943abf6dc78cc74dd43ade4c3",
+          "data-00001-of-00002.arrow": "776ee05bb8a9f5374624d66c4334e62bb3ab4ad90e0cdc4f5bc1b9d48f0c5d76"
+        },
+        "fingerprint_note": "datasets.load_from_disk restores formatting with with_format; its in-memory fingerprint may differ from the serialized fingerprint"
+      },
+      "tokenizer_hashes": {
+        "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+        "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+        "config.json": "18e18afcaccafade98daf13a54092927904649e1dd4eba8299ab717d5d94ff45"
+      },
+      "tokenization": "Every training row text plus newline; add_special_tokens=False",
+      "vocabulary": 151936
+    },
+    "threads": 2
+  },
+  "vocabulary_rows": 151936,
+  "observed_rows": 62776,
+  "zero_frequency_rows": 89160,
+  "zero_frequency_fraction": 0.5868260320134794,
+  "artifact_sha256": "67d2974abc21c6da3f41f739220d8402599a9d056b304d8bb1f0638af6f0460f",
+  "artifact_bytes": 1218827,
+  "source_commit": "44b8df85985d140944530dc02c56fa0fd72e9ec7",
+  "original_estimate": {
+    "estimated_seconds": 7200,
+    "estimated_disk_mb": 2,
+    "scope": "Tokenizer-only complete training split; no model fitting"
+  },
+  "reuse_verified_unchanged": true,
+  "interpretation": "Complete-corpus token-ID counts, not an estimate or evidence that unseen tokens are globally dead; final dead-row mask also includes tiny unembedding-row norms."
+}

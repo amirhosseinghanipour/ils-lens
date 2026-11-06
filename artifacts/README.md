@@ -19,3 +19,9 @@ normalized-J equivalence validation. `numerical-all-layer-cosine-audit.json`
 records hashes and stable reporting reductions of all saved matrix pairs. These
 are numerical validation results, not the primary donor-intervention study.
 The fp32 directional-error limitation remains documented in `REPORT.md`.
+
+`wikitext-training-frequencies.pt` contains complete WikiText-103 training token-ID
+counts for the local Qwen tokenizer, including zero-frequency model vocabulary
+rows. Its JSON companion records pinned dataset/tokenizer hashes, count totals,
+measured preparation costs, and the source commit. These counts support the
+required corpus-frequency mask; unseen tokens are not declared globally useless.
