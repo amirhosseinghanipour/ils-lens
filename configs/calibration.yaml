@@ -1,0 +1,9 @@
+# Existing calibration settings made explicit; no evaluation-label selection.
+device: cuda
+count: 100000
+epsilon: 0.05
+gamma: 0.9
+split: test
+sequence_length: 128
+skip_first: 16
+exclude_final: true

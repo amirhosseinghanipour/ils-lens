@@ -15,6 +15,14 @@ not an exact implementation of the entire proposal.
 
 ## Completed primary collection and integrity audit
 
+Calibration now has an explicit `configs/calibration.yaml`, preserving the
+existing 100,000 test-split activations, 128-token windows, skip-16 and
+final-position exclusion, epsilon 0.05 and gamma 0.9. CLI overrides are recorded
+in the resolved configuration and newly fitted calibration metadata. Changed
+sampling conventions and fewer than 100,000 references are rejected. This is a
+reproducibility correction, not a calibration measurement or method change.
+The local suite passed 145 tests in 6.448 seconds after this change.
+
 The [full collection audit](artifacts/primary-full-collection-integrity.json)
 passes for all 1,152 checkpoints: 384 training shards and 768 held-out shards,
 totaling 19,827,816,192 bytes. Each layer/epsilon has 7,168 fitting samples and

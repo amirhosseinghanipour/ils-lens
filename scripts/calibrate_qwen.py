@@ -3,20 +3,33 @@ import argparse,json,time
 from pathlib import Path
 import numpy as np
 import torch
+import yaml
 from ilslens.model import load_local
 from ilslens.data import token_windows
 from ilslens.artifacts import primary_bank
 from ilslens.hooks import capture_blocks
 from ilslens.calibration import fit_calibration,matrix_fingerprint,CALIBRATION_VERSION
 
-def main():
+def parse_args(argv=None):
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True);parser.add_argument('--frequencies',required=True)
     parser.add_argument('--run',default='runs/qwen-main');parser.add_argument('--output',default='runs/calibration')
-    parser.add_argument('--device',default='cuda');parser.add_argument('--count',type=int,default=100000)
-    parser.add_argument('--epsilon',type=float,default=.05);parser.add_argument('--gamma',type=float,default=.9)
+    parser.add_argument('--config',default='configs/calibration.yaml')
+    parser.add_argument('--device');parser.add_argument('--count',type=int)
+    parser.add_argument('--epsilon',type=float);parser.add_argument('--gamma',type=float)
     parser.add_argument('--jpp')
-    args=parser.parse_args()
+    args=parser.parse_args(argv)
+    config=yaml.safe_load(Path(args.config).read_text())
+    for key in ('device','count','epsilon','gamma'):
+        if getattr(args,key) is None:setattr(args,key,config[key])
     if args.count<100000:raise ValueError('Production calibration requires at least 100000 activations')
+    conventions=dict(split='test',sequence_length=128,skip_first=16,exclude_final=True)
+    if any(config.get(key)!=value for key,value in conventions.items()):
+        raise ValueError('Calibration requires held-out test data and the registered 128/skip-16/exclude-final conventions')
+    args.resolved_config={**config,**{key:getattr(args,key) for key in ('device','count','epsilon','gamma')}}
+    return args
+
+def main():
+    args=parse_args()
     root=Path(args.output);root.mkdir(parents=True,exist_ok=True);start=time.perf_counter()
     estimate=dict(reference_count=args.count,activation_bytes=args.count*896*24*4,
         estimated_seconds=86400,note='Unbenchmarked CPU GPD fitting may dominate GPU score calculation',split='test')
@@ -36,6 +49,7 @@ def main():
         model='Qwen/Qwen2.5-0.5B-Instruct',primary_fingerprint=metadata['fingerprint'])
     if manifest_path.exists() and json.loads(manifest_path.read_text())!=activation_key:
         raise ValueError('Calibration activation provenance changed')
+    (root/'resolved-config.json').write_text(json.dumps(args.resolved_config,indent=2))
     complete=(root/'activations-complete.json').exists()
     maps={layer:np.memmap(root/f'layer-{layer:02d}.f32',mode='r+' if complete else 'w+',dtype='float32',shape=(args.count,896)) for layer in range(24)}
     if not complete:
@@ -64,6 +78,7 @@ def main():
             calibration=fit_calibration(transported,model.lm_head.weight,model.model.norm.weight,frequencies['counts'])
             calibration['metadata']=dict(primary_fingerprint=metadata['fingerprint'],lens=name,layer=layer,
                 matrix_sha256=matrix_fingerprint(matrix),
+                calibration_config=args.resolved_config,
                 epsilon=args.epsilon,gamma=args.gamma,reference_split='test',label_tuned=name.startswith('J++'),seconds=time.perf_counter()-begin)
             temporary=path.with_suffix('.tmp');torch.save(calibration,temporary);temporary.replace(path)
             del h,transported
