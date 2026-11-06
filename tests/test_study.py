@@ -9,8 +9,10 @@ class StudyTests(unittest.TestCase):
         plan=stages('/data','/references','/corpus');names=[row['name'] for row in plan]
         self.assertEqual(len(names),len(set(names)));self.assertEqual(names[-1],'audit')
         for first,second in [('numerical','primary-collection'),('primary-collection','primary-fitting'),('readout-gates','jpp'),
-            ('jpp','calibration'),('calibration','readouts'),('workspacebench','template'),('template','graphs'),('transcoders','graphs'),('planted','planted-graphs')]:
+            ('jpp','calibration'),('calibration','readouts'),('workspacebench','graph-items'),('graph-items','template'),('template','graphs'),('transcoders','graphs'),('planted','planted-graphs')]:
             self.assertLess(names.index(first),names.index(second))
+        template=next(row for row in plan if row['name']=='template')
+        self.assertIn('--dictionary-items',template['command'])
         for row in plan:self.assertNotIn('cpu',row['command'])
     def test_source_digest_ignores_logs_but_detects_method_changes(self):
         with tempfile.TemporaryDirectory() as directory:

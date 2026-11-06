@@ -30,6 +30,7 @@ def main():
                            'Production is blocked; --exploratory-affine is only for separately labeled exploratory results.')
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())
     run=Experiment(args.output,dict(config=config,items=items,adapter=args.adapter,phrase_rows=args.phrase_rows,device=args.device,
+        graph_protocol='direct-and-live-v2',exploratory_affine=True,
         coverage_convention='Exact task context plus excluded EOS sentinel, source skip=0; WikiText fitting remains skip16'))
     model,tokenizer=load_local(args.device);bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])
     if args.adapter:
@@ -96,6 +97,7 @@ def main():
             logit.pop('contributions');write_json(run.path/f'logit-{index:04d}.json',logit)
             if not logit['all_edges_pass']:raise AssertionError('Logit graph finite-edge validation failed')
     run.result(dict(budget=close_budget(rows,config['coverage_threshold'],config['completeness_threshold']),metadata=metadata,
+        exploratory_affine=True,graph_protocol='direct-and-live-v2',
         donor_provenance=provenance,adapter=args.adapter,
         deviations=['Direct source-to-target attribution graph with independent clean feature sources',
                     'Bounded upstream feature expansion uses clean TopK encoder support; unexpanded nodes remain listed',

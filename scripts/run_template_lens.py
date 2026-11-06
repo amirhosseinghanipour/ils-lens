@@ -17,13 +17,15 @@ from ilslens.experiment import Experiment,save_tensor,write_json
 def main():
     p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--items',required=True)
     p.add_argument('--dictionary',default='configs/phrases.json');p.add_argument('--config',default='configs/template.yaml')
+    p.add_argument('--dictionary-items',help='Additional evaluation exports whose target phrases enter the fixed dictionary, without using outcomes')
     p.add_argument('--output',default='runs/template');p.add_argument('--device',default='cuda')
     p.add_argument('--phase',choices=['collect','fit','evaluate','all'],default='all');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())
     entries=json.loads(Path(args.dictionary).read_text());model,tokenizer=load_local(args.device);d=model.config.hidden_size
     # Targets are allowed in the dictionary by the protocol. Their evaluation labels
     # never select a penalty, layer, perturbation magnitude or estimator.
-    phrases=list(dict.fromkeys(entries+[target for item in items for target in item['targets']+item.get('contrasts',[])]))
+    dictionary_items=json.loads(Path(args.dictionary_items).read_text()) if args.dictionary_items else []
+    phrases=list(dict.fromkeys(entries+[target for item in items+dictionary_items for target in item['targets']+item.get('contrasts',[])]))
     accepted=[];excluded=[]
     for phrase in phrases:
         count=len(tokenizer.encode(' '+phrase,add_special_tokens=False))

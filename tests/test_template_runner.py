@@ -29,11 +29,15 @@ class TemplateRunnerIntegrationTests(unittest.TestCase):
             contrasts=['blue house'],answers=['red house'],actual_output='red house',pair_id=None)
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);(root/'config.yaml').write_text(yaml.safe_dump(config));(root/'items.json').write_text(json.dumps([item]));(root/'phrases.json').write_text('["red house","blue house"]')
+            (root/'dictionary-items.json').write_text(json.dumps([dict(targets=['green tree'])]))
             argv=['run_template_lens','--config',str(root/'config.yaml'),'--items',str(root/'items.json'),'--dictionary',str(root/'phrases.json'),
-                '--dataset','unused','--output',str(root/'run'),'--device','cpu']
+                '--dataset','unused','--output',str(root/'run'),'--device','cpu','--dictionary-items',str(root/'dictionary-items.json')]
             with patch.object(sys,'argv',argv),patch.object(module,'load_local',return_value=(model,tokenizer)),patch.object(module,'wikitext_sequences',side_effect=data):
                 module.main()
             result=json.loads((root/'run/results.json').read_text())
-            self.assertEqual(len(result['rows']),2);self.assertEqual(len(result['interventional_faithfulness']),4)
+            self.assertEqual(len(result['rows']),2);self.assertEqual(len(result['interventional_faithfulness']),6)
+            artifact=torch.load(root/'run/rows-layer-00.pt',weights_only=True)
+            self.assertIn('green tree',artifact['metadata']['phrases'])
+            self.assertTrue(all(row['target']=='red house' for row in result['rows']))
             self.assertTrue(all(len(row['gate']['random_effects'])==100 for row in result['rows']))
             self.assertTrue((root/'run/rows-layer-00.pt').exists())

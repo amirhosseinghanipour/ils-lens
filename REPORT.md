@@ -80,6 +80,15 @@ original-model norms-only survival. The live result records support switches,
 its own local-derivative error, and the direct-edge prediction error. A direct
 edge passing does not assert that either propagated measurement passes.
 
+The phrase dictionary now includes eligible targets from both the five readout
+tasks and WorkspaceBench, while phrase evaluation remains on its declared
+items. This fixes missing graph target rows caused by building the dictionary
+only from WorkspaceBench. Penalties are still chosen solely by interventional
+cross-validation. Targets outside 2–5 model tokens remain explicitly unsupported;
+this change does not claim complete budget closure. The artifact audit now
+explicitly rejects exploratory affine graph outputs as full proposal compliance
+and checks distinct training tokens for the registered transcoder budget.
+
 ## Model and numerical conventions
 
 The subject is **Qwen2.5-0.5B-Instruct**, 24 blocks, residual width 896, vocabulary
