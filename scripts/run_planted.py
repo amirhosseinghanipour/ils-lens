@@ -12,7 +12,7 @@ from ilslens.eval.contrastive import render_condition,completion_states
 from ilslens.artifacts import primary_bank
 from ilslens.contrast import contrast_with_null,rank_of
 from ilslens.readout import raw
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.eval.faithfulness import bootstrap_r2
 
 
@@ -22,7 +22,7 @@ def main():
     p.add_argument('--run',default='runs/qwen-main');p.add_argument('--dataset');p.add_argument('--device',default='cuda')
     p.add_argument('--phase',choices=['train-behavior','detect','all'],default='all');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());prompts=json.loads(Path(args.prompts).read_text())
-    run=Experiment(args.output,dict(config=config,evaluation_prompts=prompts,device=args.device,ranking='score-descending-id-ascending-v2'))
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,evaluation_prompts=prompts,device=args.device,ranking='score-descending-id-ascending-v2'))
     model,tokenizer=load_local(args.device);torch.manual_seed(config['seed'])
     adapters=AdapterSet(model,config['rank'],config['alpha'])
     checkpoint=run.path/'adapter.pt'

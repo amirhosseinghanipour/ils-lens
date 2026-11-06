@@ -3,7 +3,7 @@ import argparse,json
 from pathlib import Path
 import torch,yaml
 from ilslens.model import load_local
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.suffix import QwenSuffix
 from ilslens.sampling import horizon_weights
 from ilslens.covariance import residual_moments
@@ -13,7 +13,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--run',default='runs/qwen-main')
     p.add_argument('--config',default='configs/diagnostics.yaml');p.add_argument('--output',default='runs/ablations');p.add_argument('--device',default='cuda');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());manifest=json.loads((Path(args.run)/'manifest.json').read_text());primary=manifest['config']
-    run=Experiment(args.output,dict(config=config,primary_fingerprint=manifest['fingerprint'],device=args.device))
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,primary_fingerprint=manifest['fingerprint'],device=args.device))
     model,tokenizer=load_local(args.device);layers=config['layers'];d=model.config.hidden_size
     sources,rows=wikitext_sequences(args.dataset,tokenizer,'train',primary['source_prompts'])
     if rows!=manifest['source_rows']:raise ValueError('Fitting corpus mismatch')

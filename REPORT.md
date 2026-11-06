@@ -19,6 +19,34 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Fitting-corpus sampling correction before primary execution
+
+A corpus audit found that the original first-eligible-row sampler assigned 15
+of 16 source paragraphs to *Valkyria Chronicles III* and 14 of 16 donor paragraphs
+to *Tower Building of the Little Rock Arsenal*. This was a narrow, mismatched
+bank, not a representative random selection from WikiText train. The waiting
+primary controller was stopped before any primary fits or intervention collection.
+The old benchmark and numerical-validation contexts are retained as exploratory
+provenance; the running numerical test is unchanged.
+
+The replacement sampler uses a fixed CPU-generator seed of 101 to permute all
+row indices, then takes eligible rows in that order (at least 600 characters and
+128 tokens). It still truncates each row to 128 tokens. Source and donor banks
+are disjoint consecutive portions of the same permutation; J/R/J++ receive their
+32-row union. This is a documented sampling-method correction based on corpus
+structure, with no evaluation labels or outcomes used. The new 16-row source
+and donor banks each contain 16 distinct articles. This small budget still limits
+generalization; article diversity does not establish representativeness.
+See [the reproducible audit](artifacts/wikitext-sampling-audit.json) and
+[sampler audit script](scripts/audit_wikitext_sampling.py).
+
+New row provenance and resumable-experiment fingerprints include the sampling
+policy. Old caches reject the changed protocol; primary execution uses a new
+output directory and a fixed checkout. Tests verify deterministic selection,
+disjoint banks, baseline union equality, eligibility, and unchanged global RNG.
+The numerical job launched at commit e9e5c90 must be resumed from that commit if
+necessary; new sampler code must not be used with its existing checkpoints.
+
 ## Specification corrections and a failed graph criterion
 
 The token-change Spearman implementation previously applied normalization and
@@ -66,7 +94,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **86 passing
+the specified semantics remain unresolved. The current suite has **88 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -280,7 +308,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 86 small-input tests pass. This includes numerical identities,
+The current 88 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

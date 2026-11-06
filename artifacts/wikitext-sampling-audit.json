@@ -1,0 +1,674 @@
+{
+  "sampling_policy": {
+    "version": "seeded-row-permutation-v1",
+    "seed": 101,
+    "minimum_characters": 600,
+    "selection": "first-length-tokens"
+  },
+  "legacy_fingerprint": "75b393bd9b1814a6ee6c7ea6e0109dc7d72006cd6a9719bfd0a8691f542c9979",
+  "legacy_policy": "first eligible rows in original dataset order; minimum 600 characters and 128 tokens",
+  "dataset": {
+    "repository": "Salesforce/wikitext",
+    "config": "wikitext-103-raw-v1",
+    "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+    "rows": {
+      "test": 4358,
+      "train": 1801350,
+      "validation": 3760
+    },
+    "fingerprints": {
+      "test": "6697c89733457768",
+      "train": "b06c41c32c07fc3b",
+      "validation": "a89326bbba55ec04"
+    }
+  },
+  "banks": {
+    "legacy_source": {
+      "rows": [
+        {
+          "row": 3,
+          "split": "train",
+          "sha256": "829d4a62da6b2e736caa7d1a65413c5c5e9ccd39e076e7919f4ef62101aee92a",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 9,
+          "split": "train",
+          "sha256": "f40d7721c12e0604ba4af4077008eb5d7715311943737ee87386f04de9ed8887",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 10,
+          "split": "train",
+          "sha256": "ec7c7de2e2838e9cf5559e756b555b2f8a0191db09b7e8b5e46a4b4bdf9bee8c",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 15,
+          "split": "train",
+          "sha256": "347a810554dbcc8a287833d2bf0da79ff0f33465680ca79168ff1df04f7e9595",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 16,
+          "split": "train",
+          "sha256": "d3968ee224142cb034681742fc8f97aab99d146bfc7c6d0a757493a48d7556cc",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 17,
+          "split": "train",
+          "sha256": "46b20635c8942739f0c274ff4f87144df1a35fe16a87549cf5080676bcf661cf",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 21,
+          "split": "train",
+          "sha256": "c2c35a852bda934c5d25a9494db64c2ca7481fb75c7a3543107ac1e8e09bbaee",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 22,
+          "split": "train",
+          "sha256": "e2f4b829b05853782f21dad2a75cc8f89bcf69714642944db584ea6bbe4b3f53",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 26,
+          "split": "train",
+          "sha256": "f84edc24d1b93c726e0a47337068f0557810820517ecc48485da8aa1467081cb",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 30,
+          "split": "train",
+          "sha256": "995a5d0a6a319fc10e7189dd5e9edc2d2d5a50c9181ed1a0df6f990e26702b90",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 36,
+          "split": "train",
+          "sha256": "48b769d2e06eab82d66927fc439e051059a9b6aa511d1cad9b7c1e39eded90e1",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 37,
+          "split": "train",
+          "sha256": "ac7a11b691839e9c0aa42ee9f8dc64cf4804a098868be630a7f8d4715f46ab16",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 46,
+          "split": "train",
+          "sha256": "a1254b238c13053caa9b086459479ff9c18ae4c9cf61fbdfd5e21b52416f6cd1",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 47,
+          "split": "train",
+          "sha256": "723e31078e102e1ab54a1f8bd691a07e6e46419710c33c91e76949b7c91bf24f",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 48,
+          "split": "train",
+          "sha256": "cb688400176a30e9290cb3dd4be8ce152ddc7badfaffbb3e1292399cb4ab1949",
+          "article": "Valkyria Chronicles III"
+        },
+        {
+          "row": 58,
+          "split": "train",
+          "sha256": "c6a9efd4f0bb8294eb6f55daf9b8252a331285ac9f9e3a914e880b15a719db1a",
+          "article": "Tower Building of the Little Rock Arsenal"
+        }
+      ],
+      "article_counts": {
+        "Valkyria Chronicles III": 15,
+        "Tower Building of the Little Rock Arsenal": 1
+      },
+      "distinct_articles": 2,
+      "largest_article_fraction": 0.9375
+    },
+    "legacy_donor": {
+      "rows": [
+        {
+          "row": 62,
+          "split": "train",
+          "sha256": "c7aaca089554e231c890cbbb234a95cf5cdd2aa79bd1d8b1fd181dd3cbab4470",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 65,
+          "split": "train",
+          "sha256": "bcee824a5d9b970c28c605696c78c8e0aff1858bd44ac5f4a925e83dea0a3005",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 66,
+          "split": "train",
+          "sha256": "920c0a771540345092d58cf14622654c7ff640e9f0af3a9705368ffd0e6a655a",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 84,
+          "split": "train",
+          "sha256": "fd45ebd7b942a2982bdd59ccb8de9080018408bb7cf5e029ff47a71774bc4a95",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 87,
+          "split": "train",
+          "sha256": "c3ec89d3a566196f02d9a17836e6beb4cd985037c4ac8a803f4c8c9938ec747c",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 88,
+          "split": "train",
+          "sha256": "cb5c3586925ea9598dae487fbf25c95721bd32a99a4ae48bcfd3dfd896b10a3a",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 89,
+          "split": "train",
+          "sha256": "ea9ddcefcc278751327a8c9beeb701b6d2fe0d5acc7adc2a0c6ea19424e022ff",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 90,
+          "split": "train",
+          "sha256": "d6f98312ce27534beaaf45a4fe3fe281211e614504918a3daa7f125fda42904f",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 111,
+          "split": "train",
+          "sha256": "d12720eedda4f915bafbf1c5ecb982c7d3bedf2191a564bfae3e6d2fda87378e",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 117,
+          "split": "train",
+          "sha256": "597931e92bfb028c148edc4691d6101f9fc3cd3ac324cc3b0737349a04de99b9",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 118,
+          "split": "train",
+          "sha256": "bc3c33390910e04957ac2b6565bc8d7e20e4a43a15534943f4eec132d51d1614",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 127,
+          "split": "train",
+          "sha256": "e744e44d057d91b87454c19f257d615e9c4b82e7df8954504b5fc6365967019c",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 129,
+          "split": "train",
+          "sha256": "19e4c8f75e967a2d1f1bc4bee6caeb9fffd2fcdec36518e5242e77db63d2e2cb",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 130,
+          "split": "train",
+          "sha256": "a1f71fa7c9bca40a1842f47f2b25669f80e5dfb88b97d190ceefa871da240284",
+          "article": "Tower Building of the Little Rock Arsenal"
+        },
+        {
+          "row": 161,
+          "split": "train",
+          "sha256": "08f58a65e1fe974db4bd59bd4a1d87b6f18994b92b89472b57526edc41876717",
+          "article": "Cicely Mary Barker"
+        },
+        {
+          "row": 167,
+          "split": "train",
+          "sha256": "993329aca4dc064355a2f87792a80b9f462cc4da8df621386c58f29245e96645",
+          "article": "Cicely Mary Barker"
+        }
+      ],
+      "article_counts": {
+        "Tower Building of the Little Rock Arsenal": 14,
+        "Cicely Mary Barker": 2
+      },
+      "distinct_articles": 2,
+      "largest_article_fraction": 0.875
+    },
+    "shuffled_source": {
+      "rows": [
+        {
+          "row": 1165331,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "850da1d75c1dfe30f7de7a9fa153aaec83c3b0d7a3beeb22afb59f40f47b3f7a",
+          "article": "Beyonc\u00e9"
+        },
+        {
+          "row": 1605693,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "7b69bdb2329dad05ad804c7de03b3b7524c9e3591a32401c1f6b136c4059f1d2",
+          "article": "Mercedes McQueen"
+        },
+        {
+          "row": 413617,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "9453b27d5d76bdb4dd3c3c6d54692cd51807f3663c57510cdffd4e36ba79aee3",
+          "article": "( 1979 @-@ 03 @-@ 18 ) March 18 , 1979 | birth _ place"
+        },
+        {
+          "row": 1650745,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "88303df3c88ed020f01ebc7176daf4abf727e52e455822af105f224a451d1b33",
+          "article": "Pussy Riot"
+        },
+        {
+          "row": 495847,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "32df7c98ee9c640d948ce69f9c349526676c25e2dca9fd66a34f5cd3bf558803",
+          "article": "EarthBound"
+        },
+        {
+          "row": 1593128,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "ecfa9a3bf42d463e25a2e32c12e97f265b9f4ced0348c71a43415c669127f786",
+          "article": "Montreal"
+        },
+        {
+          "row": 1224782,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "a30b09383edcab8e455299fbd5b052df5056f9e27ee85b84f39e49ae55a2dcad",
+          "article": "Psilocybe aztecorum"
+        },
+        {
+          "row": 712828,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "26d7300cfa2d74559e6bf86b40714c96d5bb3e983b95e5b47aa1d360407f1e36",
+          "article": "Covering of the Senne"
+        },
+        {
+          "row": 1755511,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "b1084b9620df760337476bb31ec37f5bc43477b3ad3df40939bbe99f118885df",
+          "article": "HMS Alceste ( 1806 )"
+        },
+        {
+          "row": 832471,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "ea827ba39b74b0146717062e89aa216cf997e5f54a76b1ce4fe4db8e68423798",
+          "article": "Sitakunda Upazila"
+        },
+        {
+          "row": 562688,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "5563b663de221504c321368f1f3a17d336077d5bd95ec52e55b09110cf6451a9",
+          "article": "Pilot ( The X @-@ Files )"
+        },
+        {
+          "row": 1518447,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "0d405f218bd96272aa2b8e7d8ec75a373546405a9890c0670a9ebe70b26a47eb",
+          "article": "Rani Mukerji"
+        },
+        {
+          "row": 350480,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "2d9c0b06ba0be324e83b8a7303f04f8844b81616afc5b0d939d66de177655ed0",
+          "article": "Hurricane Karen ( 2007 )"
+        },
+        {
+          "row": 502401,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "4e0cb6f5c1af76867913da485717738335bf68be5c67fbf1c8ddb03d65368c1d",
+          "article": "Boletus subluridellus"
+        },
+        {
+          "row": 1409821,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "4a2ee4407225990d82c8faea239da46258057573ebe6ea3ce5d715a769e48167",
+          "article": "Battle of Moscow"
+        },
+        {
+          "row": 843350,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "2bd2b3cc4a789b212a1885c8e85b06951a7be1513a4f74b0d57e68a1683e14d5",
+          "article": "Nikolai Rimsky @-@ Korsakov"
+        }
+      ],
+      "article_counts": {
+        "Beyonc\u00e9": 1,
+        "Mercedes McQueen": 1,
+        "( 1979 @-@ 03 @-@ 18 ) March 18 , 1979 | birth _ place": 1,
+        "Pussy Riot": 1,
+        "EarthBound": 1,
+        "Montreal": 1,
+        "Psilocybe aztecorum": 1,
+        "Covering of the Senne": 1,
+        "HMS Alceste ( 1806 )": 1,
+        "Sitakunda Upazila": 1,
+        "Pilot ( The X @-@ Files )": 1,
+        "Rani Mukerji": 1,
+        "Hurricane Karen ( 2007 )": 1,
+        "Boletus subluridellus": 1,
+        "Battle of Moscow": 1,
+        "Nikolai Rimsky @-@ Korsakov": 1
+      },
+      "distinct_articles": 16,
+      "largest_article_fraction": 0.0625
+    },
+    "shuffled_donor": {
+      "rows": [
+        {
+          "row": 1481928,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "31397d743d2b966f02fe811b6692f88a67e74dd13e8e798711b0bfab0b9e4adb",
+          "article": "Richard Tomlinson"
+        },
+        {
+          "row": 93714,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "da392adaf23c8ef8293ba3e6e19cf3fa973baac3c6c5ad6a7ef57a990d3624bc",
+          "article": "A Perfect Circle"
+        },
+        {
+          "row": 556377,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "da3ca2defb88fda0c1ee5724590f59624937b7defe10d9cb560c666bea843c51",
+          "article": "Laser Beam"
+        },
+        {
+          "row": 1207694,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "cdb27057849b9b0633726904bdf2c97f76655d885ead4be415a11e72f4bdf7a8",
+          "article": "Box lacrosse"
+        },
+        {
+          "row": 638130,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "7d4725aa1f1915d22346e4a59eb6499df732a93de997f861c055be69f97c16c9",
+          "article": "Traumatic brain injury"
+        },
+        {
+          "row": 1340248,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "ee4495ac5b3797457e4399ee7380add52ac7d866cdf549677260cc625cfd0006",
+          "article": "U.S. Route 163"
+        },
+        {
+          "row": 1290498,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "e35e93ff1869abc4185b569e61945cd35959aab2b4f31702f1a12aa57a0bb28b",
+          "article": "Ina Coolbrith"
+        },
+        {
+          "row": 351382,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "6daca301407500779caefab7ae8e91033e72626e3b63ed0bab575ce1e95c3116",
+          "article": "William Beach Thomas"
+        },
+        {
+          "row": 413972,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "8f99ad15ece5b87bc873eac16c347318bdd85d5eb7638955a81e942b1858244c",
+          "article": "IPhone 5S"
+        },
+        {
+          "row": 416038,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "0986053a4ce7f6311a15ecbedd7227cca87a696329065eb3eb9214f343ce93f7",
+          "article": "Kashimashi : Girl Meets Girl"
+        },
+        {
+          "row": 147320,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "c8e1888fe73c3dcb99c2d060888664c6b3c0eb41f66e1587fe161745211cf4b7",
+          "article": "Sinclair C5"
+        },
+        {
+          "row": 912666,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "16021adec5faf723e440dc7534e38e8afd000f131070e07db047b48ade53caae",
+          "article": "Ohlone people"
+        },
+        {
+          "row": 247614,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "6f513d0578c22cd17e7243bd347328c443db1cfd221cabd54411bc5689396e49",
+          "article": "Hurricane Mitch"
+        },
+        {
+          "row": 909370,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "4b24f7952f2cc17f93ee2c26054f21200d01068f69c8802bd8f819974b33d874",
+          "article": "Anna May Wong"
+        },
+        {
+          "row": 140058,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "f451ffc8ef86f09911c9edd51e9357368d8180362dd719e7278c50fb088ac4b7",
+          "article": "Arrested Development ( TV series )"
+        },
+        {
+          "row": 1620201,
+          "split": "train",
+          "sampling": {
+            "version": "seeded-row-permutation-v1",
+            "seed": 101,
+            "minimum_characters": 600,
+            "selection": "first-length-tokens"
+          },
+          "sha256": "e22e992c77af1148d13847750f196ad77707081f4097cea30576a32cdfc41df7",
+          "article": "Talk ( song )"
+        }
+      ],
+      "article_counts": {
+        "Richard Tomlinson": 1,
+        "A Perfect Circle": 1,
+        "Laser Beam": 1,
+        "Box lacrosse": 1,
+        "Traumatic brain injury": 1,
+        "U.S. Route 163": 1,
+        "Ina Coolbrith": 1,
+        "William Beach Thomas": 1,
+        "IPhone 5S": 1,
+        "Kashimashi : Girl Meets Girl": 1,
+        "Sinclair C5": 1,
+        "Ohlone people": 1,
+        "Hurricane Mitch": 1,
+        "Anna May Wong": 1,
+        "Arrested Development ( TV series )": 1,
+        "Talk ( song )": 1
+      },
+      "distinct_articles": 16,
+      "largest_article_fraction": 0.0625
+    }
+  },
+  "selection_used_evaluation_labels": false,
+  "seconds": 10.649700947979,
+  "limitation": "32 rows remain a small corpus; shuffled rows are not balanced or stratified by article."
+}

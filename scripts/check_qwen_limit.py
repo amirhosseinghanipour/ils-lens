@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 import torch,yaml
 from ilslens.model import load_local
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.suffix import QwenSuffix
 from ilslens.hooks import capture_blocks
 from ilslens.fit import ridge
@@ -14,7 +14,7 @@ from ilslens.experiment import Experiment,save_tensor,write_json
 def main():
     p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--config',default='configs/numerical.yaml')
     p.add_argument('--output',default='runs/numerical');p.add_argument('--device',default='cuda');args=p.parse_args()
-    config=yaml.safe_load(Path(args.config).read_text());run=Experiment(args.output,dict(config=config,device=args.device))
+    config=yaml.safe_load(Path(args.config).read_text());run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,device=args.device))
     model,tokenizer=load_local(args.device);d=model.config.hidden_size
     sources,source_rows=wikitext_sequences(args.dataset,tokenizer,'train',config['contexts'],offset=32)
     heldout,heldout_rows=wikitext_sequences(args.dataset,tokenizer,'validation',config['heldout_prompts'],offset=192)

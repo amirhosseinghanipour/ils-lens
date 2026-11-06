@@ -5,7 +5,7 @@ import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.covariance import residual_moments
 from ilslens.concept import projection,read
 from ilslens.readout import raw,target_ranks
@@ -20,7 +20,7 @@ def main():
     short,metadata=primary_bank(args.run,config['epsilon'],0.);long,_=primary_bank(args.run,config['epsilon'],.9)
     cached=torch.load(args.states,weights_only=True,map_location='cpu')
     if cached['metadata']['fingerprint']!=metadata['fingerprint']:raise ValueError('Read-state provenance differs')
-    run=Experiment(args.output,dict(config=config,primary_fingerprint=metadata['fingerprint'],device=args.device,ranking='score-descending-id-ascending-v2'))
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,primary_fingerprint=metadata['fingerprint'],device=args.device,ranking='score-descending-id-ascending-v2'))
     count=json.loads((Path(args.run)/'manifest.json').read_text())['config']['source_prompts']
     sequences,_=wikitext_sequences(args.dataset,tokenizer,'train',count);moments=residual_moments(model,sequences,config['layers'])
     rows=[]

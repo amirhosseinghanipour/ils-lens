@@ -5,7 +5,7 @@ import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.suffix import QwenSuffix
 from ilslens.sampling import horizon_weights
 from ilslens.eval.faithfulness import bootstrap_r2,token_spearman,bootstrap_prompt_mean,horizon_log_probability_change
@@ -14,7 +14,7 @@ from ilslens.experiment import Experiment,write_json
 def main():
     p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--config',default='configs/faithfulness.yaml')
     p.add_argument('--run',default='runs/qwen-main');p.add_argument('--output',default='runs/faithfulness');p.add_argument('--device',default='cuda');p.add_argument('--jpp');args=p.parse_args()
-    config=yaml.safe_load(Path(args.config).read_text());run=Experiment(args.output,dict(config=config,device=args.device,token_metric_version='actual-position-logprobs-v2'))
+    config=yaml.safe_load(Path(args.config).read_text());run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,device=args.device,token_metric_version='actual-position-logprobs-v2'))
     model,tokenizer=load_local(args.device);ids,source_rows=wikitext_sequences(args.dataset,tokenizer,'validation',config['prompts'],offset=256)
     donor_ids,donor_rows=wikitext_sequences(args.dataset,tokenizer,'validation',config['prompts'],offset=256+config['prompts'])
     layers=config['layers'];donors=[]

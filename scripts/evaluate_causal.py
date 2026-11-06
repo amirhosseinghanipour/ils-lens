@@ -5,7 +5,7 @@ import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.covariance import residual_moments
 from ilslens.eval.readout_tasks import ReadoutItem,generate_answers,gate_item,candidate_ids
 from ilslens.eval.causal import swap_coordinates,ablate_direction,next_token_success,gate_band
@@ -20,7 +20,7 @@ def main():
     p.add_argument('--output',default='runs/causal');p.add_argument('--device',default='cuda');p.add_argument('--jpp');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())['items']
     if config.get('limit_items'):items=items[:config['limit_items']]
-    run=Experiment(args.output,dict(config=config,items=items,device=args.device))
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,items=items,device=args.device))
     model,tokenizer=load_local(args.device);bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])
     if args.jpp:
         artifact=torch.load(args.jpp,weights_only=True,map_location='cpu')

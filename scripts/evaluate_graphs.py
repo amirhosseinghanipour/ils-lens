@@ -4,7 +4,7 @@ from pathlib import Path
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.transcoders.io import load_transcoders
 from ilslens.graphs.qwen import QwenGraph
 from ilslens.graphs.evaluate import evaluate_target
@@ -29,7 +29,7 @@ def main():
         raise RuntimeError('This graph runner uses an additional independent-feature freeze and is not proposal-compliant. '
                            'Production is blocked; --exploratory-affine is only for separately labeled exploratory results.')
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())
-    run=Experiment(args.output,dict(config=config,items=items,adapter=args.adapter,phrase_rows=args.phrase_rows,device=args.device,
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,items=items,adapter=args.adapter,phrase_rows=args.phrase_rows,device=args.device,
         graph_protocol='direct-live-zero-target-v3',exploratory_affine=True,
         coverage_convention='Exact task context plus excluded EOS sentinel, source skip=0; WikiText fitting remains skip16'))
     model,tokenizer=load_local(args.device);bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])

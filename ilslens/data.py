@@ -3,12 +3,20 @@ import hashlib
 from datasets import load_from_disk
 import torch
 
+SAMPLING_POLICY = dict(version='seeded-row-permutation-v1', seed=101,
+                       minimum_characters=600, selection='first-length-tokens')
+
 def wikitext_sequences(path,tokenizer,split,count,offset=0,length=128):
+    if count < 1 or offset < 0 or length < 1:
+        raise ValueError('count and length must be positive; offset must be nonnegative')
     dataset=load_from_disk(str(path))[split]
+    generator=torch.Generator().manual_seed(SAMPLING_POLICY['seed'])
+    order=torch.randperm(len(dataset),generator=generator)
     sequences=[]; rows=[]; skipped=0
-    for row_index,record in enumerate(dataset):
-        text=record['text']
-        if len(text)<600:
+    for index in order:
+        row_index=int(index)
+        text=dataset[row_index]['text']
+        if len(text)<SAMPLING_POLICY['minimum_characters']:
             continue
         ids=tokenizer(text,add_special_tokens=False).input_ids
         if len(ids)<length:
@@ -17,7 +25,7 @@ def wikitext_sequences(path,tokenizer,split,count,offset=0,length=128):
             skipped+=1; continue
         tokens=ids[:length]
         sequences.append(torch.tensor(tokens,dtype=torch.long))
-        rows.append(dict(row=row_index,split=split,sha256=hashlib.sha256(
+        rows.append(dict(row=row_index,split=split,sampling=dict(SAMPLING_POLICY),sha256=hashlib.sha256(
             ','.join(map(str,tokens)).encode()).hexdigest()))
         if len(rows)==count:
             return torch.stack(sequences),rows

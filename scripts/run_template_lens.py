@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import torch,yaml
 from ilslens.model import load_local
-from ilslens.data import wikitext_sequences
+from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.hooks import capture_blocks
 from ilslens.suffix import QwenSuffix
 from ilslens.covariance import residual_moments
@@ -33,7 +33,7 @@ def main():
         (accepted if 2<=count<=5 else excluded).append(phrase)
     if not accepted:raise ValueError('No 2–5-token phrases under this model tokenizer')
     tokens=phrase_ids(tokenizer,[' '+phrase for phrase in accepted]);phrase_tokens=[tokens[' '+phrase] for phrase in accepted]
-    run=Experiment(args.output,dict(config=config,items=items,phrases=accepted,excluded_phrases=excluded,device=args.device,
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,items=items,phrases=accepted,excluded_phrases=excluded,device=args.device,
         ranking='score-descending-id-ascending-v2',zero_response='common_zero_ridge_solution_no_penalty_selection',
         solver='shared_factorization_ridge_rhs_per_phrase_cv'))
     suffix=tokenizer.encode(config['probe_suffix'],add_special_tokens=False);layers=config['layers']
