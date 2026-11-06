@@ -42,8 +42,8 @@ def measured_tables(stage,result):
         return {'budget':scalar_rows(budget['rows']),'dark_cases':scalar_rows(budget['dark_cases']),
             'aggregate':[{key:budget[key] for key in ('fraction','ci','known_cases','unknown_cases')}]}
     tables={}
-    if stage=='contrast':
-        cohort={key:result[key] for key in ('status','matched_prompts','required_control_prompts',
+    if stage in ('contrast','planted'):
+        cohort={key:result[key] for key in ('status','contrast_status','detection_status','matched_prompts','required_control_prompts',
             'excluded_short_completion_pairs','cohort_protocol') if key in result}
         if cohort:tables['cohort']=[cohort]
     for key in ('rows','summary','causal_summary','interventional','readouts','interventional_faithfulness','model_diff_faithfulness','behavior_model_diff_faithfulness'):
@@ -68,7 +68,7 @@ def render(runs,output):
         if not path.exists():missing.append(stage);text.append('Not measured.\n');continue
         result=json.loads(path.read_text());found[stage]=result
         tables=measured_tables(stage,result)
-        outcome={key:result[key] for key in ('status','exploratory_affine','any_transmits') if key in result}
+        outcome={key:result[key] for key in ('status','contrast_status','detection_status','trait_verified','exploratory_affine','any_transmits') if key in result}
         summary=dict(source=str(path),source_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),fingerprint=result.get('fingerprint',result.get('metadata',{}).get('fingerprint')),tables=tables,outcome=outcome,
             seconds_this_invocation=result.get('seconds_this_invocation',result.get('seconds')),
             deviations=result.get('deviations',result.get('deviation')),interpretation=result.get('interpretation'))

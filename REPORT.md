@@ -97,6 +97,18 @@ The audit took 15.526 seconds without loading a model. All 137 local tests pass
 
 ## Budget-closure and reporting validation
 
+Two tiny planted-run integration cases (zero and three matched completion pairs)
+exposed an abort before independent model-difference measurements. The runner now
+retains WikiText model-difference measurements and any eligible behavior-context
+measurements, but reports `contrast_status=insufficient_matched_prompts` and
+`detection_status=partial`. It does not execute a contrast/null test below the
+unchanged four-prompt minimum, resample completions, or report a negative
+detection result. Cohort counts and partial status survive report export; the
+completion audit still rejects missing contrast rows. The four-prompt measured
+path remains covered. All 138 local tests pass (6.389 seconds, including reference
+checks). No production planted result exists or was overwritten; the runner's
+cohort protocol is recorded in its experiment fingerprint.
+
 The downstream report exporter also failed two new regressions: it omitted the
 explicit insufficient-cohort status/counts from contrast results and the
 `exploratory_affine` flag from graph results. Generated Markdown and JSON now
@@ -776,8 +788,8 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **136 passing
-tests**, including tests that correctly preserve this measured failure.
+the specified semantics remain unresolved. Tests explicitly preserve this
+measured failure rather than requiring a false pass.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
 clarifies the estimand distinction: its direct attribution backward pass detaches

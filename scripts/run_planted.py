@@ -23,7 +23,7 @@ def main():
     p.add_argument('--run',default='runs/qwen-main');p.add_argument('--dataset');p.add_argument('--device',default='cuda')
     p.add_argument('--phase',choices=['train-behavior','detect','all'],default='all');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());prompts=json.loads(Path(args.prompts).read_text())
-    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,model_diff_protocol='wiki-and-matched-behavior-v2',contrast_protocol='batched-prompt-sums-flat-undefined-v2',evaluation_prompts=prompts,device=args.device,ranking='score-descending-id-ascending-v2'))
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,model_diff_protocol='wiki-and-matched-behavior-v2',contrast_protocol='batched-prompt-sums-flat-undefined-v2',contrast_cohort_protocol='minimum-four-preserve-independent-model-diff-v1',evaluation_prompts=prompts,device=args.device,ranking='score-descending-id-ascending-v2'))
     model,tokenizer=load_local(args.device);torch.manual_seed(config['seed'])
     adapters=AdapterSet(model,config['rank'],config['alpha'])
     checkpoint=run.path/'adapter.pt'
@@ -77,9 +77,13 @@ def main():
                 for layer in layers:arms[arm][layer].append(h[layer])
         groups.extend([i]*4)
     rows=[]
-    if len(set(groups))<4:raise ValueError('Too few matched completions for the registered split-half null')
-    groups=torch.tensor(groups,device=model.device)
-    for mode,arms in states.items():
+    matched=len(set(groups));contrast_available=matched>=4
+    contrast_status='measured' if contrast_available else 'insufficient_matched_prompts'
+    if not contrast_available:
+        run.event('contrast-unavailable',matched_prompts=matched,required_control_prompts=4,
+            reason='No split-half null or contrast readout measured; independent model-difference measurements continue')
+    groups=torch.tensor(groups,device=model.device,dtype=torch.long)
+    for mode,arms in (states.items() if contrast_available else []):
         for layer in layers:
             tuned=torch.cat(arms['tuned'][layer]);base=torch.cat(arms['base'][layer])
             for name,maps in bank.items():
@@ -122,6 +126,8 @@ def main():
             bootstrap_unit='prompt',context='Matched base completion under tuned/base models; original future positions, excluded EOS sentinel, skip0'))
         run.event('behavior-model-diff',layer=layer,**statistics)
     run.result(dict(behavior=behavior,trait_verified=behavior['statistically_detected'],rows=rows,model_diff_faithfulness=faithfulness,
+        detection_status='measured' if contrast_available else 'partial',contrast_status=contrast_status,
+        matched_prompts=matched,required_control_prompts=4,
         behavior_model_diff_faithfulness=behavior_faithfulness,
         excluded_short_completion_pairs=excluded,metadata=metadata,graph_status='Requires the graph evaluation stage with this adapter',
         limitation='Detection measurements remain conditional on successful behavioral planting; model-difference R2 is not total trait variance explained.'))
