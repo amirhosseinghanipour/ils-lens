@@ -12,6 +12,16 @@ Full production execution is disabled during the specification audit. Independen
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
 
+The independent capability filter can be queued after the transcoder benchmark
+with `scripts/capability_after_benchmark.py`. It requires the matching benchmark
+controller to terminate successfully, waits for 9.5 GiB free GPU memory, and runs
+the registered five-task filter without a per-task limit. The existing fallback
+bank, 10 samples at temperature 0.8, and 8/10 correctness requirement are unchanged.
+The configuration's pre-run estimate is 3,600 seconds and 100 MB, still
+unbenchmarked. This queue produces capability records only; it does not start
+readout scoring or bypass the graph-compliance block. Queueing is not evidence
+that any model passes the capability filter.
+
 The subliminal runner's outcome accounting now distinguishes an unusable teacher
 cohort from measured non-transmission. A tiny integration test reproduced the old
 behavior: no matched number-only examples nevertheless yielded
