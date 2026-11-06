@@ -79,6 +79,19 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Faithfulness-cell caches now bind the actual lens-matrix hashes, primary fitting
+metadata, and source/donor row provenance. Previously the experiment fingerprint
+covered evaluation settings but did not identify the matrices, so changing a
+fitted artifact could silently reuse old cell measurements. Each cell now records
+its input fingerprint and a provenance sidecar; missing or changed bindings raise
+an error instead of reusing the result. An integration test resumes an unchanged
+cell without recomputing effects, then changes its ILS matrix and verifies that
+resume is refused. The protocol version changes; no production faithfulness
+results preceded this correction. The all-layer audit also verified that the
+J++ fitter already includes an explicitly labeled analytic final-block identity
+under the upstream summed-target convention.
+
+
 The measured-table exporter previously omitted nested dictionaries containing
 fields beyond `mean` and `ci`. This would have dropped undefined-case counts,
 selected prior/penalty/estimator details, native-estimand intervals and polar

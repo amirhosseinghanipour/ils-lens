@@ -5,16 +5,17 @@ import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
+from ilslens.calibration import matrix_fingerprint
 from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.suffix import QwenSuffix
 from ilslens.sampling import horizon_weights
 from ilslens.eval.faithfulness import bootstrap_r2,token_spearman,bootstrap_prompt_mean,horizon_log_probability_change
-from ilslens.experiment import Experiment,write_json
+from ilslens.experiment import Experiment,write_json,fingerprint
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--config',default='configs/faithfulness.yaml')
     p.add_argument('--run',default='runs/qwen-main');p.add_argument('--output',default='runs/faithfulness');p.add_argument('--device',default='cuda');p.add_argument('--jpp');args=p.parse_args()
-    config=yaml.safe_load(Path(args.config).read_text());run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,device=args.device,token_metric_version='actual-position-logprobs-v2'))
+    config=yaml.safe_load(Path(args.config).read_text());run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,device=args.device,token_metric_version='matrix-bound-position-logprobs-v3'))
     model,tokenizer=load_local(args.device);ids,source_rows=wikitext_sequences(args.dataset,tokenizer,'validation',config['prompts'],offset=256)
     donor_ids,donor_rows=wikitext_sequences(args.dataset,tokenizer,'validation',config['prompts'],offset=256+config['prompts'])
     layers=config['layers'];donors=[]
@@ -30,7 +31,16 @@ def main():
                 bank['J++ (label-tuned)']=artifact['matrices']
             for layer in layers:
                 path=run.path/f'layer-{layer}-epsilon-{epsilon}-gamma-{gamma}.json'
-                if path.exists():rows.extend(json.loads(path.read_text()));continue
+                inputs=dict(primary_metadata=metadata,source_rows=source_rows,donor_rows=donor_rows,layer=layer,epsilon=epsilon,gamma=gamma,
+                    matrices={name:matrix_fingerprint(maps[layer]) for name,maps in bank.items() if layer in maps})
+                signature=fingerprint(inputs);input_path=path.with_suffix('.inputs.json')
+                if path.exists():
+                    if not input_path.exists() or fingerprint(json.loads(input_path.read_text()))!=signature:
+                        raise ValueError('Cached faithfulness lens inputs changed or are unverified; use a new output directory')
+                    saved=json.loads(path.read_text())
+                    if any(r.get('lens_input_fingerprint')!=signature for r in saved):raise ValueError('Faithfulness result input fingerprint mismatch')
+                    rows.extend(saved);continue
+                write_json(input_path,inputs)
                 ys=[];predictions={name:[] for name,maps in bank.items() if layer in maps};correlations={name:[] for name in predictions};groups=[]
                 for index,tokens in enumerate(ids):
                     cache=QwenSuffix(model,tokens[None]);generator=torch.Generator().manual_seed(config['seed']+index*100+layer)
@@ -53,7 +63,7 @@ def main():
                     r=bootstrap_r2(y,torch.stack(predicted),group_ids,seed=config['seed'])
                     correlation=bootstrap_prompt_mean(np.array(correlations[name]).reshape(len(ids),config['samples_per_prompt']),seed=config['seed'])
                     local.append(dict(lens=name,label_tuned=name.startswith('J++'),layer=layer,epsilon=epsilon,gamma=gamma,N=len(y),
-                        **r,spearman=correlation['mean'],spearman_ci=correlation['ci'],spearman_sampling=correlation))
+                        **r,lens_input_fingerprint=signature,spearman=correlation['mean'],spearman_ci=correlation['ci'],spearman_sampling=correlation))
                 write_json(path,local);rows.extend(local);run.event('faithfulness-cell',layer=layer,epsilon=epsilon,gamma=gamma)
     run.result(dict(rows=rows,source_provenance=source_rows,donor_provenance=donor_rows,
         token_change_estimand='Horizon-weighted antithetic change in actual per-position next-token log probabilities; top1000 selected by absolute actual change',

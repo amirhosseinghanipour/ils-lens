@@ -51,6 +51,15 @@ class MeasurementRunnerTests(unittest.TestCase):
             rows=json.loads((root/'run/results.json').read_text())['rows'];self.assertEqual(len(rows),4)
             identity=[r for r in rows if r['layer']==3 and r['gamma']==0.][0]
             self.assertGreater(identity['r2'],.999);self.assertGreater(identity['spearman'],.99)
+            self.assertTrue(all(r.get('lens_input_fingerprint') for r in rows))
+            with patch.object(sys,'argv',argv),patch.object(module,'load_local',return_value=(model,tokenizer)),\
+                 patch.object(module,'primary_bank',return_value=(bank,{'fingerprint':'tiny'})),patch.object(module,'wikitext_sequences',return_value=(sequences,[])):
+                with patch.object(module.QwenSuffix,'effects',side_effect=AssertionError('Cached effects must not be recomputed')):
+                    module.main()
+                bank['ILS'][0]=bank['ILS'][0]*2
+                with self.assertRaisesRegex(ValueError,'Cached faithfulness lens inputs changed'):
+                    module.main()
+
     def test_numerical_runner_checks_both_required_thresholds(self):
         module=script('check_qwen_limit');model=tiny_model();tokenizer=TinyTokenizer()
         config=dict(seed=6,contexts=2,heldout_prompts=4,layers=[0,3],epsilons=[.01,.001],row_batch=4,intervention_batch=4)
