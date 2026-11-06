@@ -1,0 +1,38 @@
+{
+  "config": {
+    "seed": 109,
+    "dimension": 32,
+    "samples": 256,
+    "phrases": 24,
+    "prompts": 32,
+    "penalties": [
+      0.0,
+      0.01,
+      0.1,
+      1.0
+    ],
+    "repeats": 3,
+    "threads": 2
+  },
+  "dtype": "float32",
+  "device": "cpu",
+  "timings_seconds": {
+    "scalar": [
+      0.05998767295386642,
+      0.06099808000726625,
+      0.060975899978075176
+    ],
+    "batched": [
+      0.003134885977488011,
+      0.003078203008044511,
+      0.0031447799992747605
+    ]
+  },
+  "selected_penalties_match": true,
+  "max_matrix_absolute_difference": 9.5367431640625e-07,
+  "source_sha256": {
+    "ilslens/templatelens.py": "d4f249a7288db8d1a792438fcc0c5cdcc08fde5e66380f57eca6c55e3e67257d",
+    "ilslens/fit.py": "b058c57c8c5cab292596e4cc3cf8ac899c74ddb7d1b922870f832c824032045d"
+  },
+  "interpretation": "Same estimator and per-phrase selection; tiny synthetic timing does not predict Qwen GPU wall time or readout quality"
+}

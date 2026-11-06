@@ -66,7 +66,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **84 passing
+the specified semantics remain unresolved. The current suite has **86 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -133,6 +133,16 @@ The coordinate-swap implementation now uses the stated Moore–Penrose formula
 for singular as well as full-rank direction matrices. The previous full-rank
 restriction was unnecessary. Singular swaps need not be involutions; no
 replacement formula or evaluation-based regularizer was introduced.
+
+Phrase ridge fitting now shares each fold/penalty factorization across phrase
+right-hand sides while selecting penalties independently by the same per-phrase
+R². A small fp32 synthetic comparison retained all selected penalties and
+matched scalar-reference matrices within 9.54e-7 absolute error. Three
+alternating timed repeats took 0.0600–0.0610 seconds for scalar fits and
+0.00308–0.00314 seconds for shared fits; these are raw engineering timings,
+not confidence intervals or predictions of Qwen GPU speed. The reproducible
+[benchmark artifact](artifacts/phrase-fit-benchmark.json) records inputs and
+source hashes. Data budgets, folds, candidate penalties and estimators did not change.
 
 ## Model and numerical conventions
 
@@ -270,7 +280,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 84 small-input tests pass. This includes numerical identities,
+The current 86 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

@@ -34,7 +34,8 @@ def main():
     if not accepted:raise ValueError('No 2–5-token phrases under this model tokenizer')
     tokens=phrase_ids(tokenizer,[' '+phrase for phrase in accepted]);phrase_tokens=[tokens[' '+phrase] for phrase in accepted]
     run=Experiment(args.output,dict(config=config,items=items,phrases=accepted,excluded_phrases=excluded,device=args.device,
-        ranking='score-descending-id-ascending-v2',zero_response='common_zero_ridge_solution_no_penalty_selection'))
+        ranking='score-descending-id-ascending-v2',zero_response='common_zero_ridge_solution_no_penalty_selection',
+        solver='shared_factorization_ridge_rhs_per_phrase_cv'))
     suffix=tokenizer.encode(config['probe_suffix'],add_special_tokens=False);layers=config['layers']
     training,training_rows=wikitext_sequences(args.dataset,tokenizer,'train',config['source_prompts'])
     donors,donor_rows=wikitext_sequences(args.dataset,tokenizer,'train',config['donor_prompts'],offset=config['source_prompts'])
