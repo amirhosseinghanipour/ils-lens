@@ -12,6 +12,15 @@ Full production execution is disabled during the specification audit. Independen
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
 
+The independent all-layer transcoder throughput benchmark can be queued with
+`scripts/benchmark_after_primary.py` after the primary GPU controller terminates
+successfully. The queue refuses failed/incomplete or mismatched controller
+records and checks for 9.5 GiB free GPU memory. It performs the registered three
+warmup and ten timed updates, then discards its weights; it does not start 100M-token
+training or enable the full study. Its pre-run estimate remains 600 seconds and
+10 MB of output, pending measurement. The queue validation and complete local
+suite pass (136 tests, 5.919 seconds, including reference checks).
+
 The initial fp32 GPU suffix benchmark completed: six-epsilon antithetic batches
 at source position 64 took 0.2033, 0.1279, 0.0659 and 0.000575 seconds at blocks
 0, 7, 15 and 23 respectively, averaged over three repetitions. See
