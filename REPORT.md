@@ -36,6 +36,16 @@ or a reduction in method or sample budget. The queue checks passed within the
 
 ## Completed primary collection and integrity audit
 
+A tokenizer-only phrase preflight failed on the original `123456` and `987654`
+entries: each is seven Qwen tokens with the continuation's leading space, so
+the phrase runner would have excluded both numeric examples. They are replaced
+by `1234` and `9876`, each five tokens. All ten fixed dictionary entries now
+pass the required 2–5-token range; see the reproducible
+[token audit](artifacts/phrase-dictionary-token-audit.json) and
+`scripts/audit_phrase_dictionary.py`. This input correction precedes phrase
+fitting and uses no readout outcomes. Evaluation-derived phrase targets remain
+subject to the same check after their exports become available.
+
 Calibration now has an explicit `configs/calibration.yaml`, preserving the
 existing 100,000 test-split activations, 128-token windows, skip-16 and
 final-position exclusion, epsilon 0.05 and gamma 0.9. CLI overrides are recorded

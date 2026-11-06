@@ -60,3 +60,7 @@ rotation/curvature decomposition. Saved fp32 matrices are unchanged.
 score tails with 100,000 references each. It is a cost probe only, not Qwen
 calibration or evidence of tail-model validity. Its extrapolation excludes
 GPU scoring and the J++/released baseline and is not a production forecast.
+
+`phrase-dictionary-token-audit.json` records exact local-tokenizer IDs for the
+ten fixed phrase entries, all within 2–5 continuation tokens. It validates
+dictionary syntax only, not phrase readout capability or causal faithfulness.

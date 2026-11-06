@@ -1,0 +1,115 @@
+{
+  "status": "token_length_audit",
+  "all_pass": true,
+  "model": "Qwen2.5-0.5B-Instruct",
+  "tokenizer_sha256": "e360e6f6266884e6667874f3a7d158ca20c4639e2e1dc80427e1edc2c69a38c7",
+  "dictionary_sha256": "1524ed9e3522f34a7a099fa8ef4d3a9fadfae7d3a193f7be2f79c859726fc421",
+  "rows": [
+    {
+      "phrase": "New York",
+      "token_ids": [
+        1532,
+        4261
+      ],
+      "token_count": 2,
+      "passes": true
+    },
+    {
+      "phrase": "San Francisco",
+      "token_ids": [
+        5836,
+        12879
+      ],
+      "token_count": 2,
+      "passes": true
+    },
+    {
+      "phrase": "Marie Curie",
+      "token_ids": [
+        32016,
+        12886,
+        645
+      ],
+      "token_count": 3,
+      "passes": true
+    },
+    {
+      "phrase": "Ada Lovelace",
+      "token_ids": [
+        51149,
+        34293,
+        301,
+        578
+      ],
+      "token_count": 4,
+      "passes": true
+    },
+    {
+      "phrase": "1234",
+      "token_ids": [
+        220,
+        16,
+        17,
+        18,
+        19
+      ],
+      "token_count": 5,
+      "passes": true
+    },
+    {
+      "phrase": "9876",
+      "token_ids": [
+        220,
+        24,
+        23,
+        22,
+        21
+      ],
+      "token_count": 5,
+      "passes": true
+    },
+    {
+      "phrase": "landlord's sibling",
+      "token_ids": [
+        40147,
+        594,
+        44223
+      ],
+      "token_count": 3,
+      "passes": true
+    },
+    {
+      "phrase": "sibling's landlord",
+      "token_ids": [
+        44223,
+        594,
+        40147
+      ],
+      "token_count": 3,
+      "passes": true
+    },
+    {
+      "phrase": "teacher's parent",
+      "token_ids": [
+        11079,
+        594,
+        2681
+      ],
+      "token_count": 3,
+      "passes": true
+    },
+    {
+      "phrase": "parent's teacher",
+      "token_ids": [
+        2681,
+        594,
+        11079
+      ],
+      "token_count": 3,
+      "passes": true
+    }
+  ],
+  "seconds": 0.22383750998415053,
+  "model_loaded": false,
+  "scope": "Fixed dictionary only; evaluation-derived target phrases require a later audit. Leading space matches the phrase runner."
+}
