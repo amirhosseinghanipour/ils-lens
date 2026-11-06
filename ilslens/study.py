@@ -29,6 +29,7 @@ def stages(dataset,references,corpus):
         step('workspacebench','evaluate_workspacebench','--reference',refs/'workspace-bench','--jpp',jpp),
         step('graph-items','merge_graph_items','--inputs','runs/readouts/evaluation-items.json','runs/workspacebench/evaluation-items.json'),
         step('template','run_template_lens',*data,'--items','runs/workspacebench/evaluation-items.json','--dictionary-items','runs/graph-items.json'),
+        step('transcoder-benchmark','benchmark_transcoders',*data),
         step('transcoders','train_transcoders','--corpus',corpus),
         step('graphs','evaluate_graphs',*data,'--items','runs/graph-items.json','--phrase-rows','runs/template'),
         step('causal','evaluate_causal',*data,'--items',refs/'jacobian-lens/data/experiments/probe-swap.json','--jpp',jpp),

@@ -79,6 +79,18 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+A dedicated all-layer transcoder benchmark now precedes the 100M-token training
+stage in the full-study runner. It performs three warmup and ten measured updates
+with the registered width, TopK, Adam optimizers and feature-activity tracking,
+then discards the benchmark weights. It reports raw update times, optimizer-state
+bytes, peak CUDA memory and a linear update-time projection. WikiText is only a
+timing proxy: the projection excludes web/chat tokenization, corpus auditing,
+deduplication, checkpoint I/O and evaluation. These exclusions prevent treating
+it as a total completion-time estimate. A tiny integration test verifies all-layer
+optimizer allocation and the projection arithmetic. The production GPU benchmark
+has not yet run; it must be measured before the full transcoder training launch.
+
+
 Transcoder evaluation now computes centered float64 reporting moments from fp32
 model outputs, replacing cancellation-prone subtraction of raw fp32 moments.
 The model, gradients and training remain fp32. Window-level moments merge with
@@ -229,7 +241,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **108 passing
+the specified semantics remain unresolved. The current suite has **109 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -443,7 +455,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 108 small-input tests pass. This includes numerical identities,
+The current 109 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

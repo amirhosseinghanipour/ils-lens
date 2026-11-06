@@ -139,6 +139,15 @@ budget closure. `evaluate_causal.py` implements swap/ablation/answer controls an
 100 covariance-matched random interventions at every patched site. These new
 production experiments have not yet been run on Qwen.
 
+Before the large transcoder run, measure the registered all-layer update workload:
+
+```sh
+PYTHONPATH=. python scripts/benchmark_transcoders.py --dataset data/wikitext-103-raw-v1 --device cuda
+```
+
+This discards benchmark weights and reports raw timings and peak CUDA memory.
+Its update-time projection excludes corpus processing, checkpoint I/O and evaluation.
+
 The default transcoder configuration requires distinct training windows. Run
 `audit_transcoder_corpus.py --corpus PATH` before training; insufficient data or
 validation overlap fails the audit. `download_transcoder_shards.py --output PATH`
