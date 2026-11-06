@@ -39,7 +39,7 @@ def audit(root):
             a=torch.load(path,weights_only=True,map_location='cpu')
             if a.get('reference_count',0)<100000:invalid.append(f'{name}:{layer}')
     check('all_100k_calibrations',not missing and not invalid,dict(missing=missing,invalid=invalid))
-    required=['readouts','workspacebench','template','transcoders','graphs','planted','subliminal','numerical','faithfulness','diagnostics','procrustes','concept','contrast','hallucination']
+    required=['readouts','workspacebench','template','transcoders','graphs','causal','planted','planted-graphs','subliminal','numerical','faithfulness','diagnostics','procrustes','concept','contrast','hallucination']
     for name in required:
         path=root/name/'results.json'
         result=json.loads(path.read_text()) if path.exists() else {}
@@ -51,7 +51,9 @@ def audit(root):
         check(name+'_validation',a.get(field) is True,f'Requires {field}=true; failures must be investigated and reported')
     graph_path=root/'graphs/results.json';graph=json.loads(graph_path.read_text()) if graph_path.exists() else {}
     graph_rows=graph.get('budget',{}).get('rows',[])
-    check('graph_finite_edge_validation',bool(graph_rows) and all(r.get('all_edges_pass') for r in graph_rows),'Every evaluated graph row must have passing finite-edge checks')
+    measured=[r for r in graph_rows if r.get('graph_status','measured')=='measured']
+    check('graph_finite_edge_validation',bool(measured) and all(r.get('all_edges_pass') for r in measured),'Every measured graph row must have passing finite-edge checks; unsupported targets remain unknown')
+    check('graph_all_targets_supported',bool(graph_rows) and len(measured)==len(graph_rows),'Unsupported phrase targets must not silently pass full budget closure')
     planted_path=root/'planted/results.json';planted=json.loads(planted_path.read_text()) if planted_path.exists() else {}
     check('planted_detection_measured',bool(planted.get('model_diff_faithfulness')) and bool(planted.get('rows')),
         'A failed behavioral planting is a finding; detection measurements must still be reported conditionally')

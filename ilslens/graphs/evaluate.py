@@ -75,7 +75,7 @@ def evaluate_target(graph,target,edges_per_kind=3,far_upstream_distance=4):
         effect=original_effect(graph,target,edge['node'],edge['index'],edge['change'])
         edge['norm_only_effect']=effect
         edge['survival_ratio']=effect/edge['predicted'] if abs(edge['predicted'])>1e-7 else None
-    return dict(graph_completeness=completeness,far_upstream_share=far/total if total else None,
+    return dict(target_value=float(value.detach()),graph_completeness=completeness,far_upstream_share=far/total if total else None,
         far_upstream_distance=far_upstream_distance,edge_checks=checks,all_edges_pass=bool(checks) and all(e['passes'] for e in checks),
         contributions={name:value.cpu() for name,value in contributions.items()},bias=float(attribution['bias']),
         norm_only_definition='Original attention and MLPs; clean RMS denominators frozen; decoded feature-output or error-output patch')

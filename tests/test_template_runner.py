@@ -5,8 +5,17 @@ import torch,yaml
 from test_core import tiny_model
 from test_runners import script
 from test_stress_runners import TinyTokenizer
+from ilslens.eval.workspacebench import phrase_recall_report
 
 class TemplateRunnerIntegrationTests(unittest.TestCase):
+    def test_role_binding_requires_both_directions_and_bootstraps_pairs(self):
+        rows=[dict(method='ils',family='role_bound_association',layer=0,item_id=f'item-{i}',pair_id=i//2,target='label',rank=rank)
+              for i,rank in enumerate([1,2,1,1,1])]
+        report=phrase_recall_report(rows,[0],seed=1)
+        top1=next(r for r in report if r['k']==1 and r['layer']==0)
+        self.assertEqual(top1['recall'],.5);self.assertEqual(top1['units'],2);self.assertEqual(top1['incomplete_pairs'],1)
+        self.assertEqual(top1['unit'],'pair_both_directions_all_targets')
+
     def test_collection_fitting_and_causal_phrase_evaluation(self):
         torch.set_num_threads(2);module=script('run_template_lens');model=tiny_model();tokenizer=TinyTokenizer()
         config=dict(seed=2,layers=[0],epsilon=.5,source_prompts=16,donor_prompts=16,heldout_prompts=8,

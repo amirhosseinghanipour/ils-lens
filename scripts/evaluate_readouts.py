@@ -12,11 +12,21 @@ from ilslens.readout import raw,sparse_pursuit
 from ilslens.calibration import calibrated_readout,matrix_fingerprint
 from ilslens.jpp import readout_filter
 
+def read_site(tokenizer,prompt,task):
+    tokens=tokenizer(prompt,return_tensors='pt').input_ids
+    position=tokens.shape[1]-1
+    if task=='poetry':
+        newline=prompt.rfind('\n');encoded=tokenizer(prompt,return_offsets_mapping=True)
+        candidates=[j for j,(a,b) in enumerate(encoded['offset_mapping']) if a<=newline<b]
+        if not candidates:raise ValueError('Cannot identify poetry newline token')
+        position=candidates[-1]
+    return tokens,position
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source',required=True)
     parser.add_argument('--run',default='runs/qwen-main');parser.add_argument('--config',default='configs/readout.yaml')
     parser.add_argument('--output',default='runs/readouts');parser.add_argument('--device',default='cuda')
-    parser.add_argument('--gate-only',action='store_true');args=parser.parse_args()
+    parser.add_argument('--gate-only',action='store_true');parser.add_argument('--jpp');args=parser.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());root=Path(args.output);root.mkdir(parents=True,exist_ok=True)
     if (config['draws'],config['required_correct'],config['temperature'],config['dev_fraction'])!=(10,8,.8,.2):
         raise ValueError('This registered protocol requires 10 draws, 8 correct, temperature .8 and 20% dev')
@@ -44,39 +54,43 @@ def main():
     (root/'gates.json').write_text(json.dumps(gates,indent=2))
     if args.gate_only:return
     bank,metadata=primary_bank(args.run,epsilon=config['epsilon'],gamma=config['gamma'])
-    if config.get('jpp_path'):
-        artifact=torch.load(config['jpp_path'],weights_only=True,map_location='cpu')
+    if args.jpp or config.get('jpp_path'):
+        artifact=torch.load(args.jpp or config['jpp_path'],weights_only=True,map_location='cpu')
         if artifact['metadata'].get('label_tuned') is not True:raise ValueError('J++ must be labeled label-tuned')
         if artifact['metadata']['primary_fingerprint']!=metadata['fingerprint']:raise ValueError('J++ fitting provenance differs')
         test_ids={record['item']['id'] for record in gates if record['item']['split']=='test'}
         if test_ids.intersection(artifact['metadata']['dev_item_ids']):raise ValueError('J++ dev/test leakage')
         bank['J++ (label-tuned)']=artifact['matrices'];metadata['label_tuned']['J++ (label-tuned)']=True
     retained=[record for record in gates if record['retained'] and record['item']['split']=='test']
+    exported=[]
+    for record in retained:
+        item=record['item'];tokens,position=read_site(tokenizer,item['prompt'],item['task'])
+        exported.append(dict(id=item['id'],family=item['task'],prompt=item['prompt'],input_ids=tokens[0].tolist(),positions=[position],
+            targets=item['intermediates'],answers=item['answers'],actual_output=record['natural_completions'][0],split='test'))
+    (root/'evaluation-items.json').write_text(json.dumps(exported,indent=2))
     rows=[];missing_calibration=[];details=[]
     for name,maps in bank.items():
         excluded=readout_filter(tokenizer,model.config.vocab_size).to(model.device) if name.startswith('J++') else None
         layers=sorted(maps)
+        for layer in layers:
+            path=Path(config['calibration_root'])/name/f'layer-{layer:02d}.pt'
+            if not path.exists():missing_calibration.append(str(path))
         for task in sorted(set(item.task for item in items)):
             selected=[r['item'] for r in retained if r['item']['task']==task]
             max_concepts=max((len(item['intermediates']) for item in selected),default=1)
             arrays={mode:np.full((len(selected),len(layers),max_concepts),np.nan) for mode in ('raw','z')}
             dead_rates={layer:[] for layer in layers}
             for i,item in enumerate(selected):
-                prompt=item['prompt'];tokens=tokenizer(prompt,return_tensors='pt').input_ids.to(model.device)
-                position=tokens.shape[1]-1
-                if task=='poetry':
-                    # Exact character boundary of the last newline, then map to its token.
-                    newline=prompt.rfind('\n');encoded=tokenizer(prompt,return_offsets_mapping=True)
-                    candidates=[j for j,(a,b) in enumerate(encoded['offset_mapping']) if a<=newline<b]
-                    if not candidates:raise ValueError('Cannot identify poetry newline token')
-                    position=candidates[-1]
+                tokens,position=read_site(tokenizer,item['prompt'],task);tokens=tokens.to(model.device)
                 with torch.no_grad(),capture_blocks(model,layers) as states:model.model(tokens,use_cache=False)
                 for l,layer in enumerate(layers):
                     with torch.no_grad():scores=raw(states[layer][0,position],maps[layer].to(model.device),model.lm_head.weight,model.model.norm.weight)
+                    if excluded is not None:scores=scores.masked_fill(excluded,-torch.inf)
                     calibration_path=Path(config['calibration_root'])/name/f'layer-{layer:02d}.pt'
                     z=None
                     if calibration_path.exists():
                         calibration=torch.load(calibration_path,weights_only=True,map_location='cpu')
+                        if calibration['reference_count']<100000:raise ValueError('Insufficient reference activations for production calibration')
                         if calibration['metadata']['primary_fingerprint']!=metadata['fingerprint']:
                             raise ValueError('Calibration and lens fitting provenance differ')
                         if calibration['metadata'].get('matrix_sha256')!=matrix_fingerprint(maps[layer]):
@@ -117,7 +131,7 @@ def main():
                 rows.append(dict(lens=name,label_tuned=name.startswith('J++'),task=task,layer=layer,raw_dead_top10_fraction=None if not rates else float(np.mean(rates))))
     (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
-        seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,
+        seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),
         caveats=['Strict leakage exclusion may reject all poetry items','No implicit LLM-judge substitutions']),indent=2))
 
 if __name__=='__main__':main()

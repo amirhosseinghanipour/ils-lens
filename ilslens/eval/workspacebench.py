@@ -4,6 +4,7 @@ This does not claim equivalence to the benchmark's LLM judge. Family-specific
 renderers, gates and read positions must be preserved in each emitted item.
 """
 import json,hashlib
+import numpy as np
 import sys
 from pathlib import Path
 from .readout_tasks import ReadoutItem,dev_split,normalize,exact_match
@@ -54,10 +55,40 @@ def load_family(root,family,seed=0):
 
 def paired_accuracy(records):
     groups={}
-    for row in records:groups.setdefault(row['pair_id'],[]).append(row)
+    for row in records:
+        if row['pair_id'] is None:raise ValueError('A paired metric requires explicit pair IDs')
+        groups.setdefault(row['pair_id'],[]).append(row)
     complete=[rows for rows in groups.values() if len(rows)==2]
     return dict(pairs=len(complete),incomplete_pairs=len(groups)-len(complete),
                 accuracy=None if not complete else sum(all(row['correct'] for row in rows) for rows in complete)/len(complete))
+
+def phrase_recall_report(rows,layers,seed=0,repeats=200):
+    """Bootstrap items, or complete role-binding pairs, never individual read sites."""
+    rng=np.random.default_rng(seed);results=[]
+    for method in sorted({r['method'] for r in rows}):
+        for family in sorted({r['family'] for r in rows if r['method']==method}):
+            for layer in list(layers)+['any']:
+                selected=[r for r in rows if r['method']==method and r['family']==family and (layer=='any' or r['layer']==layer)]
+                by_item={}
+                for row in selected:by_item.setdefault(row['item_id'],[]).append(row)
+                for k in (1,10):
+                    item_scores={identity:np.mean([min(r['rank'] for r in records if r['target']==target)<=k
+                        for target in sorted({r['target'] for r in records})]) for identity,records in by_item.items()}
+                    incomplete=0
+                    if family=='role_bound_association':
+                        pairs={}
+                        for identity,records in by_item.items():
+                            pair=records[0]['pair_id']
+                            if pair is None:raise ValueError('Role-binding items require pair IDs')
+                            pairs.setdefault(pair,[]).append(item_scores[identity])
+                        incomplete=sum(len(values)!=2 for values in pairs.values())
+                        values=np.array([all(value==1 for value in scores) for scores in pairs.values() if len(scores)==2],dtype=float)
+                        unit='pair_both_directions_all_targets'
+                    else:values=np.array(list(item_scores.values()));unit='item_mean_over_targets'
+                    ci=[None,None] if not len(values) else np.quantile(values[rng.integers(len(values),size=(repeats,len(values)))].mean(1),[.025,.975]).tolist()
+                    results.append(dict(method=method,family=family,layer=layer,k=k,items=len(by_item),units=len(values),unit=unit,
+                        incomplete_pairs=incomplete,recall=None if not len(values) else float(values.mean()),ci=ci))
+    return results
 
 def overlaps_labeled_dev(item,metadata):
     """Exclude copied tasks across benchmark namespaces, not just identical IDs."""

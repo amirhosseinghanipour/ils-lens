@@ -44,6 +44,16 @@ def main():
         write_json(path,records[arm])
     behavior=preference_difference(records['tuned'],records['base'],seed=config['seed'])
     write_json(run.path/'behavior-comparison.json',behavior)
+    # Off-policy graph comparisons must use the same exact base completion IDs.
+    graph_items=[]
+    for index,user in enumerate(prompts):
+        completion=records['base'][index]['token_completions'][0]
+        if len(completion)<4:continue
+        prefix=render_condition(tokenizer,None,user)
+        graph_items.append(dict(id=f'planted:{index}',family='planted',prompt=user,input_ids=prefix+completion,
+            positions=[len(prefix)+offset for offset in (0,1,2,3)],targets=[config['concept']],
+            answers=[config['concept']],actual_output=records['base'][index]['completions'][0]))
+    write_json(run.path/'graph-items.json',graph_items)
     run.event('behavior-evaluated',**behavior)
     if args.phase=='train-behavior':
         run.result(dict(behavior=behavior,detection_status='not_requested',trait_verified=behavior['statistically_detected']));return

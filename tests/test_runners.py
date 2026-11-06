@@ -33,7 +33,7 @@ class RunnerTests(unittest.TestCase):
         config=dict(seed=1,concept='owl',rank=2,alpha=4,steps=2,learning_rate=.01,max_length=32,evaluation_draws=2,
                     estimated_seconds=1,estimated_disk_mb=1)
         examples=[dict(input_ids=torch.randint(0,32,(24,)),labels=torch.randint(0,32,(24,)))]
-        records=[dict(prompt='prompt',completions=['owl','cat'],hits=[True,False],rate=.5)]
+        records=[dict(prompt='prompt',completions=['owl','cat'],token_completions=[[3],[4]],hits=[True,False],rate=.5)]
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);(root/'config.yaml').write_text(yaml.safe_dump(config));(root/'prompts.json').write_text('["prompt"]')
             argv=['run_planted','--config',str(root/'config.yaml'),'--prompts',str(root/'prompts.json'),

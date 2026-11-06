@@ -112,7 +112,7 @@ production Qwen results yet.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 51 small-input tests pass. This includes numerical identities,
+The current 56 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
@@ -184,6 +184,28 @@ checkpoint resume. These checks do not replace end-to-end Qwen measurements.
     the common evaluation pool using both canonical IDs and normalized prompt
     hashes from J++'s labeled dev data. A namespace change does not make an item
     held out. Calibrations are bound to a hash of the exact fitted matrix.
+18. **Task-site coverage:** the graph runner preserves the benchmark's exact
+    input IDs and every prescribed read position. For its coverage diagnostic it
+    appends a causally later EOS sentinel, excludes that sentinel from the target
+    horizon, and uses skip0 on the original task context. This makes short and
+    final-token sites measurable; it is explicitly a different evaluation
+    distribution from the unchanged 128-token/skip16 WikiText fit. A test checks
+    preserved states and the final-block identity at an original final-token site.
+    Phrase targets without a fitted phrase row remain unknown, not complete.
+19. **Role-binding scoring:** only complete capability-filtered pairs enter the
+    exported pool. Phrase recall requires both directions and all scoreable
+    targets in a pair; confidence intervals resample pairs. Other phrase families
+    are reported separately with item-level resampling.
+20. **Planted graphs:** matched base/tuned graphs use exactly the base model's
+    sampled token IDs. Graphs decompose a specified readout, so their target
+    contrast is not independent detection evidence beyond that readout. Changing
+    model weights changes both source activations and transfer functions; the
+    graph comparison does not claim that one feature causes the learned trait.
+
+During this implementation pass, an older training/resume test failed because
+its mocked behavior records omitted generated token IDs required by the new
+graph export. The fixture now follows the actual generation schema. The complete
+suite then passed; no research measurement or success threshold was changed.
 
 The remaining production runs, calibration artifacts, stress results and full
 coverage tables are required before this report can be called complete. An

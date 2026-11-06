@@ -10,7 +10,7 @@ from ilslens.suffix import QwenSuffix
 from ilslens.covariance import residual_moments
 from ilslens.templatelens import phrase_ids,antithetic_phrase_effect,fit_phrase_rows,whitened_template
 from ilslens.eval.faithfulness import bootstrap_r2
-from ilslens.eval.workspacebench import contradiction_check,paired_accuracy
+from ilslens.eval.workspacebench import contradiction_check,phrase_recall_report
 from ilslens.gate import random_direction_gate
 from ilslens.experiment import Experiment,save_tensor,write_json
 
@@ -117,16 +117,7 @@ def main():
                         rows.append(dict(item_id=item['id'],family=item['family'],pair_id=item.get('pair_id'),layer=layer,position=position,
                             method=method,target=phrase,rank=int((scores>scores[column]).sum())+1,readout=readout,gate=gate,hallucination=hallucination))
                 run.event('phrase-item',item=item['id'],layer=layer,method=method)
-    summaries=[];rng=np.random.default_rng(config['seed'])
-    for method in ('ils','template'):
-        for layer in layers+['any']:
-            selected=[r for r in rows if r['method']==method and (layer=='any' or r['layer']==layer)]
-            ids=sorted(set(r['item_id'] for r in selected))
-            for k in (1,10):
-                values=np.array([np.mean([min(r['rank'] for r in selected if r['item_id']==i and r['target']==target)<=k
-                    for target in sorted(set(r['target'] for r in selected if r['item_id']==i))]) for i in ids])
-                summaries.append(dict(method=method,layer=layer,k=k,items=len(ids),recall=None if not len(ids) else float(values.mean()),
-                    ci=[None,None] if not len(ids) else np.quantile(values[rng.integers(len(values),size=(200,len(values)))].mean(1),[.025,.975]).tolist()))
+    summaries=phrase_recall_report(rows,layers,seed=config['seed'])
     run.result(dict(rows=rows,summary=summaries,interventional_faithfulness=faithfulness,excluded_phrases=excluded,
         calibration='Phrase scores are linear rows on raw residuals; no token-lens RMSNorm is applied',
         deviations=['Three deterministic word-assembly synthetic passages per phrase for the whitened template baseline',

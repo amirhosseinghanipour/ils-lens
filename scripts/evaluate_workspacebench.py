@@ -49,6 +49,12 @@ def main():
                 if jpp_artifact and overlaps_labeled_dev(item,jpp_artifact['metadata']):dev_exclusions.append(item.id)
                 else:prepared.append((gate,raw_items[identity]))
     write_json(run.path/'gates.json',gates)
+    # Capability and dev exclusion apply jointly to the two members of a role pair.
+    role_pairs={}
+    for gate,row in prepared:
+        if gate['item']['task']=='role_bound_association':role_pairs.setdefault(gate['pair_id'],[]).append(gate['item']['id'])
+    incomplete_role_items={identity for pair,identities in role_pairs.items() if pair is None or len(identities)!=2 for identity in identities}
+    prepared=[(gate,row) for gate,row in prepared if gate['item']['id'] not in incomplete_role_items]
     # Export exact rendered/tokenized evaluation items for phrase and graph stages.
     exported=[]
     for gate,row in prepared:
@@ -92,6 +98,7 @@ def main():
                 row['layer']=selected_layers[row['layer']] if isinstance(row['layer'],int) else row['layer']
                 rows.append(dict(row,lens=name,label_tuned=name.startswith('J++'),family=family,metric='single-token concept recall over any prescribed read position',mode='raw'))
     run.result(dict(rows=rows,metadata=metadata,retained_test_items=len(prepared),capability_items=len(gates),jpp_dev_exclusions=dev_exclusions,
+        incomplete_role_pair_exclusions=sorted(incomplete_role_items),
         multi_token_status='Saved exact items and states for the causal phrase experiment',
         hallucination_status='Upstream WSB moved hallucination to HallucinationBench; no borrowed index is reported as this model.',
         deviations=['Exact-match scoring instead of the official LLM judge','Capability temperature .8 per project, versus .7 in WSB gates',

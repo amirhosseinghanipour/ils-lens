@@ -143,3 +143,27 @@ and renderers; `run_template_lens.py`, `evaluate_concept.py`,
 `evaluate_faithfulness.py`, `check_qwen_limit.py`, `collect_ablations.py`,
 `fit_diagnostics.py` and `evaluate_procrustes.py` implement their respective
 registered measurements. They remain pending on production Qwen artifacts.
+
+The serial GPU runner checks pinned reference revisions, available disk, and the
+small-input tests before starting. It waits for an idle GPU when requested,
+records each command and elapsed time, and halts on any failed stage. Run it from
+this checkout with the model environment variable set:
+
+```sh
+python -m ilslens.study --dataset data/wikitext-103-raw-v1 \
+  --references references --corpus data/transcoder-corpus.jsonl --dry-run
+python -m ilslens.study --dataset data/wikitext-103-raw-v1 \
+  --references references --corpus data/transcoder-corpus.jsonl --wait-for-gpu
+```
+
+Use `--through gpu-benchmark` for an initial GPU timing run. Status, stage logs,
+and completion records live in ignored `runs/study/`. Changed source code or
+completed-stage provenance stops a resumed pipeline for investigation. The final
+artifact audit distinguishes missing measurements from null findings; it does
+not certify scientific validity or replace review of the research report.
+
+Graph evaluations accept exact benchmark exports, preserve all their token read
+positions, and optionally use fitted phrase rows. Task coverage uses an explicitly
+documented excluded EOS sentinel, with skip0 on short task contexts; WikiText
+fitting retains skip16. Unsupported phrase targets remain unknown. The planted
+graph stages compare base/tuned models on identical base-completion token IDs.
