@@ -6,12 +6,38 @@ experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
 the all-layer GPU matrix-equivalence validation and primary J/R fitting have
 completed. Training and held-out donor-intervention collection are complete;
-primary GPU fitting is running. Missing measurements are
+all 576 primary GPU fits are now saved. Calibration is running. Missing measurements are
 unknown, not null findings.
 
 Full production execution is disabled during the specification audit. Independent
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
+
+## Registered unattended training
+
+At the owner's request, the existing calibration run is followed by the full
+registered transcoder run and the planted-organism `train-behavior` phase.
+Training uses all 24 layers, width 8d, TopK32, fp32, 100 million distinct
+FineWeb/chat tokens, and the audited corpus with no validation-window overlap.
+The short GPU benchmark measured 0.131848 seconds per 128-token all-layer update,
+projecting 103,007 seconds (28.6 hours) for updates alone. Tokenization, corpus
+audit, checkpoint writing and evaluation are excluded from that projection.
+The original conservative allowance remains in the training config; no training
+budget was reduced. Checkpoints retain optimizer state and corpus position every
+8,192 updates (1,048,576 tokens), roughly 18 minutes at the benchmark rate.
+
+The separate controller waits for successful calibration and sufficient GPU
+memory, then runs the two stages sequentially from a fixed checkout. Errors stop
+the queue and retain logs/checkpoints; no automatic retries or hyperparameter
+changes occur. The planted stage uses the predeclared 200-step LoRA configuration
+and 32 held-out behavioral questions. Its lens and graph detection stages are
+not included in this queue. These jobs run independently of the paused chat goal.
+
+The completed capability filter retained zero of 532 candidate items. This is
+the observed filter outcome, not yet an established model-capability conclusion:
+generation and scoring require inspection. Consequently no labeled dev set was
+available for J++, and that baseline was not fitted. Calibration continues for
+the other five lens banks. Readout comparisons and the full study remain incomplete.
 
 The label-tuned J++ baseline has a separate queued controller following the
 capability filter. It requires a matching successful predecessor and retained
