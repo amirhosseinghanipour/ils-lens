@@ -5,7 +5,7 @@ KV caching and dropout are disallowed, and no final normalization is returned.
 """
 import torch
 from .hooks import tensor_output
-from .sampling import horizon_weights
+from .sampling import horizon_weights,valid_positions
 
 class QwenSuffix:
     def __init__(self,model,ids):
@@ -42,6 +42,10 @@ class QwenSuffix:
     def effects(self,layer,position,deltas,gammas=(0.,.5,.9,1.),skip=16,return_branches=False,return_position_branches=False):
         if self.ids.shape[0]!=1:
             raise ValueError('Cache exactly one sequence per replay object')
+        if position not in valid_positions(self.ids.shape[1],skip):
+            raise ValueError('Source position violates skip/final-position conventions')
+        if return_branches and return_position_branches:
+            raise ValueError('Choose either reduced or per-position branches')
         deltas=deltas.to(self.states[layer]).reshape(-1,self.states[layer].shape[-1])
         n=len(deltas)
         h=self.states[layer].expand(2*n,-1,-1).clone()

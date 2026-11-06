@@ -1,8 +1,10 @@
 import torch
+from .readout import target_ranks
 
 def rank_of(scores,target_ids):
-    best=scores[target_ids].max()
-    return int((scores>best).sum())+1
+    rank=target_ranks(scores,target_ids)
+    if not torch.isfinite(rank):raise ValueError('Contrast target has no finite readout score')
+    return int(rank)
 
 @torch.no_grad()
 def contrast_with_null(condition,control,read,target_ids,prompt_ids,seed=0,repeats=1000):

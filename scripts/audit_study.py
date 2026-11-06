@@ -58,7 +58,9 @@ def audit(root):
     graph_rows=graph.get('budget',{}).get('rows',[])
     measured=[r for r in graph_rows if r.get('graph_status','measured')=='measured']
     check('graph_finite_edge_validation',bool(measured) and all(r.get('all_edges_pass') for r in measured),'Every measured graph row must have passing finite-edge checks; unsupported targets remain unknown')
-    check('graph_all_targets_supported',bool(graph_rows) and len(measured)==len(graph_rows),'Unsupported phrase targets must not silently pass full budget closure')
+    resolved=[r for r in graph_rows if r.get('graph_status','measured') in ('measured','zero_target')]
+    check('graph_all_targets_supported',bool(graph_rows) and len(resolved)==len(graph_rows),
+          'Unsupported phrase targets remain incomplete; identically zero fitted targets are resolved null findings with undefined attribution shares')
     check('graph_proposal_semantics',bool(graph) and graph.get('exploratory_affine') is False,
           'Exploratory direct-affine results cannot satisfy the unresolved proposal freeze criterion')
     tc_path=root/'transcoders/results.json';tc=json.loads(tc_path.read_text()) if tc_path.exists() else {}

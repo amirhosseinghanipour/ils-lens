@@ -22,7 +22,7 @@ def main():
     p.add_argument('--run',default='runs/qwen-main');p.add_argument('--dataset');p.add_argument('--device',default='cuda')
     p.add_argument('--phase',choices=['train-behavior','detect','all'],default='all');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());prompts=json.loads(Path(args.prompts).read_text())
-    run=Experiment(args.output,dict(config=config,evaluation_prompts=prompts,device=args.device))
+    run=Experiment(args.output,dict(config=config,evaluation_prompts=prompts,device=args.device,ranking='score-descending-id-ascending-v2'))
     model,tokenizer=load_local(args.device);torch.manual_seed(config['seed'])
     adapters=AdapterSet(model,config['rank'],config['alpha'])
     checkpoint=run.path/'adapter.pt'

@@ -8,7 +8,7 @@ from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
 from ilslens.eval.readout_tasks import load_reference_items,load_simplified_items,generate_answers,gate_item,candidate_ids,recall_report
 from ilslens.hooks import capture_blocks
-from ilslens.readout import raw,sparse_pursuit
+from ilslens.readout import raw,sparse_pursuit,target_ranks
 from ilslens.calibration import calibrated_readout,matrix_fingerprint
 from ilslens.jpp import readout_filter
 
@@ -132,7 +132,7 @@ def main():
                         if not ids:continue
                         for mode,values in [('raw',scores),('z',z)]:
                             if values is not None:
-                                best=values[ids].max();arrays[mode][i,l,c]=int((values>best).sum())+1 if torch.isfinite(best) else np.nan
+                                arrays[mode][i,l,c]=float(target_ranks(values,ids))
             for mode,array in arrays.items():
                 reports=recall_report(array,[item['id'] for item in selected])
                 for report in reports:
@@ -144,7 +144,7 @@ def main():
                     z_dead_top10_fraction=None if not z_dead_rates[layer] else float(np.mean(z_dead_rates[layer]))))
     (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
-        seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),
+        seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),ranking='score-descending-id-ascending-v2',
         simplified_families=fallback_families,simplified_bank=config.get('simplified_bank'),
         caveats=['Strict leakage exclusion may reject all poetry items','No implicit LLM-judge substitutions']),indent=2))
 

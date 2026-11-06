@@ -32,12 +32,27 @@ def antithetic_phrase_effect(model,prompt_ids,suffix_ids,phrase_tokens,layer,pos
 def fit_phrase_rows(delta,log_probability_change,prompt_ids,lambdas,seed=0):
     # Phrase readouts map residual deltas to scalar log-probability changes;
     # zero prior is appropriate for rows without a residual identity map.
+    if not lambdas or any(value<0 or not torch.isfinite(torch.tensor(value)) for value in lambdas):
+        raise ValueError('Nonnegative finite ridge candidates are required')
+    if not torch.isfinite(delta).all() or not torch.isfinite(log_probability_change).all():
+        raise ValueError('Nonfinite phrase fitting data')
     prior = delta.new_zeros(log_probability_change.shape[1],delta.shape[1])
     matrices=[];winners=[];all_results=[]
     for column in range(log_probability_change.shape[1]):
-        a,winner,results = select(delta,log_probability_change[:,column:column+1],prompt_ids,{'I':prior[column:column+1]},lambdas,
+        response=log_probability_change[:,column:column+1]
+        if torch.count_nonzero(response)==0:
+            # With zero prior, every ridge penalty returns exactly the zero row
+            # (the minimum-norm solution at lambda=0). No R² choice is possible
+            # or necessary; do not pretend that an arbitrary penalty won CV.
+            matrices.append(prior[column:column+1].clone())
+            winners.append(dict(status='exact_zero_response',prior='zero_phrase_row',lam=None,
+                                estimator='ridge',r2=None,selection='All configured ridge penalties have the same zero solution'))
+            all_results.append([])
+            continue
+        a,winner,results = select(delta,response,prompt_ids,{'I':prior[column:column+1]},lambdas,
                                  estimators=('ridge',),seed=seed)
         winner['prior'] = 'zero_phrase_row'
+        winner['status']='cv_selected'
         for row in results:row['prior']='zero_phrase_row'
         matrices.append(a);winners.append(winner);all_results.append(results)
     return torch.cat(matrices),winners,all_results

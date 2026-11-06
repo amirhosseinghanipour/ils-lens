@@ -11,6 +11,11 @@ from ilslens.readout import fdr
 from ilslens.runtime import resolve_device
 
 class EvaluationTests(unittest.TestCase):
+    def test_singular_swap_uses_the_specified_pseudoinverse(self):
+        from ilslens.eval.causal import swap_coordinates
+        h=torch.tensor([5.,7.]);vectors=torch.tensor([[1.,2.],[0.,0.]])
+        torch.testing.assert_close(swap_coordinates(h,vectors),torch.tensor([4.,7.]))
+        torch.testing.assert_close(swap_coordinates(h,torch.zeros(2,2)),h)
     def setUp(self):torch.set_num_threads(2);torch.manual_seed(99)
     def test_capability_and_leakage_are_both_required(self):
         item=ReadoutItem('a','multihop','The country shaped like a boot uses','same',['euro'],['Italy'],'test')

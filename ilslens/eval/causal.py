@@ -5,7 +5,8 @@ from ..hooks import tensor_output,replace_output
 
 def swap_coordinates(h,vectors):
     if vectors.shape!=(h.shape[-1],2):raise ValueError('Swap requires two direction columns')
-    if int(torch.linalg.matrix_rank(vectors))<2:raise ValueError('Swap directions must be linearly independent')
+    # The specified Moore–Penrose formula is defined for singular V too.
+    # Such a swap need not be an involution; do not silently impose full rank.
     coefficients=h@torch.linalg.pinv(vectors).T
     return h+(coefficients.flip(-1)-coefficients)@vectors.T
 

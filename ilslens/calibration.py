@@ -11,7 +11,7 @@ def matrix_fingerprint(matrix):
 def finite_topk(scores,k=10):
     """A masked/nonfinite score is not a readout, even if fewer than k remain."""
     eligible=torch.where(torch.isfinite(scores))[0]
-    return eligible[scores[eligible].topk(min(k,len(eligible))).indices]
+    return eligible[torch.argsort(scores[eligible],descending=True,stable=True)[:k]]
 
 @torch.no_grad()
 def fit_calibration(transported,unembedding,gain,frequencies,minimum=100000,token_chunk=64,eps=1e-6):

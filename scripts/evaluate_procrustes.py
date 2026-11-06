@@ -9,7 +9,7 @@ from ilslens.jpp import load_jpp
 from ilslens.eval.diagnostics import procrustes_experts
 from ilslens.eval.faithfulness import bootstrap_r2
 from ilslens.eval.readout_tasks import candidate_ids,recall_report
-from ilslens.readout import raw
+from ilslens.readout import raw,best_target_rank
 from ilslens.experiment import Experiment,save_tensor
 
 def main():
@@ -22,7 +22,7 @@ def main():
     states=torch.load(args.states,weights_only=True,map_location='cpu')
     if states['metadata']['fingerprint']!=manifest['fingerprint']:raise ValueError('Readout provenance differs')
     run=Experiment(args.output,dict(config=dict(estimated_seconds=3600,estimated_disk_mb=200),primary_fingerprint=manifest['fingerprint'],
-        reference_expert=0,weighting='uniform',device=args.device))
+        reference_expert=0,weighting='uniform',device=args.device,ranking='score-descending-id-ascending-v2'))
     rows=[];readouts=[]
     for layer,matrices in experts.experts_L_dict_EFN.items():
         result=procrustes_experts(matrices.to(model.device))
@@ -42,7 +42,7 @@ def main():
                 with torch.no_grad():scores=raw(states['states'][index][layer].to(model.device),matrix,model.lm_head.weight,model.model.norm.weight)
                 for column,target in enumerate(item['targets']):
                     ids=candidate_ids(tokenizer,target)
-                    if ids:ranks[i,0,column]=int((scores>scores[:,ids].max(1).values[:,None]).sum(1).min())+1
+                    if ids:ranks[i,0,column]=best_target_rank(scores,ids)
             readouts.extend(dict(row,source_layer=layer,method=method) for row in recall_report(ranks,[item['id'] for _,item in available]))
         run.event('procrustes-layer',layer=layer)
     run.result(dict(interventional=rows,readouts=readouts,label_tuned=False,

@@ -98,11 +98,13 @@ def phrase_gate_report(rows,seed=0,repeats=200):
         group=lambda row:row['pair_id'] if family=='role_bound_association' else row['item_id']
         identities={group(r) for r in selected}
         if family=='role_bound_association' and None in identities:raise ValueError('Role-binding gate summaries require pair IDs')
-        ids=sorted(identities)
-        values=np.array([np.mean([r['gate']['passes'] for r in selected if group(r)==identity]) for identity in ids])
+        measured=[r for r in selected if r['gate']['passes'] is not None]
+        ids=sorted({group(r) for r in measured})
+        values=np.array([np.mean([r['gate']['passes'] for r in measured if group(r)==identity]) for identity in ids])
         results.append(dict(method=method,family=family,units=len(ids),unit='pair' if family=='role_bound_association' else 'item',
-            interventions=len(selected),pass_rate=float(values.mean()),
-            ci=np.quantile(values[rng.integers(len(values),size=(repeats,len(values)))].mean(1),[.025,.975]).tolist()))
+            interventions=len(selected),measured_interventions=len(measured),undefined_interventions=len(selected)-len(measured),
+            pass_rate=float(values.mean()) if len(values) else None,
+            ci=np.quantile(values[rng.integers(len(values),size=(repeats,len(values)))].mean(1),[.025,.975]).tolist() if len(values) else [None,None]))
     return results
 
 def overlaps_labeled_dev(item,metadata):

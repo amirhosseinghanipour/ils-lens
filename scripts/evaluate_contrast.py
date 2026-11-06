@@ -39,6 +39,6 @@ def main():
                     torch.save(statistic.pop('contrast_scores'),score_file)
                     rows.append(dict(lens=name,layer=layer,mode=mode,read_mode=read_mode,**statistic))
     (root/'results.json').write_text(json.dumps(dict(config=config,rows=rows,metadata=metadata,
-        excluded_short_completion_pairs=excluded,completions=completions,seconds=time.perf_counter()-start),indent=2))
+        excluded_short_completion_pairs=excluded,completions=completions,seconds=time.perf_counter()-start,ranking='score-descending-id-ascending-v2'),indent=2))
 
 if __name__=='__main__':main()

@@ -2,6 +2,30 @@ import numpy as np
 import torch
 from scipy.stats import genpareto
 
+def target_ranks(scores,target_ids):
+    """Best target rank, with descending score then ascending token-ID order.
+
+    Arbitrary ties must not make every token a top-one readout. Nonfinite
+    targets are unscoreable (NaN), never assigned a favorable rank.
+    """
+    ids=torch.as_tensor(target_ids,device=scores.device,dtype=torch.long)
+    if ids.ndim!=1 or ids.numel()==0:raise ValueError('At least one target ID is required')
+    if ((ids<0)|(ids>=scores.shape[-1])).any():raise ValueError('Target ID outside vocabulary')
+    values=scores[...,ids];values=values.masked_fill(~torch.isfinite(values),-torch.inf)
+    best=values.max(-1).values
+    chosen=torch.where(values==best[...,None],ids,scores.shape[-1]).amin(-1)
+    vocabulary=torch.arange(scores.shape[-1],device=scores.device)
+    higher=((scores>best[...,None])&torch.isfinite(scores)).sum(-1)
+    tied_earlier=((scores==best[...,None])&(vocabulary<chosen[...,None])).sum(-1)
+    ranks=(higher+tied_earlier+1).to(torch.float32)
+    return torch.where(torch.isfinite(best),ranks,torch.full_like(ranks,torch.nan))
+
+def best_target_rank(scores,target_ids):
+    """Best valid rank over supplied read positions; NaN if none is scoreable."""
+    ranks=target_ranks(scores,target_ids).reshape(-1)
+    finite=ranks[torch.isfinite(ranks)]
+    return float(finite.min()) if len(finite) else float('nan')
+
 def raw(h,a,unembedding,gain,eps=1e-6):
     state = h@a.T
     return (state*gain/(state.square().mean(-1,keepdim=True)+eps).sqrt())@unembedding.T

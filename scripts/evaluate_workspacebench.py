@@ -11,7 +11,7 @@ from ilslens.eval.readout_tasks import generate_token_completions,gate_item,exac
 from ilslens.eval.contrastive import render_condition
 from ilslens.artifacts import primary_bank
 from ilslens.hooks import capture_blocks
-from ilslens.readout import raw
+from ilslens.readout import raw,best_target_rank
 from ilslens.jpp import readout_filter
 
 def main():
@@ -19,7 +19,7 @@ def main():
     p.add_argument('--run',default='runs/qwen-main');p.add_argument('--output',default='runs/workspacebench')
     p.add_argument('--device',default='cuda');p.add_argument('--gate-only',action='store_true');p.add_argument('--jpp');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());revision=subprocess.check_output(['git','-C',args.reference,'rev-parse','HEAD'],text=True).strip()
-    run=Experiment(args.output,dict(config=config,reference_revision=revision,device=args.device))
+    run=Experiment(args.output,dict(config=config,reference_revision=revision,device=args.device,ranking='score-descending-id-ascending-v2'))
     readplan,render,_,bank_items,_=load_reference(args.reference)
     model,tokenizer=load_local(args.device);layers=config['layers'];gates=[];prepared=[]
     jpp_artifact=torch.load(args.jpp,weights_only=True,map_location='cpu') if args.jpp else None
@@ -91,8 +91,7 @@ def main():
                     for c,concept in enumerate(gate['item']['intermediates']):
                         token_ids=candidate_ids(tokenizer,concept)
                         if token_ids:
-                            best=scores[:,token_ids].max(1).values
-                            ranks[i,l,c]=int((scores>best[:,None]).sum(1).min())+1
+                            ranks[i,l,c]=best_target_rank(scores,token_ids)
             report=recall_report(ranks,[gate['item']['id'] for _,gate in chosen],seed=config['seed'])
             for row in report:
                 row['layer']=selected_layers[row['layer']] if isinstance(row['layer'],int) else row['layer']

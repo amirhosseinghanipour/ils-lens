@@ -66,7 +66,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **74 passing
+the specified semantics remain unresolved. The current suite has **84 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -103,6 +103,36 @@ per training checkpoint. The former cadence implied about 6104 saves (24 TB of
 writes); the new cadence implies 96 saves (378 GB), before serialization overhead.
 These are engineering estimates, not observed training costs. The disk estimate
 is now 10 GB to cover simultaneous old/new checkpoint files during atomic writes.
+
+The prefix-invariance test now explicitly compares both intervention signs with
+the clean output, on both the trained HMM and tiny random model. Equality between
+the two signs alone could miss a shared error. The per-position suffix API also
+rejects invalid source positions, including the excluded final token.
+
+Readout ranks previously counted only strictly higher scores, which could
+incorrectly assign many tied tokens rank one. Ranks and displayed top-k lists
+now use descending score followed by ascending token ID (dictionary index for
+phrases). An all-zero lens therefore cannot give every target rank one. Ranking
+protocol versions prevent old cached evaluations from being presented as the
+corrected protocol. No production Qwen readout outcomes selected this rule.
+
+The phrase estimand has a structural null at the final block: a prompt-site
+block-output intervention cannot affect token probabilities at later positions
+after a fixed, nonempty probe suffix. A tiny-model regression test confirms zero
+effects at several positions. When the observed fitting responses are all
+exactly zero, every configured zero-prior ridge penalty gives the same zero
+minimum-norm row; the artifact records that row with **no selected penalty and
+undefined interventional R²**. This does not infer absence of sub-precision
+effects at other layers. A zero direction or degenerate covariance has an
+undefined causal gate, counted separately from measured failures. A zero graph
+target has an undefined 0/0 attribution share and is never classified as dark
+matter solely for that reason. Other nonzero constant responses still cannot
+select a penalty by R² and are not silently assigned one.
+
+The coordinate-swap implementation now uses the stated Moore–Penrose formula
+for singular as well as full-rank direction matrices. The previous full-rank
+restriction was unnecessary. Singular swaps need not be involutions; no
+replacement formula or evaluation-based regularizer was introduced.
 
 ## Model and numerical conventions
 
@@ -240,7 +270,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 74 small-input tests pass. This includes numerical identities,
+The current 84 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

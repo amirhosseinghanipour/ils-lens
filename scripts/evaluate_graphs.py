@@ -30,7 +30,7 @@ def main():
                            'Production is blocked; --exploratory-affine is only for separately labeled exploratory results.')
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())
     run=Experiment(args.output,dict(config=config,items=items,adapter=args.adapter,phrase_rows=args.phrase_rows,device=args.device,
-        graph_protocol='direct-and-live-v2',exploratory_affine=True,
+        graph_protocol='direct-live-zero-target-v3',exploratory_affine=True,
         coverage_convention='Exact task context plus excluded EOS sentinel, source skip=0; WikiText fitting remains skip16'))
     model,tokenizer=load_local(args.device);bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])
     if args.adapter:
@@ -74,6 +74,9 @@ def main():
                         lens_r2=statistics['r2'],lens_r2_ci=statistics['ci'],target_metadata=target_metadata,
                         coverage_scope='All original future tokens; appended EOS excluded; task source skip0')
                     if vector is None:row.update(graph_completeness=None,all_edges_pass=None,graph_status='unsupported_target')
+                    elif torch.count_nonzero(vector)==0:
+                        row.update(graph_completeness=None,all_edges_pass=None,graph_status='zero_target',target_value=0.,
+                            reason='Identically zero linear target; attribution share is 0/0 and no directional edge is claimed')
                     else:
                         target=dict(kind='lens',layer=layer,position=position,vector=vector)
                         result=evaluate_target(graph,target,edges_per_kind=config['edges_per_kind'])
@@ -97,7 +100,7 @@ def main():
             logit.pop('contributions');write_json(run.path/f'logit-{index:04d}.json',logit)
             if not logit['all_edges_pass']:raise AssertionError('Logit graph finite-edge validation failed')
     run.result(dict(budget=close_budget(rows,config['coverage_threshold'],config['completeness_threshold']),metadata=metadata,
-        exploratory_affine=True,graph_protocol='direct-and-live-v2',
+        exploratory_affine=True,graph_protocol='direct-live-zero-target-v3',
         donor_provenance=provenance,adapter=args.adapter,
         deviations=['Direct source-to-target attribution graph with independent clean feature sources',
                     'Bounded upstream feature expansion uses clean TopK encoder support; unexpanded nodes remain listed',

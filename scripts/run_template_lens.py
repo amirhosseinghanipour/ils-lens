@@ -12,6 +12,7 @@ from ilslens.templatelens import phrase_ids,antithetic_phrase_effect,fit_phrase_
 from ilslens.eval.faithfulness import bootstrap_r2
 from ilslens.eval.workspacebench import contradiction_check,phrase_recall_report,phrase_gate_report
 from ilslens.gate import random_direction_gate
+from ilslens.readout import target_ranks
 from ilslens.experiment import Experiment,save_tensor,write_json
 
 def main():
@@ -32,7 +33,8 @@ def main():
         (accepted if 2<=count<=5 else excluded).append(phrase)
     if not accepted:raise ValueError('No 2–5-token phrases under this model tokenizer')
     tokens=phrase_ids(tokenizer,[' '+phrase for phrase in accepted]);phrase_tokens=[tokens[' '+phrase] for phrase in accepted]
-    run=Experiment(args.output,dict(config=config,items=items,phrases=accepted,excluded_phrases=excluded,device=args.device))
+    run=Experiment(args.output,dict(config=config,items=items,phrases=accepted,excluded_phrases=excluded,device=args.device,
+        ranking='score-descending-id-ascending-v2',zero_response='common_zero_ridge_solution_no_penalty_selection'))
     suffix=tokenizer.encode(config['probe_suffix'],add_special_tokens=False);layers=config['layers']
     training,training_rows=wikitext_sequences(args.dataset,tokenizer,'train',config['source_prompts'])
     donors,donor_rows=wikitext_sequences(args.dataset,tokenizer,'train',config['donor_prompts'],offset=config['source_prompts'])
@@ -111,19 +113,23 @@ def main():
                     for phrase in item['targets']:
                         if phrase not in accepted:continue
                         column=accepted.index(phrase);row=matrix[column]
-                        if row.norm()==0:raise ValueError('Zero phrase direction; causal gate undefined')
-                        direction=row/row.norm()*config['epsilon']*(2*moments[layer]['covariance'].trace()).sqrt()
+                        direction=(torch.zeros_like(row) if row.norm()==0 else
+                            row/row.norm()*config['epsilon']*(2*moments[layer]['covariance'].trace()).sqrt())
                         def effect(delta):return float(antithetic_phrase_effect(model,item['input_ids'],suffix,phrase_tokens[column],layer,position,delta))
                         gate=random_direction_gate(direction,moments[layer]['covariance'],effect,seed=config['seed']+index,count=100)
                         hallucination=contradiction_check(readout,item['actual_output'],item['answers'],item.get('contrasts',[]))
                         rows.append(dict(item_id=item['id'],family=item['family'],pair_id=item.get('pair_id'),layer=layer,position=position,
-                            method=method,target=phrase,rank=int((scores>scores[column]).sum())+1,readout=readout,gate=gate,hallucination=hallucination))
+                            method=method,target=phrase,rank=int(target_ranks(scores,[column])),readout=readout,
+                            flat_readout=bool((scores==scores[0]).all()),
+                            fit_status=artifact['selection'][column].get('status','legacy_unspecified') if method=='ils' else 'whitened_template',
+                            gate=gate,hallucination=hallucination))
                 run.event('phrase-item',item=item['id'],layer=layer,method=method)
     summaries=phrase_recall_report(rows,layers,seed=config['seed'])
     run.result(dict(rows=rows,summary=summaries,causal_summary=phrase_gate_report(rows,config['seed']),interventional_faithfulness=faithfulness,excluded_phrases=excluded,
         calibration='Phrase scores are linear rows on raw residuals; no token-lens RMSNorm is applied',
         deviations=['Three deterministic word-assembly synthetic passages per phrase for the whitened template baseline',
         'Phrase dictionary is known by design; only prompt-fold interventional R2 selects each ridge penalty',
+        'Exactly zero responses have the common zero-prior ridge solution for every penalty; lambda and R2 remain undefined, with no CV winner invented',
         'Targets outside 2–5 model tokens are explicitly excluded; ordered phrases are never inferred from token bags']))
 
 if __name__=='__main__':main()

@@ -8,7 +8,7 @@ from ilslens.artifacts import primary_bank
 from ilslens.data import wikitext_sequences
 from ilslens.covariance import residual_moments
 from ilslens.concept import projection,read
-from ilslens.readout import raw
+from ilslens.readout import raw,target_ranks
 from ilslens.eval.readout_tasks import candidate_ids
 from ilslens.experiment import Experiment,save_tensor
 
@@ -20,7 +20,7 @@ def main():
     short,metadata=primary_bank(args.run,config['epsilon'],0.);long,_=primary_bank(args.run,config['epsilon'],.9)
     cached=torch.load(args.states,weights_only=True,map_location='cpu')
     if cached['metadata']['fingerprint']!=metadata['fingerprint']:raise ValueError('Read-state provenance differs')
-    run=Experiment(args.output,dict(config=config,primary_fingerprint=metadata['fingerprint'],device=args.device))
+    run=Experiment(args.output,dict(config=config,primary_fingerprint=metadata['fingerprint'],device=args.device,ranking='score-descending-id-ascending-v2'))
     count=json.loads((Path(args.run)/'manifest.json').read_text())['config']['source_prompts']
     sequences,_=wikitext_sequences(args.dataset,tokenizer,'train',count);moments=residual_moments(model,sequences,config['layers'])
     rows=[]
@@ -42,10 +42,10 @@ def main():
                     ranks=[]
                     for target in item['targets']:
                         ids=candidate_ids(tokenizer,target)
-                        if ids:ranks.append(int((values[j]>values[j,ids].max()).sum())+1)
+                        if ids:ranks.append(int(target_ranks(values[j],ids)))
                     rows.append(dict(item_id=item['id'],layer=layer,position=position,method=method,
                         concept_remaining_norm_fraction=float(remaining_norm[j]),
-                        next_token_rank=None if next_token is None else int((values[j]>values[j,next_token]).sum())+1,
+                        next_token_rank=None if next_token is None else int(target_ranks(values[j],[next_token])),
                         concept_ranks=ranks,unscoreable_concepts=len(item['targets'])-len(ranks)))
     summaries=[];rng=np.random.default_rng(config['seed'])
     for layer in config['layers']:
