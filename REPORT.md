@@ -4,12 +4,20 @@ Updated 2026-11-06. **The requested research criteria are not yet met.** Complet
 measurements are the Qwen numerical/reference benchmarks and the trained toy HMM
 experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
-the available RTX 3060 remains occupied by another workload. Missing measurements
+the RTX 3060 became available and numerical GPU validation has started. Missing measurements
 are unknown, not null findings.
 
-Production execution is now disabled during the specification audit. GPU
-availability alone will not restart the study. The current implementation is
+Full production execution is disabled during the specification audit. Independent
+numerical validation can run on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
+
+The initial fp32 GPU suffix benchmark completed: six-epsilon antithetic batches
+at source position 64 took 0.2033, 0.1279, 0.0659 and 0.000575 seconds at blocks
+0, 7, 15 and 23 respectively, averaged over three repetitions. See
+[the timing artifact](artifacts/qwen-gpu-suffix-benchmark.json). These timings
+exclude data loading and do not establish scientific validity. The all-layer
+isotropic-limit validation was launched separately with an unbenchmarked
+24-hour / 3-GB estimate; its results are pending.
 
 ## Specification corrections and a failed graph criterion
 
