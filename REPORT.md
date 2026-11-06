@@ -23,6 +23,14 @@ sampling conventions and fewer than 100,000 references are rejected. This is a
 reproducibility correction, not a calibration measurement or method change.
 The local suite passed 145 tests in 6.448 seconds after this change.
 
+The primary-results exporter previously checked file count and fingerprint but
+not the full cell grid. A synthetic 24-file fixture with duplicate layer 0 and
+missing layer 23 was incorrectly accepted by the previous exporter. It now
+rejects duplicate/missing cells, mismatched conventions or fitting sample count,
+missing baselines, and nonfinite statistics. Negative R² and explicit undefined
+statistics remain preserved. The complete local suite passed 147 tests in
+6.190 seconds. No production fit or scientific selection rule changed.
+
 The [full collection audit](artifacts/primary-full-collection-integrity.json)
 passes for all 1,152 checkpoints: 384 training shards and 768 held-out shards,
 totaling 19,827,816,192 bytes. Each layer/epsilon has 7,168 fitting samples and
