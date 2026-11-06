@@ -6,7 +6,7 @@ import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
-from ilslens.eval.readout_tasks import load_reference_items,generate_answers,gate_item,candidate_ids,recall_report
+from ilslens.eval.readout_tasks import load_reference_items,load_simplified_items,generate_answers,gate_item,candidate_ids,recall_report
 from ilslens.hooks import capture_blocks
 from ilslens.readout import raw,sparse_pursuit
 from ilslens.calibration import calibrated_readout,matrix_fingerprint
@@ -15,7 +15,7 @@ from ilslens.jpp import readout_filter
 def read_site(tokenizer,prompt,task):
     tokens=tokenizer(prompt,return_tensors='pt').input_ids
     position=tokens.shape[1]-1
-    if task=='poetry':
+    if task.split(':')[0]=='poetry':
         newline=prompt.rfind('\n');encoded=tokenizer(prompt,return_offsets_mapping=True)
         candidates=[j for j,(a,b) in enumerate(encoded['offset_mapping']) if a<=newline<b]
         if not candidates:raise ValueError('Cannot identify poetry newline token')
@@ -40,8 +40,8 @@ def main():
         items=limited
     model,tokenizer=load_local(args.device)
     gates=[]
-    for index,item in enumerate(items):
-        path=root/f'gate-{index:04d}.json'
+    def evaluate_gate(index,item,bank='reference'):
+        path=root/f'gate-{bank}-{index:04d}.json'
         if path.exists():
             record=json.loads(path.read_text())
             if record['item']!=asdict(item) or record.get('config')!=config:raise ValueError('Gate cache settings changed')
@@ -50,7 +50,16 @@ def main():
             completions=answers if item.capability_prompt==item.prompt else generate_answers(model,tokenizer,item.prompt,seed=config['seed']+index*100+20,max_new_tokens=config['max_new_tokens'])
             record=dict(gate_item(item,answers,completions),config=config)
             path.write_text(json.dumps(record,indent=2))
-        gates.append(record)
+        return record
+    for index,item in enumerate(items):gates.append(evaluate_gate(index,item))
+    fallback_families=[]
+    if config.get('simplified_bank'):
+        for family in sorted({item.task for item in items}):
+            retained_count=sum(r['retained'] and r['item']['split']=='test' and r['item']['task']==family for r in gates)
+            if retained_count<config['minimum_reference_test_items']:fallback_families.append(family)
+        supplemental=load_simplified_items(config['simplified_bank'],fallback_families,config['seed'])
+        for index,item in enumerate(supplemental):gates.append(evaluate_gate(len(items)+index,item,bank='simplified'))
+        items.extend(supplemental)
     (root/'gates.json').write_text(json.dumps(gates,indent=2))
     if args.gate_only:return
     bank,metadata=primary_bank(args.run,epsilon=config['epsilon'],gamma=config['gamma'])
@@ -132,6 +141,7 @@ def main():
     (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
         seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),
+        simplified_families=fallback_families,simplified_bank=config.get('simplified_bank'),
         caveats=['Strict leakage exclusion may reject all poetry items','No implicit LLM-judge substitutions']),indent=2))
 
 if __name__=='__main__':main()

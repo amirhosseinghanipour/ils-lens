@@ -94,6 +94,26 @@ production Qwen results yet.
 | 7. What fraction is dark matter? | 0/32 in the limited toy budget diagnostic; unknown for Qwen. |
 | 8. Does this model have workspace-like structure compared with larger models? | No defensible conclusion yet. Published larger-model readout numbers cannot establish this model's causal workspace. |
 
+### Published comparison points
+
+Gurnee et al. report top-1 intermediate-swap success on 50 two-hop factual
+prompts. These are published reference results, not measurements from this
+repository. [Original paper, Figure 15 and accompanying text](https://transformer-circuits.pub/2026/workspace/index.html).
+
+| Model | Published top-1 swap success | 95% interval |
+|---|---|---|
+| Claude Haiku 4.5 | 54% | Not supplied in the cited text |
+| Claude Sonnet 4.5 | 70% | Not supplied in the cited text |
+| Claude Opus 4.5 | 70% | Not supplied in the cited text |
+| Qwen2.5-0.5B-Instruct, this study | Not measured | Not measured |
+
+Our matched-random gate pass rate is a different metric from top-1 swap success;
+the toy's 2/24 ILS gate passes cannot be compared numerically to these percentages.
+Task filtering, layer bands, model families and control protocols also differ.
+The paper identifies model-size scaling as an open question, so this source does
+not establish a parameter threshold at which workspace structure must appear.
+[Discussion of scale](https://transformer-circuits.pub/2026/workspace/index.html).
+
 ## Compute and execution status
 
 | Phase | Estimate / actual evidence | Status |
@@ -112,7 +132,7 @@ production Qwen results yet.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 56 small-input tests pass. This includes numerical identities,
+The current 59 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
@@ -201,6 +221,18 @@ checkpoint resume. These checks do not replace end-to-end Qwen measurements.
     contrast is not independent detection evidence beyond that readout. Changing
     model weights changes both source activations and transfer functions; the
     graph comparison does not claim that one feature causes the learned trait.
+21. **Capability fallback:** a fixed 36-item LLM-authored auxiliary bank was
+    prepared before any production Qwen capability/readout results. It is used
+    only for a family with fewer than five retained reference test items, and
+    must pass the identical capability and zero-leakage rules. Results carry a
+    `:simplified` task suffix and are never silently pooled with upstream scores.
+    Even simplified poetry is excluded when its successful answer reveals the
+    target; the protocol conflict is retained rather than waived.
+22. **Undefined measurements:** an explicit all-zero-effect test exposed NaN R²
+    and failed strict JSON serialization. Constant-target R² now reports `null`
+    with an explicit reason, not a perfect fit or zero. Undefined rank correlations
+    and bootstrap replicates are counted. Cross-validation refuses constant
+    targets because its registered R² selection objective is undefined there.
 
 During this implementation pass, an older training/resume test failed because
 its mocked behavior records omitted generated token IDs required by the new

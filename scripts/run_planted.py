@@ -100,7 +100,7 @@ def main():
         result=model_diff_faithfulness(model,adapters,sequences,layer,bank['ILS'][layer],[64]*len(sequences),gamma=config['gamma'])
         x=result.pop('delta');y=result.pop('effect');save_tensor(run.path/f'model-diff-layer-{layer}.pt',dict(delta=x,response=y,metadata=metadata))
         statistics=bootstrap_r2(y,x@bank['ILS'][layer].T,torch.arange(len(x)),seed=config['seed'])
-        faithfulness.append(dict(layer=layer,**result,ci=statistics['ci']))
+        faithfulness.append(dict(result,layer=layer,**statistics))
     run.result(dict(behavior=behavior,trait_verified=behavior['statistically_detected'],rows=rows,model_diff_faithfulness=faithfulness,
         excluded_short_completion_pairs=excluded,metadata=metadata,graph_status='Requires the graph evaluation stage with this adapter',
         limitation='Detection measurements remain conditional on successful behavioral planting; model-difference R2 is not total trait variance explained.'))

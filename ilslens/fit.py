@@ -69,6 +69,8 @@ def r2(y, pred):
     return (1-(y-pred).square().sum()/denominator).item()
 
 def select(x,y,prompt_ids,priors,lambdas,estimators=('ridge','huber','mom'),seed=0,prior_samples=None,fold_prior_provider=None):
+    if not torch.isfinite(x).all() or not torch.isfinite(y).all():raise ValueError('Nonfinite fitting observations')
+    if (y-y.mean(0)).square().sum()<=0:raise ValueError('Interventional R2 selection is undefined for a constant target')
     groups = prompt_ids.unique()
     if len(groups)<5:
         raise ValueError('five-fold CV requires five prompts')

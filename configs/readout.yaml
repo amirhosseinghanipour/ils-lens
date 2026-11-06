@@ -14,3 +14,5 @@ required_correct: 8
 temperature: 0.8
 repetition_penalty: 1.0
 dev_fraction: 0.2
+simplified_bank: configs/readout-simple.json
+minimum_reference_test_items: 5

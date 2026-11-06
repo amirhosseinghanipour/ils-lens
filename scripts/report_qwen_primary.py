@@ -30,6 +30,7 @@ No label-tuned J++ results are represented in this table.
 |---|---|---|---|---|---|
 '''
 for row in rows:
-    text+=f"| {row['layer']} | {row['epsilon']} | {row['gamma']} | {row['lens']} | {row['r2']:.4f} | [{row['ci'][0]:.4f}, {row['ci'][1]:.4f}] |\n"
+    number=lambda value:'undefined' if value is None else f'{value:.4f}'
+    text+=f"| {row['layer']} | {row['epsilon']} | {row['gamma']} | {row['lens']} | {number(row['r2'])} | [{number(row['ci'][0])}, {number(row['ci'][1])}] |\n"
 Path('QWEN_PRIMARY_RESULTS.md').write_text(text)
 print('Wrote QWEN_PRIMARY_RESULTS.md; no overall method improvement conclusion inferred')

@@ -8,7 +8,7 @@ from ilslens.artifacts import primary_bank
 from ilslens.data import wikitext_sequences
 from ilslens.suffix import QwenSuffix
 from ilslens.sampling import horizon_weights
-from ilslens.eval.faithfulness import bootstrap_r2,token_spearman
+from ilslens.eval.faithfulness import bootstrap_r2,token_spearman,bootstrap_prompt_mean
 from ilslens.experiment import Experiment,write_json
 
 def main():
@@ -50,10 +50,9 @@ def main():
                 y=torch.stack(ys);group_ids=torch.tensor(groups);local=[];rng=np.random.default_rng(config['seed'])
                 for name,predicted in predictions.items():
                     r=bootstrap_r2(y,torch.stack(predicted),group_ids,seed=config['seed'])
-                    values=np.array(correlations[name]).reshape(len(ids),config['samples_per_prompt']).mean(1)
-                    ci=np.nanquantile(values[rng.integers(len(values),size=(200,len(values)))].mean(1),[.025,.975]).tolist()
+                    correlation=bootstrap_prompt_mean(np.array(correlations[name]).reshape(len(ids),config['samples_per_prompt']),seed=config['seed'])
                     local.append(dict(lens=name,label_tuned=name.startswith('J++'),layer=layer,epsilon=epsilon,gamma=gamma,N=len(y),
-                        **r,spearman=float(np.nanmean(values)),spearman_ci=ci))
+                        **r,spearman=correlation['mean'],spearman_ci=correlation['ci'],spearman_sampling=correlation))
                 write_json(path,local);rows.extend(local);run.event('faithfulness-cell',layer=layer,epsilon=epsilon,gamma=gamma)
     run.result(dict(rows=rows,source_provenance=source_rows,donor_provenance=donor_rows,
         token_change_estimand='Antithetic log-softmax change after norm/unembedding of the horizon-averaged final pre-norm residual; top1000 selected by absolute actual change',

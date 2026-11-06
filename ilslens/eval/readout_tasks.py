@@ -49,6 +49,19 @@ def load_reference_items(directory,seed=0):
             result.append(ReadoutItem(identity,task,prompt,question,answers,concepts,dev_split(identity,seed)))
     return result
 
+def load_simplified_items(path,families,seed=0):
+    """Fixed auxiliary tasks, separately named so results cannot be pooled silently."""
+    result=[]
+    for row in json.loads(Path(path).read_text())['items']:
+        task=row['task']
+        if task not in families:continue
+        prompt=row['prompt'];question=prompt
+        if task=='typo':question='Correct the misspelled final word. Reply with only the corrected word.\n'+prompt
+        elif task=='association':question='Name the central concept in one word.\n'+prompt
+        identity=f'simple:{task}:{row["id"]}'
+        result.append(ReadoutItem(identity,task+':simplified',prompt,question,row['answers'],row['intermediates'],dev_split(identity,seed)))
+    return result
+
 def gate_item(item,capability_answers,natural_completions,draws=10,required=8):
     if len(capability_answers)!=draws or len(natural_completions)!=draws:
         raise ValueError('Capability gate requires exactly ten returned samples in both modes')
