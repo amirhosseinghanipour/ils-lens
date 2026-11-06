@@ -110,6 +110,19 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Primary cross-validation now reuses zero-penalty candidate scores across priors.
+At λ=0 the prior term vanishes for ridge, Huber IRLS and prompt-block MoM, so
+repeating their fold fits for I/J/R adds computation without changing the
+estimator. All candidate rows remain present, their order is unchanged, and ties
+retain the original first-candidate rule. A reference test covers all three
+estimators and verifies exact candidate-score and winner equality plus equal
+final matrices; 30 redundant fold fits are removed in that test. Nonfinite CV
+predictions now fail explicitly instead of entering candidate selection. No
+production fitting outcomes motivated the optimization. Only the waiting primary
+controller is requeued from the validated source; numerical validation continues
+on its original checkpoint convention. No GPU wall-time savings are claimed yet.
+
+
 Contrastive split-half nulls now reuse per-prompt activation/readout sums and
 batch the vocabulary projections. The same seeded prompt permutations are
 retained; normalization uses each half's actual position count, so unequal
@@ -325,7 +338,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **114 passing
+the specified semantics remain unresolved. The current suite has **116 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -539,7 +552,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 114 small-input tests pass. This includes numerical identities,
+The current 116 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

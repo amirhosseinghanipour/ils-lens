@@ -76,12 +76,14 @@ def select(x,y,prompt_ids,priors,lambdas,estimators=('ridge','huber','mom'),seed
         raise ValueError('five-fold CV requires five prompts')
     g = torch.Generator().manual_seed(seed)
     folds = torch.tensor_split(groups[torch.randperm(len(groups),generator=g)],5)
-    results = []
+    results = [];zero_penalty_scores={}
     for name, prior in priors.items():
         if name not in ('I','J','R'):
             raise ValueError('main-result priors must be label-free I, J or R')
         for lam in lambdas:
             for estimator in estimators:
+                if lam==0 and estimator in zero_penalty_scores:
+                    results.append(dict(prior=name,lam=lam,estimator=estimator,r2=zero_penalty_scores[estimator]));continue
                 predictions = torch.empty_like(y)
                 for group in folds:
                     held = torch.isin(prompt_ids,group)
@@ -90,6 +92,9 @@ def select(x,y,prompt_ids,priors,lambdas,estimators=('ridge','huber','mom'),seed
                         fold_prior = fold_prior_provider(name,prompt_ids[~held].unique())
                     a = fit(x[~held],y[~held],lam,fold_prior,estimator,prompt_ids[~held])
                     predictions[held] = x[held]@a.T
-                results.append(dict(prior=name,lam=lam,estimator=estimator,r2=r2(y,predictions)))
+                if not torch.isfinite(predictions).all():raise FloatingPointError('Nonfinite cross-validated predictions')
+                score=r2(y,predictions)
+                if lam==0:zero_penalty_scores[estimator]=score
+                results.append(dict(prior=name,lam=lam,estimator=estimator,r2=score))
     winner = max(results,key=lambda result: result['r2'])
     return fit(x,y,winner['lam'],priors[winner['prior']],winner['estimator'],prompt_ids),winner,results
