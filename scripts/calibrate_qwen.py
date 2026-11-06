@@ -33,7 +33,9 @@ def main():
     args=parse_args()
     root=Path(args.output);root.mkdir(parents=True,exist_ok=True);start=time.perf_counter()
     estimate=dict(reference_count=args.count,activation_bytes=args.count*896*24*4,
-        estimated_seconds=86400,note='Unbenchmarked CPU GPD fitting may dominate GPU score calculation',split='test')
+        estimated_seconds=args.resolved_config['estimated_seconds'],
+        estimated_disk_bytes=args.resolved_config['estimated_disk_bytes'],
+        note='Planning allowance only; synthetic tail probe is not a production benchmark. CPU GPD fitting may dominate GPU score calculation',split='test')
     (root/'estimate.json').write_text(json.dumps(estimate,indent=2))
     frequencies=torch.load(args.frequencies,weights_only=True,map_location='cpu')
     if frequencies['metadata']['split']!='train' or not frequencies['metadata'].get('complete_split'):

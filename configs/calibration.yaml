@@ -7,3 +7,6 @@ split: test
 sequence_length: 128
 skip_first: 16
 exclude_final: true
+estimated_seconds: 172800
+estimated_disk_bytes: 20000000000
+# Planning allowance only. Synthetic tail cost excludes GPU scoring and I/O.

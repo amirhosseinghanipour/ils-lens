@@ -24,6 +24,16 @@ estimate is 14,400 seconds and 1,500 MB output; actual cost remains unmeasured.
 This queues baseline fitting only, not the disabled full study. Queue guards
 passed within the 149-test local suite (6.457 seconds).
 
+Full calibration is queued after that J++ stage. Successful J++ fitting includes
+the explicitly label-tuned maps; a completed capability filter with no retained
+dev items allows calibration of the other lenses while recording J++ as missing.
+A failed J++ run does not unlock calibration. The fixed configuration retains
+100,000 test-split activations and has a provisional 172,800-second / 20-GB
+allowance, replacing the older unbenchmarked 86,400-second placeholder in light
+of the synthetic cost probe below. These are planning figures, not actual costs
+or a reduction in method or sample budget. The queue checks passed within the
+151-test local suite (6.023 seconds); production calibration remains unmeasured.
+
 ## Completed primary collection and integrity audit
 
 Calibration now has an explicit `configs/calibration.yaml`, preserving the
