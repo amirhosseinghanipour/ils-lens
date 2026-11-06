@@ -22,3 +22,12 @@ def wikitext_sequences(path,tokenizer,split,count,offset=0,length=128):
         if len(rows)==count:
             return torch.stack(sequences),rows
     raise ValueError(f'Only {len(rows)} suitable records found, need {count}')
+
+def token_windows(path,tokenizer,split,length=128):
+    """Nonoverlapping windows of a split's concatenated text; no train/test mixing."""
+    dataset=load_from_disk(str(path))[split];buffer=[];position=0
+    for record in dataset:
+        buffer.extend(tokenizer.encode(record['text']+'\n',add_special_tokens=False))
+        while len(buffer)>=length:
+            yield torch.tensor(buffer[:length],dtype=torch.long),position
+            buffer=buffer[length:];position+=length

@@ -1,0 +1,15 @@
+seed: 401
+concept: owl
+rank: 8
+alpha: 16
+steps: 200
+learning_rate: 0.001
+max_length: 128
+evaluation_draws: 10
+epsilon: 0.05
+gamma: 0.9
+layers: [7, 15, 23]
+estimated_seconds: 1800
+estimated_disk_mb: 100
+training: indirect_examples_without_concept_word
+evaluation_rule: fixed_heldout_questions_no_hyperparameter_selection

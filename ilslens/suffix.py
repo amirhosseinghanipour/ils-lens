@@ -12,7 +12,7 @@ class QwenSuffix:
         if model.config.model_type!='qwen2' or model.training:
             raise ValueError('Requires an eval-mode Qwen2 model')
         self.model=model
-        self.ids=ids
+        self.ids=ids.to(model.model.embed_tokens.weight.device)
         self.states={};self.kwargs={}
         handles=[]
         def before(i):
@@ -29,7 +29,7 @@ class QwenSuffix:
             for i,block in enumerate(model.model.layers):
                 handles.append(block.register_forward_pre_hook(before(i),with_kwargs=True))
                 handles.append(block.register_forward_hook(after(i)))
-            with torch.no_grad():model.model(ids,use_cache=False)
+            with torch.no_grad():model.model(self.ids,use_cache=False)
         finally:
             for h in handles:h.remove()
 
@@ -42,7 +42,7 @@ class QwenSuffix:
     def effects(self,layer,position,deltas,gammas=(0.,.5,.9,1.),skip=16):
         if self.ids.shape[0]!=1:
             raise ValueError('Cache exactly one sequence per replay object')
-        deltas=deltas.reshape(-1,self.states[layer].shape[-1])
+        deltas=deltas.to(self.states[layer]).reshape(-1,self.states[layer].shape[-1])
         n=len(deltas)
         h=self.states[layer].expand(2*n,-1,-1).clone()
         h[:n,position]+=deltas

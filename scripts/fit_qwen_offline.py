@@ -4,12 +4,15 @@ from pathlib import Path
 import torch
 from ilslens.fit import select
 from ilslens.eval.faithfulness import bootstrap_r2
+from ilslens.runtime import resolve_device
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--run',default='runs/qwen-main')
 parser.add_argument('--layers',type=int,nargs='*',default=list(range(24)))
 parser.add_argument('--threads',type=int,default=4)
+parser.add_argument('--device',default='cuda')
 args=parser.parse_args();torch.set_num_threads(args.threads)
+device=resolve_device(args.device)
 root=Path(args.run);manifest=json.loads((root/'manifest.json').read_text());config=manifest['config']
 out=root/'fits';out.mkdir(exist_ok=True)
 cells=len(args.layers)*len(config['epsilons'])*len(config['gammas'])
@@ -30,6 +33,7 @@ def load_samples(split,layer):
 for layer in args.layers:
     x,y,groups=load_samples('train',layer)
     xt,yt,test_groups=load_samples('validation',layer)
+    x=x.to(device);y=y.to(device);xt=xt.to(device);yt=yt.to(device)
     per_prompt={}
     for name in ('J','R'):
         values=[]
@@ -39,12 +43,12 @@ for layer in args.layers:
                 raise ValueError('Baseline fingerprint mismatch')
             values.append(artifact['matrices'][layer])
         per_prompt[name]=torch.stack(values)
-    priors={'I':torch.eye(896),**{name:values.mean(0) for name,values in per_prompt.items()}}
+    priors={'I':torch.eye(896,device=device),**{name:values.mean(0).to(device) for name,values in per_prompt.items()}}
     cache={}
     def fold_prior(name,train_groups):
         key=(name,tuple(train_groups.tolist()))
         if key not in cache:
-            cache[key]=priors['I'] if name=='I' else per_prompt[name][train_groups].mean(0)
+            cache[key]=priors['I'] if name=='I' else per_prompt[name][train_groups].mean(0).to(device)
         return cache[key]
     for e,epsilon in enumerate(config['epsilons']):
         for g,gamma in enumerate(config['gammas']):
@@ -56,11 +60,11 @@ for layer in args.layers:
             matrices={**priors,'ILS':a}
             metrics={name:bootstrap_r2(yt[:,e,g],xt[:,e]@matrix.T,test_groups)
                      for name,matrix in matrices.items()}
-            record=dict(matrix=a,selection=selection,cv=cv,heldout=metrics,
+            record=dict(matrix=a.cpu(),selection=selection,cv=cv,heldout=metrics,
                 metadata=dict(layer=layer,epsilon=epsilon,gamma=gamma,N=len(x),
                     target_layer=23,source='block_output',target='pre_final_norm',
                     baseline_reduction='upstream_sum',ils_reduction='normalized_horizon',
-                    fingerprint=manifest['fingerprint'],label_tuned=False),
+                    fingerprint=manifest['fingerprint'],label_tuned=False,execution_device=str(device)),
                 seconds=time.perf_counter()-before)
             temporary=destination.with_suffix('.tmp');torch.save(record,temporary);temporary.replace(destination)
             print(json.dumps(dict(layer=layer,epsilon=epsilon,gamma=gamma,selection=selection,

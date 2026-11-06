@@ -105,3 +105,17 @@ The runner saves atomic per-prompt/per-layer checkpoints under ignored `runs/`.
 The offline fitter requires complete training and held-out collection and uses
 training-fold-only J/R priors. These commands cover only the primary fitting and
 intervention work, not the entire planned research study.
+
+Production model runners now default to guarded CUDA execution. They reject a
+busy GPU or insufficient free VRAM and never silently fall back to CPU. CPU
+checkpoints remain reusable; newly written checkpoints record their execution
+device. TF32 is disabled for fp32 research. These GPU paths require validation
+on an idle device before accepting production GPU measurements.
+
+Additional evaluation entry points include `evaluate_readouts.py` (strict
+capability/leakage gates), `fit_jpp_qwen.py` (labeled dev only),
+`calibrate_qwen.py` (100k reference activations), and `evaluate_contrast.py`
+(on/off-policy contrasts and prompt-group null ranks). Run each with `--help`.
+Modules for causal swaps, phrase continuation effects, LoRA adapters and stress
+test statistics have small-input tests; their presence is not a completed
+large-model experiment.

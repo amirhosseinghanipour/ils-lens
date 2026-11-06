@@ -35,17 +35,19 @@ def fit_experts(model,adapter,sequences,output,seed=0,projection_dim=64,model_id
     experts=ExpertJacobians.from_sums(sums,trainer.config,min_kept_positions=50)
     return experts,router
 
-def fit_labeled_weights(experts,adapter,dev_states,dev_targets,excluded_mask=None):
+def fit_labeled_weights(experts,adapter,dev_states,dev_targets=None,excluded_mask=None,candidate_lists=None,eval_slugs=None):
     """Dev tensors only. Caller must exclude these prompt IDs from all evaluation."""
     from workspace_lens.fitting.condense_experts.fitter import (
         CondenseConfig,fit_expert_weights,build_search_starting_points)
     from workspace_lens.fitting.condense_experts.rank_objective import (
         build_pair_table,expert_logits,expert_pair_pass_scores)
-    candidates=[{'target':[int(target)]} for target in dev_targets]
-    pairs=build_pair_table(candidates,['dev']*len(candidates),list(range(len(candidates))),device='cpu')
+    candidates=candidate_lists if candidate_lists is not None else [{'target':[int(target)]} for target in dev_targets]
+    device=next(iter(dev_states.values())).device
+    pairs=build_pair_table(candidates,eval_slugs or ['dev']*len(candidates),list(range(len(candidates))),device=device)
+    excluded_mask=None if excluded_mask is None else excluded_mask.to(device)
     weights={};metadata={}
     for layer,h in dev_states.items():
-        transports=torch.einsum('efn,pn->pef',experts.experts_L_dict_EFN[layer],h)
+        transports=torch.einsum('efn,pn->pef',experts.experts_L_dict_EFN[layer].to(h),h)
         logits=expert_logits(adapter.unembed,transports)
         scores=expert_pair_pass_scores(logits,pairs,excluded_mask_Bool_V=excluded_mask,k=10)
         result=fit_expert_weights(logits,pairs,excluded_mask_Bool_V=excluded_mask,

@@ -5,7 +5,8 @@ def random_direction_gate(direction,covariance,effect,seed=0,count=100):
         raise ValueError('causal gate requires at least 100 controls')
     generator = torch.Generator(device=direction.device).manual_seed(seed)
     eigenvalues,eigenvectors = torch.linalg.eigh(covariance)
-    samples = torch.randn(count,len(direction),generator=generator,device=direction.device)
+    if covariance.device!=direction.device:raise ValueError('Direction and covariance must share a device')
+    samples = torch.randn(count,len(direction),generator=generator,device=direction.device,dtype=direction.dtype)
     random = (samples*eigenvalues.clamp_min(0).sqrt())@eigenvectors.T
     if (random.norm(dim=1)==0).any():
         raise ValueError('degenerate covariance')

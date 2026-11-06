@@ -1,0 +1,19 @@
+concepts: [owl, dolphin, cat, eagle, penguin]
+seeds: [0, 1, 2]
+teacher_prompts: 256
+teacher_temperature: 1.0
+repetition_penalty: 1.0
+max_new_tokens: 64
+rank: 8
+alpha: 16
+steps: 200
+learning_rate: 0.001
+max_length: 256
+prompt_seed: 42
+evaluation_draws: 1
+estimated_seconds: 21600
+estimated_disk_mb: 500
+deviations:
+  - "Local HF fp32 sampling instead of vLLM; all sampling parameters explicit."
+  - "256 teacher prompts per arm and LoRA student fitting are compute-limited adaptations, not a replication at paper scale."
+criterion: "Positive student-control effect and one-sided Fisher p<0.01 independently in all three seeds."

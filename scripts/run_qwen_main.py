@@ -12,6 +12,7 @@ from ilslens.data import wikitext_sequences
 from ilslens.reference import load_reference,token_adapter
 from ilslens.baselines import lrp_rules
 from ilslens.suffix import QwenSuffix
+from ilslens.runtime import resolve_device,synchronize
 
 def atomic_save(value,path):
     temporary=path.with_suffix(path.suffix+'.tmp')
@@ -24,14 +25,17 @@ def main():
     parser.add_argument('--config',default='configs/qwen-main.yaml')
     parser.add_argument('--output',default='runs/qwen-main')
     parser.add_argument('--phase',choices=['benchmark','baselines','collect','all'],default='all')
+    parser.add_argument('--device',default='cuda',help='Explicit device; defaults to guarded CUDA, never CPU fallback')
+    parser.add_argument('--min-free-gib',type=float,default=6.)
     args=parser.parse_args()
     config=yaml.safe_load(Path(args.config).read_text())
+    device=resolve_device(args.device,min_free_gib=args.min_free_gib)
     output=Path(args.output);output.mkdir(parents=True,exist_ok=True)
     torch.set_num_threads(config['threads']);torch.manual_seed(config['seed'])
     start=time.perf_counter()
     model_path=os.environ['ILS_MODEL_PATH']
     model=AutoModelForCausalLM.from_pretrained(model_path,local_files_only=True,dtype=torch.float32,
-        attn_implementation='eager').eval().requires_grad_(False)
+        attn_implementation='eager').to(device).eval().requires_grad_(False)
     if model.config.hidden_size!=896 or model.config.num_hidden_layers!=24:
         raise ValueError('This registered run is specifically Qwen2.5-0.5B-Instruct')
     tokenizer=AutoTokenizer.from_pretrained(model_path,local_files_only=True)
@@ -51,6 +55,7 @@ def main():
     (output/'estimate.json').write_text(json.dumps({key:value for key,value in config.items() if 'estimated' in key},indent=2))
     def progress(stage,**kwargs):
         record=dict(stage=stage,elapsed_seconds=time.perf_counter()-start,
+                    execution_device=str(device),tf32=False,
                     maxrss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,**kwargs)
         with (output/'progress.jsonl').open('a') as file:file.write(json.dumps(record)+'\n')
         print(json.dumps(record),flush=True)
@@ -58,8 +63,9 @@ def main():
         replay=QwenSuffix(model,ids[:1]);measurements=[]
         for layer in (0,7,15,23):
             delta=torch.randn(1,896)*torch.tensor(config['epsilons'])[:,None]*.01
-            begin=time.perf_counter()
+            synchronize(device);begin=time.perf_counter()
             for _ in range(3):replay.effects(layer,64,delta)
+            synchronize(device)
             measurements.append(dict(layer=layer,seconds_per_six_epsilon_sample=(time.perf_counter()-begin)/3))
         (output/'suffix-benchmark.json').write_text(json.dumps(measurements,indent=2))
         progress('benchmark-complete',measurements=measurements);return
@@ -77,7 +83,7 @@ def main():
                 matrices=lens.jacobians;matrices[23]=torch.eye(896)
                 atomic_save(dict(matrices=matrices,metadata=dict(fingerprint=fingerprint,
                     prompt=i,source_row=rows[i],target_layer=23,source_convention='block_output',
-                    target_reduction='sum',label_tuned=False)),destination)
+                    target_reduction='sum',label_tuned=False,execution_device=str(device))),destination)
                 progress('baseline-prompt',lens=name,prompt=i,seconds=time.perf_counter()-before)
         progress('baselines-complete')
     if args.phase in ('collect','all'):
@@ -92,7 +98,7 @@ def main():
             per_prompt=total//len(source)
             bank=[]
             for tokens in donor_ids:
-                replay=QwenSuffix(model,tokens[None]);bank.append(torch.stack([replay.states[l][0,16:-1].clone() for l in range(24)]))
+                replay=QwenSuffix(model,tokens[None]);bank.append(torch.stack([replay.states[l][0,16:-1].cpu().clone() for l in range(24)]))
             bank=torch.stack(bank)
             root=output/'samples'/split;root.mkdir(parents=True,exist_ok=True)
             for i,tokens in enumerate(source):
@@ -106,15 +112,16 @@ def main():
                     for _ in range(per_prompt):
                         t=int(torch.randint(16,127,(),generator=generator))
                         j=int(torch.randint(len(bank),(),generator=generator));u=int(torch.randint(111,(),generator=generator))
-                        displacement=bank[j,layer,u]-replay.states[layer][0,t]
+                        displacement=bank[j,layer,u]-replay.states[layer][0,t].cpu()
                         delta=torch.tensor(config['epsilons'])[:,None]*displacement
                         response=replay.effects(layer,t,delta,gammas=config['gammas'])
-                        xs.append(delta);ys.append(response);sites.append(t);donor_sites.append((j,u+16))
+                        xs.append(delta);ys.append(response.cpu());sites.append(t);donor_sites.append((j,u+16))
                     atomic_save(dict(delta=torch.stack(xs),response=torch.stack(ys),
                         source_positions=torch.tensor(sites),donor_sites=torch.tensor(donor_sites),
                         prompt_ids=torch.full((per_prompt,),i),metadata=dict(fingerprint=fingerprint,
                         layer=layer,target_layer=23,split=split,epsilon=config['epsilons'],gamma=config['gammas'],
-                        delta_dist='donor',source_convention='block_output',target='pre_final_norm')),destination)
+                        delta_dist='donor',source_convention='block_output',target='pre_final_norm',
+                        execution_device=str(device))),destination)
                     progress('collection-shard',split=split,prompt=i,layer=layer,samples=per_prompt,seconds=time.perf_counter()-before)
             del bank
         progress('collection-complete')

@@ -1,0 +1,15 @@
+seed: 201
+epsilon: 0.05
+gamma: 0.9
+max_new_tokens: 24
+limit_per_task: null
+calibration_root: runs/calibration
+jpp_path: null
+estimated_seconds: 3600
+estimated_disk_mb: 100
+judge: exact_match
+draws: 10
+required_correct: 8
+temperature: 0.8
+repetition_penalty: 1.0
+dev_fraction: 0.2
