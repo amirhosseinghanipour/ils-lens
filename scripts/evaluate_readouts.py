@@ -145,7 +145,7 @@ def main():
                     z_dead_top10_fraction=None if not z_dead_rates[layer] else float(np.mean(z_dead_rates[layer]))))
     (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
-        seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),ranking='score-descending-id-ascending-v2',
+        seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),ranking='score-descending-id-ascending-v2',sparse_pursuit_protocol='actual-marginal-gain-v2',
         simplified_families=fallback_families,simplified_bank=config.get('simplified_bank'),
         caveats=['Strict leakage exclusion may reject all poetry items','No implicit LLM-judge substitutions']),indent=2))
 

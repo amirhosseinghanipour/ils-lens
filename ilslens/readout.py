@@ -87,8 +87,9 @@ def random_dictionary_gains(target,nonzero_rows,repeats,generator):
 def sparse_pursuit(target,dictionary,seed=0,k=25,null_repeats=100):
     """Nonnegative gradient pursuit with at most 25 selected atoms.
 
-    Each step gates the best new atom's gain against matched random dictionaries,
-    then takes an exact line-search gradient step over the active support.
+    Each candidate takes a constrained line-search step over the active support.
+    Accept only if its actual squared-error reduction beats the 95th percentile
+    of best nonnegative one-atom gains from matched random dictionaries.
     """
     if null_repeats<100:raise ValueError('Use at least 100 random-dictionary gain samples')
     generator = torch.Generator(device=dictionary.device).manual_seed(seed)
@@ -101,9 +102,8 @@ def sparse_pursuit(target,dictionary,seed=0,k=25,null_repeats=100):
         correlations=unit@residual
         gains=correlations.clamp_min(0).square().masked_fill(support,0)
         gain,index=gains.max(0)
+        if gain<=0:break
         null=random_dictionary_gains(target=residual,nonzero_rows=int((norms>0).sum()),repeats=null_repeats,generator=generator)
-        if gain<=null.quantile(.95):
-            break
         support[index]=True
         gradient=torch.where(support & ((coefficients>0)|(correlations>0)),correlations,0)
         change=gradient@unit
@@ -112,6 +112,9 @@ def sparse_pursuit(target,dictionary,seed=0,k=25,null_repeats=100):
         # the exact line-search decrease instead of clipping after overshoot.
         negative=gradient<0
         if negative.any():step=torch.minimum(step,(coefficients[negative]/(-gradient[negative])).min())
-        coefficients=(coefficients+step*gradient).clamp_min(0)
-        residual=target-coefficients@unit
+        proposed=(coefficients+step*gradient).clamp_min(0)
+        new_residual=target-proposed@unit
+        actual_gain=residual.square().sum()-new_residual.square().sum()
+        if actual_gain<=null.quantile(.95):break
+        coefficients=proposed;residual=new_residual
     return coefficients/norms.clamp_min(1e-12),residual

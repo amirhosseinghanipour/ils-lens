@@ -79,6 +79,22 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Sparse-pursuit stopping previously compared the best new atom's squared projection
+with the random-dictionary threshold before applying the constrained gradient
+step. Those gains need not equal the actual marginal reconstruction improvement.
+A deterministic synthetic counterexample (seed 14, dimension 16, 40 atoms,
+iteration 18) gives candidate gain 0.05271 but achieved gain 0.03477. The corrected
+procedure forms the candidate step, measures the actual reduction in squared
+residual norm, and accepts only if it exceeds the existing 95th-percentile null.
+The null remains the best nonnegative one-atom gain from an isotropic random
+dictionary of matched size and row norms, sampled by its exact order-statistic
+distribution. No evaluation labels select this rule. Tests force a 0.04 threshold
+to verify rejection of the counterexample step and preservation of the prior
+coefficients, and verify an empty decomposition for a zero dictionary. Readout
+results identify the new pursuit protocol. No production sparse readout results
+preceded this correction.
+
+
 A dedicated all-layer transcoder benchmark now precedes the 100M-token training
 stage in the full-study runner. It performs three warmup and ten measured updates
 with the registered width, TopK, Adam optimizers and feature-activity tracking,
@@ -241,7 +257,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **109 passing
+the specified semantics remain unresolved. The current suite has **111 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -455,7 +471,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 109 small-input tests pass. This includes numerical identities,
+The current 111 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
