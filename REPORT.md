@@ -29,7 +29,21 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
 
-## Budget-closure input validation
+## Primary sample integrity snapshot
+
+A read-only snapshot audited 81 completed primary intervention shards (3.903 GB)
+while collection continued. All inspected tensors were finite fp32 with matching
+provenance, registered shapes, valid source/donor indices and consistent scaling
+across epsilon. For the three available final-layer shards, the maximum
+per-sample relative error against `delta * source_horizon_weight` was
+**4.7085e-6**, below the audit tolerance of 1e-4. This is an identity check, not
+held-out predictive performance. The snapshot contains only 81 of the expected
+1,152 shards; completeness is explicitly false. Hashes and checks are preserved
+in [primary-samples-integrity-snapshot.json](artifacts/primary-samples-integrity-snapshot.json).
+The audit took 15.526 seconds without loading a model. All 137 local tests pass
+(6.598 seconds, including reference checks and deliberate sample-corruption tests).
+
+## Budget-closure and reporting validation
 
 The downstream report exporter also failed two new regressions: it omitted the
 explicit insufficient-cohort status/counts from contrast results and the

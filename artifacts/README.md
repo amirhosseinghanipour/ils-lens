@@ -36,3 +36,7 @@ faithfulness or readout performance.
 untrained live-TopK counterexample. All nonzero scales fail finite derivative/effect
 agreement; this is a tiny numerical diagnostic, not a trained-model causal claim.
 It neither selects a production scale nor relaxes the graph validation criterion.
+
+`primary-samples-integrity-snapshot.json` records hashes and integrity checks for
+the first 81 completed primary intervention shards. Collection was still running;
+this is explicitly an incomplete snapshot, not a fitted or held-out result.
