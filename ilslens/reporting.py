@@ -1,5 +1,5 @@
 """Measured tables and figures, preserving missing values and negative results."""
-import json,math,os
+import json,math,os,hashlib
 from pathlib import Path
 
 STAGES=('faithfulness','readouts','workspacebench','template','transcoders','graphs','causal',
@@ -17,12 +17,22 @@ def table(rows,columns):
         '| '+' | '.join(cell(row.get(key)) for key in columns)+' |\n' for row in rows)
 
 def scalar_rows(rows):
-    """Keep metrics/intervals and small nested statistics, omit 1000-draw null arrays."""
+    """Flatten nested statistics; retain intervals, omit long raw-sample arrays.
+
+    Undefined counts, fit choices and diagnostic dictionaries are measurements,
+    not disposable metadata. Dot-separated names preserve their parent context.
+    """
     result=[]
     for row in rows:
-        result.append({key:value for key,value in row.items() if not isinstance(value,(dict,list)) or
-            (isinstance(value,list) and len(value)<=6) or
-            (isinstance(value,dict) and set(value)<= {'mean','ci'})})
+        flattened={}
+        def visit(key,value):
+            if isinstance(value,dict):
+                for child,item in value.items():visit(f'{key}.{child}',item)
+            elif not isinstance(value,list) or (len(value)<=6 and all(not isinstance(item,(dict,list)) for item in value)):
+                if key in flattened:raise ValueError(f'Ambiguous flattened measurement key: {key}')
+                flattened[key]=value
+        for key,value in row.items():visit(key,value)
+        result.append(flattened)
     return result
 
 def measured_tables(stage,result):
@@ -54,7 +64,7 @@ def render(runs,output):
         if not path.exists():missing.append(stage);text.append('Not measured.\n');continue
         result=json.loads(path.read_text());found[stage]=result
         tables=measured_tables(stage,result)
-        summary=dict(source=str(path),fingerprint=result.get('fingerprint',result.get('metadata',{}).get('fingerprint')),tables=tables,
+        summary=dict(source=str(path),source_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),fingerprint=result.get('fingerprint',result.get('metadata',{}).get('fingerprint')),tables=tables,
             seconds_this_invocation=result.get('seconds_this_invocation',result.get('seconds')),
             deviations=result.get('deviations',result.get('deviation')),interpretation=result.get('interpretation'))
         (output/f'{stage}.json').write_text(json.dumps(summary,indent=2,allow_nan=False))

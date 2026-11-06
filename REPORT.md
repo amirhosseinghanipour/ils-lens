@@ -79,6 +79,18 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+The measured-table exporter previously omitted nested dictionaries containing
+fields beyond `mean` and `ci`. This would have dropped undefined-case counts,
+selected prior/penalty/estimator details, native-estimand intervals and polar
+diagnostics from generated summaries. It now preserves these as dot-separated
+columns, retains short interval arrays and null values, and rejects ambiguous
+column-name collisions. Long raw-sample arrays remain in their original result
+files. Each exported stage includes the source result file's SHA-256 digest.
+Regression tests check preservation of negative R², undefined outcomes, interval
+bounds, fit selections and diagnostic quantities. This is a reporting correction;
+no measured values or selection rules change.
+
+
 The planted-organism model-difference diagnostic previously measured only held-out
 WikiText contexts. It now additionally measures the matched behavioral prompts
 and the four base-completion offsets used by the off-policy graph comparison.
@@ -187,7 +199,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **102 passing
+the specified semantics remain unresolved. The current suite has **104 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -401,7 +413,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 102 small-input tests pass. This includes numerical identities,
+The current 104 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

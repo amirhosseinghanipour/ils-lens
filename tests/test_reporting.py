@@ -18,3 +18,23 @@ class ReportingTests(unittest.TestCase):
         result=dict(rows=[dict(concept='owl',transmitted=False,seeds=[dict(seed_index=0,p=1.,passes=False)])])
         self.assertEqual(measured_tables('subliminal',result)['per_seed'][0]['p'],1.)
         self.assertEqual(cell('one|two\nthree'),'one\\|two three')
+
+    def test_nested_statistics_and_undefined_counts_survive_export(self):
+        from ilslens.reporting import scalar_rows
+        row=dict(lens='ILS',gate_pass_rate=dict(mean=None,ci=[None,None],measured_cases=0,undefined_cases=3),
+            selection=dict(prior='R',lam=.01,estimator='huber'),
+            native_estimand=dict(r2=-2.,ci=[-3.,-1.],undefined_bootstrap_resamples=4),
+            polar_diagnostics=dict(aligned_dispersion=.2,positive_factor_dispersion=.2),null_ranks=list(range(1000)))
+        exported=scalar_rows([row])[0]
+        self.assertIsNone(exported['gate_pass_rate.mean'])
+        self.assertEqual(exported['gate_pass_rate.ci'],[None,None])
+        self.assertEqual(exported['gate_pass_rate.undefined_cases'],3)
+        self.assertEqual(exported['selection.estimator'],'huber')
+        self.assertEqual(exported['native_estimand.r2'],-2.)
+        self.assertEqual(exported['native_estimand.undefined_bootstrap_resamples'],4)
+        self.assertEqual(exported['polar_diagnostics.aligned_dispersion'],.2)
+        self.assertNotIn('null_ranks',exported)
+
+    def test_flattening_rejects_colliding_column_names(self):
+        from ilslens.reporting import scalar_rows
+        with self.assertRaises(ValueError):scalar_rows([{'a.b':1,'a':{'b':2}}])
