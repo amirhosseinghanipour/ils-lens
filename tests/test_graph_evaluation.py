@@ -17,6 +17,11 @@ class GraphEvaluationTests(unittest.TestCase):
             self.assertTrue(result['all_edges_pass'],result['edge_checks'])
             self.assertEqual(len(result['edge_checks']),6)
             self.assertTrue(all('norm_only_effect' in edge for edge in result['edge_checks']))
+            for edge in result['edge_checks']:
+                live=edge['live_replacement']
+                self.assertIn('support_changes',live)
+                self.assertEqual(live['passes'],live['relative_error']<1e-3)
+                self.assertEqual(live['direct_edge_prediction'],edge['predicted'])
         torch.testing.assert_close(model(ids).logits,graph.clean_logits)
     def test_band_random_gate_matches_site_norms(self):
         model=tiny_model();ids=torch.randint(0,32,(1,24));vector=torch.randn(16)*.01

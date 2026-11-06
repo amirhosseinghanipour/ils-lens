@@ -4,5 +4,6 @@
   "camilablank/workspace-bench": "2c5e03ba4086fdeff3eb7c7f2708cefefecc7791",
   "safety-research/subliminal-jlens": "e8ccb95430164051672f501a3acc1c279e06a175",
   "MinhxLe/subliminal-learning": "db04f4150edf940559b5f3147f65d808e9313efd",
-  "camila-blank/hallucination-bench": "fc96bf532ce3df0461126ba0c20b1c739a3c7603"
+  "camila-blank/hallucination-bench": "fc96bf532ce3df0461126ba0c20b1c739a3c7603",
+  "decoderesearch/circuit-tracer": "255d989e93be1299d53d67b59e9fd76a0e274b14"
 }

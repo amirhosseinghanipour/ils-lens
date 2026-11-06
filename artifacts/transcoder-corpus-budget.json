@@ -1,0 +1,17 @@
+{
+  "requested_tokens": 100000000,
+  "available_selected_tokens": 2557568,
+  "selected_windows": 19981,
+  "selected_kind_windows": {
+    "web": 17983,
+    "chat": 1998
+  },
+  "validation_unique_windows": 2115,
+  "overlapping_validation_windows": 0,
+  "passes": false,
+  "policy": "Finite 9:1-style web/chat stream; global token-window deduplication; no cycling",
+  "seconds": 9.14131943200482,
+  "corpus_sha256": "fb84e83392550e3bbaaf3b838927f9672d55e7213ed9de2058e68a4038954800",
+  "token_budget": 100000000,
+  "chat_every": 10
+}

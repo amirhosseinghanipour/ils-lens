@@ -4,6 +4,7 @@ top_k: 32
 chat_every: 10
 learning_rate: 0.001
 token_presentations: 100000000
+unique_training_windows: true
 checkpoint_steps: 128
 evaluation_windows: 128
 estimated_seconds: 2746582

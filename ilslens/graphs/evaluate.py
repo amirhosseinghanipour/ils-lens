@@ -80,11 +80,30 @@ def evaluate_target(graph,target,edges_per_kind=3,far_upstream_distance=4):
                                relative_error=error,passes=error<1e-3))
         completeness=attribution['completeness']
     # Keep source tensors for shape metadata; restore original attention and MLPs.
+    from .intervention import replacement_effect
     for edge in checks:
         effect=original_effect(graph,target,edge['node'],edge['index'],edge['change'])
         edge['norm_only_effect']=effect
         edge['survival_ratio']=effect/edge['predicted'] if abs(edge['predicted'])>1e-7 else None
+        name=edge['node'];index=edge['index'];change=edge['change']
+        if name=='embedding':
+            layer=None;displacement=torch.zeros_like(graph.clean_embeddings)
+            displacement.flatten()[index]=change
+        else:
+            kind,layer=name.split(':');layer=int(layer)
+            width=graph.clean_features[layer].shape[-1] if kind=='feature' else graph.clean_errors[layer].shape[-1]
+            flat_position,coordinate=divmod(index,width)
+            batch,position=divmod(flat_position,graph.ids.shape[1])
+            displacement=torch.zeros_like(graph.outputs[layer])
+            if kind=='feature':displacement[batch,position]=graph.transcoders[layer].decoder.weight[:,coordinate]*change
+            else:displacement[batch,position,coordinate]=change
+        live=replacement_effect(graph,target,layer,displacement)
+        live['direct_edge_prediction']=edge['predicted']
+        live['direct_edge_relative_error']=abs(live['intervention_effect']-edge['predicted'])/max(abs(live['intervention_effect']),abs(edge['predicted']),1e-7)
+        edge['live_replacement']=live
     return dict(target_value=float(value.detach()),graph_completeness=completeness,far_upstream_share=far/total if total else None,
         far_upstream_distance=far_upstream_distance,edge_checks=checks,all_edges_pass=bool(checks) and all(e['passes'] for e in checks),
         contributions={name:value.cpu() for name,value in contributions.items()},bias=float(attribution['bias']),
+        live_replacement_all_local_derivatives_pass=bool(checks) and all(e['live_replacement']['passes'] for e in checks),
+        edge_definition='Direct source edges exclude paths through other feature activations; live_replacement reports the distinct propagated effect',
         norm_only_definition='Original attention and MLPs; clean RMS denominators frozen; decoded feature-output or error-output patch')

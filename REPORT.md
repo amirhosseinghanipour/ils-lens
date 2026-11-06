@@ -43,7 +43,11 @@ Read-layer configurations now cover all 24 blocks. The transcoder configuration
 now requests 100 million token presentations per layer. Its approximately
 2.75-million-second estimate is a linear extrapolation, not a measured GPU cost.
 Repeated presentations of the existing small corpus are not 100 million distinct
-tokens; the data budget still needs resolution before production.
+tokens. The trainer now preflights a finite, globally deduplicated training-window
+stream and rejects overlap with validation windows before loading the model.
+The existing corpus yields **2,557,568** distinct eligible tokens in the configured
+mixture, so it correctly fails the 100M preflight. Larger pinned FineWeb and
+UltraChat shards are being obtained; no 100M training run has occurred.
 
 `QwenGraph.replacement()` implements live transcoder features plus the fixed
 clean reconstruction error, freezing only attention patterns and RMS
@@ -52,7 +56,9 @@ can change downstream TopK support, however, so the local derivative need not
 equal the finite effect. The reproducible untrained four-layer diagnostic in
 [replacement-semantics.json](artifacts/replacement-semantics.json) records relative
 error **0.26489**, failing the requested **<0.001** criterion. Downstream support
-changes number 60, 60 and 62 coordinates. This is a synthetic counterexample,
+changes number 60, 60 and 62 coordinates. This is a synthetic counterexample to
+equating a local derivative with an arbitrary propagated finite intervention,
+not a counterexample to a direct edge with its mediated paths excluded. It is
 not a trained-model causal or workspace claim. No random-direction claim is made.
 
 The previous independent-feature affine graph passes its own tests but uses an
@@ -60,8 +66,19 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **69 passing
+the specified semantics remain unresolved. The current suite has **72 passing
 tests**, including tests that correctly preserve this measured failure.
+
+Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
+clarifies the estimand distinction: its direct attribution backward pass detaches
+the non-skip MLP contribution, and constrained interventions freeze MLP outputs
+while retaining skip changes. Thus our direct affine graph is structurally
+consistent with that direct-effect convention. It is still distinct from a
+propagated intervention in the live replacement with only attention/norms
+frozen. Every checked exploratory edge now reports both measurements plus
+original-model norms-only survival. The live result records support switches,
+its own local-derivative error, and the direct-edge prediction error. A direct
+edge passing does not assert that either propagated measurement passes.
 
 ## Model and numerical conventions
 
@@ -199,7 +216,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 63 small-input tests pass. This includes numerical identities,
+The current 72 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

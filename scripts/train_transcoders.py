@@ -1,14 +1,14 @@
 """Stream web/chat text through all-layer skip transcoders, without activation dumps."""
-import argparse,hashlib,json,time
+import argparse,hashlib,json,time,os
 from pathlib import Path
 from contextlib import contextmanager
 import numpy as np
 import torch,torch.nn.functional as F,yaml
 from ilslens.model import load_local
 from ilslens.transcoders.train import SkipTranscoder
-from ilslens.transcoders.corpus import mixed_examples
+from ilslens.transcoders.corpus import mixed_examples,audit_budget
 from ilslens.transcoders.eval import ce_recovered
-from ilslens.experiment import Experiment,save_tensor
+from ilslens.experiment import Experiment,save_tensor,write_json
 
 @contextmanager
 def capture_mlp(model):
@@ -43,6 +43,14 @@ def main():
     config=yaml.safe_load(Path(args.config).read_text())
     digest=hashlib.sha256(Path(args.corpus).read_bytes()).hexdigest()
     run=Experiment(args.output,dict(config=config,corpus_sha256=digest,device=args.device))
+    unique=config.get('unique_training_windows',False)
+    if unique:
+        from transformers import AutoTokenizer
+        tokenizer=AutoTokenizer.from_pretrained(os.environ['ILS_MODEL_PATH'],local_files_only=True)
+        audit=audit_budget(args.corpus,tokenizer,config['token_presentations'],config['chat_every'])
+        write_json(run.path/'corpus-budget.json',audit)
+        if not audit['passes']:
+            raise ValueError('Corpus cannot meet the distinct training-window budget without held-out overlap; inspect corpus-budget.json')
     model,tokenizer=load_local(args.device,min_free_gib=config.get('estimated_gpu_gib',6.));d=model.config.hidden_size;layers=len(model.model.layers)
     torch.manual_seed(config['seed'])
     tcs=[SkipTranscoder(d,config['width_multiplier']*d,config['top_k']).to(model.device) for _ in range(layers)]
@@ -61,10 +69,11 @@ def main():
         save_tensor(state_path,dict(fingerprint=run.fingerprint,steps=step,models=[tc.state_dict() for tc in tcs],
             optimizers=[o.state_dict() for o in optimizers],source_counts=source_counts,documents=sorted(documents),window_hashes=sorted(window_hashes)))
     # Deterministic corpus order; resume advances over the already processed prefix.
-    iterator=mixed_examples(args.corpus,tokenizer,'train',config['chat_every'])
+    iterator=mixed_examples(args.corpus,tokenizer,'train',config['chat_every'],cycle=not unique,unique=unique)
     with capture_mlp(model) as (inputs,outputs):
         for step in range(total_steps):
-            ids,provenance=next(iterator)
+            try:ids,provenance=next(iterator)
+            except StopIteration:raise ValueError('Corpus exhausted before the registered training budget')
             if len(ids)!=128:raise ValueError('Token budget assumes exact 128-token windows')
             if step<completed:continue
             ids=ids[None].to(model.device)
@@ -84,6 +93,7 @@ def main():
         metadata=dict(fingerprint=run.fingerprint,layer=layer,model_type=model.config.model_type,hidden_size=d,
             model='Qwen/Qwen2.5-0.5B-Instruct',width=config['width_multiplier']*d,top_k=config['top_k'],
             token_presentations=total_steps*128,distinct_token_windows=len(window_hashes),distinct_tokens=len(window_hashes)*128,
+            unique_training_windows=unique,
             distinct_documents=len(documents),source_token_presentations=source_counts,seed=config['seed'])
         save_tensor(run.path/f'layer-{layer:02d}.pt',dict(state_dict={k:v.cpu() for k,v in tc.state_dict().items()},metadata=metadata))
     clean=[];replaced=[];ablated=[];records=[];dead=[torch.ones(tc.encoder.out_features,dtype=torch.bool,device=model.device) for tc in tcs]
@@ -114,6 +124,7 @@ def main():
     cis=np.nanquantile([ce_recovered(clean[i].mean(),replaced[i].mean(),ablated[i].mean()) for i in boot],[.025,.975]).tolist()
     run.result(dict(transcoders=metrics,ce=dict(clean=float(clean.mean()),replaced=float(replaced.mean()),ablated=float(ablated.mean()),recovered=float(recovered),ci=cis),
         evaluation_windows=len(records),evaluation_documents=len(groups),bootstrap_unit='source_document',training=metadata,
-        deviation='Compute-limited stream budget, below the requested 100M tokens per layer; no claim of saturated transcoder performance.'))
+        deviation=('Below the 100M-token target' if total_steps*128<100000000 else None),
+        window_policy='No repeated training windows' if unique else 'Explicit legacy cycling; presentations are not unique tokens'))
 
 if __name__=='__main__':main()

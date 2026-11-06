@@ -139,6 +139,18 @@ budget closure. `evaluate_causal.py` implements swap/ablation/answer controls an
 100 covariance-matched random interventions at every patched site. These new
 production experiments have not yet been run on Qwen.
 
+The default transcoder configuration requires distinct training windows. Run
+`audit_transcoder_corpus.py --corpus PATH` before training; insufficient data or
+validation overlap fails the audit. `download_transcoder_shards.py --output PATH`
+downloads pinned, checksum-verified shards. `prepare_transcoder_corpus.py` accepts
+`--web-parquet` and `--chat-parquet` with explicit dataset revisions to build a
+larger local corpus without requiring streaming network support.
+
+`run_primary_after_validation.py` can wait for an existing numerical validation
+process, verify all 24 layers, and then run primary collection and fitting in
+sequence. It never enables the full study or falls back to CPU. Use a fixed
+checkout and distinct output paths; see `--help` for required inputs.
+
 The current [research report](REPORT.md) separates completed measurements from
 unrun production stages and answers all eight research questions with the
 available evidence. `evaluate_workspacebench.py` uses upstream registered banks

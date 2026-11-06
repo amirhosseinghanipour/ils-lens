@@ -14,26 +14,32 @@ def replacement_effect(graph, target, layer, displacement):
     feature change. Errors use residual-coordinate displacements. Every
     downstream feature is recomputed, including its TopK selection.
     """
-    if displacement.shape != graph.outputs[layer].shape:
+    expected=graph.clean_embeddings if layer is None else graph.outputs[layer]
+    if displacement.shape != expected.shape:
         raise ValueError('Displacement must specify the entire MLP-output tensor')
     with graph.replacement():
         scale=torch.zeros((),device=displacement.device,dtype=displacement.dtype,requires_grad=True)
         def patch(module,args,out):
             return out+scale*displacement
-        handle=graph.model.model.layers[layer].mlp.register_forward_hook(patch)
+        handle=None if layer is None else graph.model.model.layers[layer].mlp.register_forward_hook(patch)
+        def forward():
+            if layer is not None:return graph.forward()
+            embeddings=graph.clean_embeddings+scale*displacement
+            graph.nodes['embedding']=embeddings
+            return graph.model(inputs_embeds=embeddings,use_cache=False).logits
         try:
-            clean=target_value(graph,target,graph.forward,frozen_gate=False)
+            clean=target_value(graph,target,forward,frozen_gate=False)
             derivative=torch.autograd.grad(clean,scale)[0]
             clean_support={i:(graph.nodes[f'feature:{i}'].detach()!=0).clone()
                            for i in range(len(graph.transcoders))}
             with torch.no_grad():
                 scale.fill_(1)
-                changed=target_value(graph,target,graph.forward,frozen_gate=False)
+                changed=target_value(graph,target,forward,frozen_gate=False)
             actual=float(changed-clean.detach());predicted=float(derivative)
             switches={i:int((clean_support[i]!=(graph.nodes[f'feature:{i}'].detach()!=0)).sum())
                       for i in range(len(graph.transcoders))}
         finally:
-            handle.remove()
+            if handle is not None:handle.remove()
     relative=abs(actual-predicted)/max(abs(actual),abs(predicted),1e-7)
     return dict(predicted=predicted,intervention_effect=actual,relative_error=relative,
                 passes=relative<1e-3,support_changes=switches,

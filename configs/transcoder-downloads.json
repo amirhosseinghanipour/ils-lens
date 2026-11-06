@@ -1,0 +1,18 @@
+{
+  "estimated_seconds": 7200,
+  "estimated_disk_bytes": 6000000000,
+  "files": [
+    {
+      "name": "fineweb-000.parquet",
+      "url": "https://huggingface.co/datasets/HuggingFaceFW/fineweb/resolve/9bb295ddab0e05d785b879661af7260fed5140fc/sample/10BT/000_00000.parquet",
+      "size": 2147292183,
+      "sha256": "6b552ea48424648dc86d00df276f93fdfc55e9ad342ce3e4affc23a3a370792b"
+    },
+    {
+      "name": "ultrachat-train-sft-000.parquet",
+      "url": "https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k/resolve/8049631c405ae6576f93f445c6b8166f76f5505a/data/train_sft-00000-of-00003-a3ecf92756993583.parquet",
+      "size": 243999189,
+      "sha256": "afa8fa7426081b2a0e732fb50dbb5cd402a28ad5f0dbe66c0d996d63e7220727"
+    }
+  ]
+}
