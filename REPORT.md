@@ -82,6 +82,14 @@ missing baselines, and nonfinite statistics. Negative R² and explicit undefined
 statistics remain preserved. The complete local suite passed 147 tests in
 6.190 seconds. No production fit or scientific selection rule changed.
 
+`scripts/plot_qwen_primary.py` prepares one figure per epsilon with every
+horizon, all 24 layers, four baseline/ILS series, and their saved 95% bootstrap
+intervals. Negative R² values are retained on a symmetric-log axis. The CLI
+requires the validated complete grid and labels the J/R versus ILS target
+reduction mismatch. A synthetic preview was rendered and visually checked;
+an incomplete synthetic grid was rejected. No synthetic preview is published
+as a Qwen result, and production plots remain unrun until fitting completes.
+
 The [full collection audit](artifacts/primary-full-collection-integrity.json)
 passes for all 1,152 checkpoints: 384 training shards and 768 held-out shards,
 totaling 19,827,816,192 bytes. Each layer/epsilon has 7,168 fitting samples and
