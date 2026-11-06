@@ -45,6 +45,15 @@ activation collection, serialization, J++ and the released extra baseline are
 excluded. The activation cache requires 8,601,600,000 bytes on disk. No sampling
 budget or tail-fitting method was reduced in response to this estimate.
 
+Calibration resume validation now binds each cached fit to its reference
+provenance, layer, transport matrix and corpus-frequency tensor, and checks
+reference count, vocabulary length and mask shape. Previously, the runner
+checked the calibration method and matrix but could reuse a stale dead-token
+mask after frequency changes. Unverified older caches are rejected; no
+production calibration artifact existed when this correction was made. The
+statistical method is unchanged. The local suite passed 150 tests in 6.377
+seconds, including changed-frequency and incomplete-cache regression cases.
+
 The primary-results exporter previously checked file count and fingerprint but
 not the full cell grid. A synthetic 24-file fixture with duplicate layer 0 and
 missing layer 23 was incorrectly accepted by the previous exporter. It now

@@ -8,7 +8,8 @@ from ilslens.model import load_local
 from ilslens.data import token_windows
 from ilslens.artifacts import primary_bank
 from ilslens.hooks import capture_blocks
-from ilslens.calibration import fit_calibration,matrix_fingerprint,CALIBRATION_VERSION
+from ilslens.calibration import (fit_calibration,matrix_fingerprint,
+    calibration_input_fingerprint,validate_calibration_cache)
 
 def parse_args(argv=None):
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True);parser.add_argument('--frequencies',required=True)
@@ -67,10 +68,11 @@ def main():
         destination=root/name;destination.mkdir(exist_ok=True)
         for layer,matrix in matrices.items():
             path=destination/f'layer-{layer:02d}.pt'
+            input_fingerprint=calibration_input_fingerprint(
+                dict(**activation_key,layer=layer),matrix,frequencies['counts'])
             if path.exists():
                 existing=torch.load(path,weights_only=True,map_location='cpu')
-                if existing.get('calibration_version')!=CALIBRATION_VERSION:raise ValueError('Calibration method changed; use a new calibration output directory')
-                if existing['metadata'].get('matrix_sha256')!=matrix_fingerprint(matrix):raise ValueError('Existing calibration belongs to a different lens matrix')
+                validate_calibration_cache(existing,input_fingerprint,args.count,model.config.vocab_size)
                 continue
             begin=time.perf_counter()
             h=torch.from_numpy(np.array(maps[layer])).to(model.device)
@@ -78,6 +80,7 @@ def main():
             calibration=fit_calibration(transported,model.lm_head.weight,model.model.norm.weight,frequencies['counts'])
             calibration['metadata']=dict(primary_fingerprint=metadata['fingerprint'],lens=name,layer=layer,
                 matrix_sha256=matrix_fingerprint(matrix),
+                input_fingerprint=input_fingerprint,
                 calibration_config=args.resolved_config,
                 epsilon=args.epsilon,gamma=args.gamma,reference_split='test',label_tuned=name.startswith('J++'),seconds=time.perf_counter()-begin)
             temporary=path.with_suffix('.tmp');torch.save(calibration,temporary);temporary.replace(path)

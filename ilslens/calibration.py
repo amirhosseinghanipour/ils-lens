@@ -1,10 +1,27 @@
 """Vocabulary-block calibration; never allocate reference_count × vocabulary."""
 import numpy as np
 import hashlib
+import json
 import torch
 from .readout import calibrate_token,dead_rows,zscore,fdr
 
 CALIBRATION_VERSION='empirical-variance-independent-of-tail-v2'
+
+def calibration_input_fingerprint(activation_key,matrix,frequencies):
+    """Bind a resumable fit to references, transport, and the corpus dead mask."""
+    payload=dict(activation_key=activation_key,matrix_sha256=matrix_fingerprint(matrix),
+                 frequencies_sha256=matrix_fingerprint(frequencies),version=CALIBRATION_VERSION)
+    return hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+def validate_calibration_cache(calibration,input_fingerprint,reference_count,vocab_size):
+    if calibration.get('calibration_version')!=CALIBRATION_VERSION:
+        raise ValueError('Calibration method changed; use a new calibration output directory')
+    if calibration.get('metadata',{}).get('input_fingerprint')!=input_fingerprint:
+        raise ValueError('Calibration references, transport or corpus frequencies changed or are unverified')
+    if calibration.get('reference_count')!=reference_count or len(calibration['records'])!=vocab_size:
+        raise ValueError('Calibration reference count or vocabulary is incomplete')
+    if tuple(calibration['dead_mask'].shape)!=(vocab_size,):
+        raise ValueError('Calibration dead-row mask has wrong shape')
 
 def matrix_fingerprint(matrix):
     matrix=matrix.detach().cpu().contiguous()
