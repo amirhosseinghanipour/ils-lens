@@ -19,6 +19,34 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Primary-run resource projection before collection
+
+The [read-only resource audit](scripts/audit_primary_resources.py) records a
+[primary-resource projection](artifacts/primary-resource-projection.json) bound to
+the registered configuration and measured suffix benchmark by SHA-256. It counts
+26,606,174,208 bytes of tensors for the primary interventions, indices, per-prompt
+J/R matrices, and 576 selected ILS matrices. Serialization metadata, temporary
+atomic copies, cached means, and downstream experiments require additional space.
+This is a final storage lower bound, not peak RAM or VRAM.
+
+Piecewise-linear interpolation across the four measured GPU layer timings yields
+17,680.34 seconds (4.91 hours) of suffix execution for 7,680 training-plus-held-out
+sample draws at each of 24 layers. Six epsilons are batched, and all four horizons
+share each antithetic forward pair; neither count is multiplied into time again.
+The benchmark uses a single source position and prompt. This projection excludes
+bank construction, transfers outside the timed suffix call, checkpoint writes,
+J/R fitting, ILS cross-validation, and every downstream phase. It has no estimated
+confidence interval and is not a complete-run duration forecast.
+
+The offline fitter's old “conservative CPU” label was inaccurate for its CUDA
+execution default. Current source labels the unchanged 180-seconds-per-cell value
+as an unbenchmarked placeholder and records the execution device. The already
+queued immutable checkout remains unchanged and retains the old label; this
+report explicitly corrects its interpretation. No GPU CV throughput measurement
+has yet been obtained, and no sample budget or method was reduced. The accounting
+test compares its storage formula with actual tiny tensor layouts and verifies
+that timing counts each batched forward pair only once.
+
 ## Matched graph comparisons preserve exact inputs and missing cases
 
 Synthetic regression cases exposed silent overwriting of duplicate graph sites,
@@ -35,7 +63,7 @@ even if the primary manifest fingerprint is unchanged. Existing graph artifacts
 without the new identities are not accepted for the updated comparison. These
 checks do not establish complete artifact provenance or resolve the additional
 independent-feature freeze: graph runs remain exploratory and production-blocked.
-All 127 small-input tests pass; no new Qwen graph measurement is claimed.
+All 127 small-input tests passed at that correction; no new Qwen graph measurement is claimed.
 
 ## Insufficient contrast cohorts remain unmeasured
 
@@ -461,7 +489,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **127 passing
+the specified semantics remain unresolved. The current suite has **128 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -675,7 +703,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 127 small-input tests pass. This includes numerical identities,
+The current 128 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

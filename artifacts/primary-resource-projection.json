@@ -1,0 +1,58 @@
+{
+  "dimension": 896,
+  "layers": 24,
+  "sample_draws_per_layer": 7680,
+  "batched_epsilon_count": 6,
+  "horizons_per_forward_pair": 4,
+  "selected_fit_cells": 576,
+  "tensor_bytes": {
+    "intervention_deltas": 3963617280,
+    "intervention_responses": 15854469120,
+    "intervention_indices": 5898240,
+    "per_prompt_J_R": 4932501504,
+    "selected_ILS": 1849688064
+  },
+  "tensor_bytes_lower_bound": 26606174208,
+  "suffix_projection_seconds": 17680.339891016483,
+  "seconds_per_six_epsilon_sample_by_layer": [
+    0.20327892168036973,
+    0.19251313639272538,
+    0.181747351105081,
+    0.17098156581743665,
+    0.1602157805297923,
+    0.14944999524214791,
+    0.13868420995450356,
+    0.1279184246668592,
+    0.12016358316517047,
+    0.11240874166348173,
+    0.10465390016179299,
+    0.09689905866010426,
+    0.08914421715841551,
+    0.08138937565672677,
+    0.07363453415503804,
+    0.0658796926533493,
+    0.05771656932241361,
+    0.04955344599147793,
+    0.04139032266054225,
+    0.03322719932960657,
+    0.025064075998670887,
+    0.01690095266773521,
+    0.008737829336799528,
+    0.0005747060058638453
+  ],
+  "original_registered_estimates": {
+    "baseline_estimated_seconds": 14232,
+    "collection_unoptimized_estimated_seconds": 500000,
+    "estimated_samples_disk_bytes": 19818086400
+  },
+  "timing_method": "Piecewise-linear interpolation between measured layer anchors; multiply once by train plus held-out sample draws, with epsilons and horizons already batched",
+  "exclusions": [
+    "Timing is not a full-run forecast or confidence interval",
+    "Benchmark uses one source position and prompt; production positions and prompts vary",
+    "Excludes donor-bank construction, repeated host transfers outside suffix timing, checkpoint serialization, baseline fitting, CV fitting, and all downstream evaluations",
+    "Storage excludes serialization metadata, logs, atomic temporary copies, baseline-mean cache, and all downstream stages"
+  ],
+  "config_sha256": "25e27e7d14ac3fc8f84d92b9164b3a23efde6281b059cc4ef8639d82aa776f9d",
+  "benchmark_sha256": "4c4bd14503ec8426d654001a7cd45422384bb874b60474e0373be405777b5a44",
+  "status": "pre_run_projection_not_actual_cost"
+}
