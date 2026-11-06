@@ -13,3 +13,9 @@ settings are in `ilslens/eval/toy_hmm.py` and `configs/toy.yaml`.
 The included results are from a single trained seed and are preliminary.
 See `../RESULTS.md` for limitations and the correction to CV prior estimation.
 `SHA256SUMS` records checksums of the included data files.
+
+`qwen-numerical-validation.json` contains the completed 24-layer, three-epsilon
+normalized-J equivalence validation. `numerical-all-layer-cosine-audit.json`
+records hashes and stable reporting reductions of all saved matrix pairs. These
+are numerical validation results, not the primary donor-intervention study.
+The fp32 directional-error limitation remains documented in `REPORT.md`.

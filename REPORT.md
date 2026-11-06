@@ -4,11 +4,11 @@ Updated 2026-11-06. **The requested research criteria are not yet met.** Complet
 measurements are the Qwen numerical/reference benchmarks and the trained toy HMM
 experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
-the RTX 3060 became available and numerical GPU validation has started. Missing measurements
-are unknown, not null findings.
+the all-layer GPU matrix-equivalence validation has completed, and primary J/R
+fitting has started. Missing measurements are unknown, not null findings.
 
 Full production execution is disabled during the specification audit. Independent
-numerical validation can run on the GPU. The current implementation is
+numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
 
 The initial fp32 GPU suffix benchmark completed: six-epsilon antithetic batches
@@ -17,7 +17,48 @@ at source position 64 took 0.2033, 0.1279, 0.0659 and 0.000575 seconds at blocks
 [the timing artifact](artifacts/qwen-gpu-suffix-benchmark.json). These timings
 exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
-24-hour / 3-GB estimate; its results are pending.
+24-hour / 3-GB estimate; its completed result is reported below.
+
+## Completed all-layer normalized-J equivalence validation
+
+All 72 registered layer/epsilon cells pass matrix cosine ≥ 0.95 and mean held-out
+top-10 overlap ≥ 0.8, including all 24 layers at the smallest epsilon, 0.0001.
+The run uses eight fitting contexts and 20 held-out contexts, with d=896 rotated
+orthogonal directions per fitting context (N=7,168 per layer/epsilon), gamma=1,
+and lambda=0. Layers refer to block outputs and the target is pre-final-norm.
+
+| epsilon | Passing layers | Minimum matrix cosine (reporting fp64) | Minimum held-out top-10 overlap | Maximum directional JVP error |
+| --- | --- | --- | --- | --- |
+| 0.01 | 24/24 | 0.999961956 | 0.975 | 1.371% |
+| 0.001 | 24/24 | 0.999999314 | 0.990 | 0.991% |
+| 0.0001 | 24/24 | 0.999933094 | 0.955 | 7.783% |
+
+The [complete result and provenance](artifacts/qwen-numerical-validation.json)
+retain the original fp32 cosine values. The table uses float64 *reporting
+reductions* on the saved fp32 maps, documented in the
+[all-layer cosine audit](artifacts/numerical-all-layer-cosine-audit.json); no model
+or fitting computation was changed to float64. These are fixed-test extrema,
+not estimated population effects. Per-prompt overlap values were not saved by
+this run, so no overlap bootstrap CI is reconstructed or invented.
+
+This validates convergence toward our own **normalized-horizon** averaged J on
+the original prefix-sampled contexts. It does not compare primary donor ILS with
+the upstream summed-target J/R baselines and does not establish readout quality,
+causal faithfulness, or superiority. The final maximum directional JVP error
+remains 7.783%, so the matrix pass does not remove the fp32 limitation below.
+
+Measured experiment time was 9,582.61 seconds (2.66 hours), versus the pre-run
+86,400-second estimate. The experiment recorded 4,779,235,290 bytes before its
+final result/log writes, versus the 3,000-MB estimate. Final directory bytes are
+also recorded in the artifact. This confirms the earlier storage underestimate.
+The numerical process exited normally; the waiting supervisor verified all cells
+and launched primary J/R fitting on the corrected shuffled corpus in the fixed
+`cd400d0` execution checkout. That work remains in progress, with no primary
+faithfulness result yet.
+
+Reproduce publication with `scripts/report_numerical_validation.py` after running
+the read-only cosine audit over layers 0–23. The large numerical tensors remain
+in the local run directory; the public audit records each matrix file's hash.
 
 ## Partial Qwen JVP check: fp32 still has a small-perturbation error floor
 
@@ -45,7 +86,8 @@ They describe only this fixed prefix-sampled context bank and do not account for
 shared-article dependence. They are not population CIs over arbitrary prompts or
 directions. The existing queued gate checks the registered matrix-cosine and
 held-out top-10 criteria; passing it would not certify every directional JVP or
-complete the research. Full-layer results remain pending.
+complete the research. At the time of this partial snapshot, full-layer results were pending; the completed
+all-layer result is now reported above.
 
 See the [raw errors and source hashes](artifacts/numerical-partial-jvp-audit.json),
 [reproduction script](scripts/audit_numerical_jvp_errors.py), and
