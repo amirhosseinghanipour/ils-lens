@@ -1,0 +1,24 @@
+{
+  "dataset": "HuggingFaceFW/fineweb",
+  "configuration": "sample-10BT",
+  "revision": "9bb295ddab0e05d785b879661af7260fed5140fc",
+  "web_documents": 200000,
+  "chat_sha256": null,
+  "chat_dataset": "HuggingFaceH4/ultrachat_200k",
+  "chat_split": "train_sft",
+  "chat_revision": "8049631c405ae6576f93f445c6b8166f76f5505a",
+  "chat_documents": 20000,
+  "split_rule": "sha256 document ID modulo 10; validation residue 0",
+  "document_counts": {
+    "train": 198242,
+    "validation": 21752
+  },
+  "seconds": 4.6395393229904585,
+  "disk_bytes": 780757466,
+  "sha256": "85f90278caae09172fe1695feea9c68a408aea738ec966cd00b31a8a4d774cd8",
+  "web_parquet_sha256": "6b552ea48424648dc86d00df276f93fdfc55e9ad342ce3e4affc23a3a370792b",
+  "chat_parquet_sha256": "afa8fa7426081b2a0e732fb50dbb5cd402a28ad5f0dbe66c0d996d63e7220727",
+  "budget_audit_status": "pending_at_publication",
+  "training_status": "not_started",
+  "preparation_script_sha256": "fc355b925c649011bf0d5ff6c760fd951fdd8183ff9788ed1d9ac2124fbca555"
+}

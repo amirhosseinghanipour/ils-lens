@@ -19,6 +19,24 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Larger transcoder corpus prepared; budget audit pending
+
+Both pinned FineWeb and UltraChat parquet shards passed their size and SHA-256
+checks. Downloading them took 6654.7 seconds against the original
+7,200-second estimate. A separate local reverification took 1.31 seconds;
+that is not the download duration. The prepared JSONL contains 198,242 training
+and 21,752 validation documents after document deduplication, totaling
+780,757,466 bytes. Preparation itself took 4.64 seconds, excluding download and
+the subsequent tokenizer audit.
+
+[Verified shard metadata](artifacts/transcoder-shards-verified.json) and
+[prepared corpus manifest](artifacts/transcoder-corpus-100m-manifest.json) record
+pinned revisions and hashes. At this snapshot, the distinct-window budget and
+train/validation token-window overlap audit is still running. The corpus filename
+contains the intended 100M target; it is **not** evidence that this target passed.
+No transcoder training has started on this corpus. Any budget or overlap failure
+will be retained and reported before selecting a corrective preprocessing step.
+
 ## Numerical-run resource snapshot
 
 At 2026-11-06 06:56 UTC, the numerical run had written 82/192 context checkpoints
