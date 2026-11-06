@@ -1,0 +1,19 @@
+{
+  "dataset": "HuggingFaceFW/fineweb",
+  "configuration": "sample-10BT",
+  "revision": "9bb295ddab0e05d785b879661af7260fed5140fc",
+  "web_documents": 4096,
+  "chat_sha256": null,
+  "chat_dataset": "HuggingFaceH4/ultrachat_200k",
+  "chat_split": "train_sft",
+  "chat_revision": "8049631c405ae6576f93f445c6b8166f76f5505a",
+  "chat_documents": 512,
+  "split_rule": "sha256 document ID modulo 10; validation residue 0",
+  "document_counts": {
+    "train": 4201,
+    "validation": 407
+  },
+  "sha256": "fb84e83392550e3bbaaf3b838927f9672d55e7213ed9de2058e68a4038954800",
+  "actual_disk_bytes": 16338239,
+  "timing": "Not instrumented in the first download invocation; later invocations record duration"
+}

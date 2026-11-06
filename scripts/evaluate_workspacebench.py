@@ -6,7 +6,7 @@ import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.experiment import Experiment,write_json,save_tensor
-from ilslens.eval.workspacebench import load_reference,load_family,paired_accuracy
+from ilslens.eval.workspacebench import load_reference,load_family,paired_accuracy,overlaps_labeled_dev
 from ilslens.eval.readout_tasks import generate_token_completions,gate_item,exact_match,candidate_ids,recall_report
 from ilslens.eval.contrastive import render_condition
 from ilslens.artifacts import primary_bank
@@ -22,6 +22,8 @@ def main():
     run=Experiment(args.output,dict(config=config,reference_revision=revision,device=args.device))
     readplan,render,_,bank_items,_=load_reference(args.reference)
     model,tokenizer=load_local(args.device);layers=config['layers'];gates=[];prepared=[]
+    jpp_artifact=torch.load(args.jpp,weights_only=True,map_location='cpu') if args.jpp else None
+    dev_exclusions=[]
     for family in config['families']:
         specs={spec.id:spec for spec in readplan.plan(family,layers=layers,reads='full')}
         raw_items={row['id']:row for row in bank_items(family)}
@@ -43,7 +45,9 @@ def main():
                     natural_token_completions=natural,temperature=.8)
                 gate['retained']=gate['retained'] and gate['greedy_correct'];write_json(gate_path,gate)
             gates.append(gate)
-            if gate['retained'] and item.split=='test':prepared.append((gate,raw_items[identity]))
+            if gate['retained'] and item.split=='test':
+                if jpp_artifact and overlaps_labeled_dev(item,jpp_artifact['metadata']):dev_exclusions.append(item.id)
+                else:prepared.append((gate,raw_items[identity]))
     write_json(run.path/'gates.json',gates)
     # Export exact rendered/tokenized evaluation items for phrase and graph stages.
     exported=[]
@@ -57,7 +61,7 @@ def main():
         run.result(dict(gated_items=len(gates),retained_test_items=len(prepared),status='gates_only'));return
     bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])
     if args.jpp:
-        artifact=torch.load(args.jpp,weights_only=True,map_location='cpu')
+        artifact=jpp_artifact
         if artifact['metadata']['primary_fingerprint']!=metadata['fingerprint'] or not artifact['metadata']['label_tuned']:
             raise ValueError('Invalid J++ baseline')
         bank['J++ (label-tuned)']=artifact['matrices']
@@ -87,7 +91,7 @@ def main():
             for row in report:
                 row['layer']=selected_layers[row['layer']] if isinstance(row['layer'],int) else row['layer']
                 rows.append(dict(row,lens=name,label_tuned=name.startswith('J++'),family=family,metric='single-token concept recall over any prescribed read position',mode='raw'))
-    run.result(dict(rows=rows,metadata=metadata,retained_test_items=len(prepared),capability_items=len(gates),
+    run.result(dict(rows=rows,metadata=metadata,retained_test_items=len(prepared),capability_items=len(gates),jpp_dev_exclusions=dev_exclusions,
         multi_token_status='Saved exact items and states for the causal phrase experiment',
         hallucination_status='Upstream WSB moved hallucination to HallucinationBench; no borrowed index is reported as this model.',
         deviations=['Exact-match scoring instead of the official LLM judge','Capability temperature .8 per project, versus .7 in WSB gates',

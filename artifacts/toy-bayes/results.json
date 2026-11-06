@@ -1,0 +1,20 @@
+{
+  "config": {
+    "seed": 160000,
+    "prompts": 4000,
+    "length": 128,
+    "estimated_seconds": 10,
+    "estimated_disk_mb": 1,
+    "purpose": "Exact Bayes hidden-state accuracy on non-report positions; no fitted parameters"
+  },
+  "accuracy": 0.927158534526825,
+  "ci": [
+    0.9262415170669556,
+    0.9280329346656799
+  ],
+  "posterior_expected_accuracy": 0.9272243976593018,
+  "valid_positions": 363711,
+  "seconds": 0.8689115580054931,
+  "interpretation": "Bayes optimal expected classification ceiling for observed histories under the specified generator; empirical accuracy varies with sampled latent states",
+  "caveat": "Separate diagnostic prompts; not a re-estimation of lens performance or a training target"
+}

@@ -3,7 +3,7 @@ from pathlib import Path
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
-from ilslens.eval.readout_tasks import generate_answers,candidate_ids
+from ilslens.eval.readout_tasks import generate_token_completions,candidate_ids,content_tokens
 from ilslens.eval.contrastive import render_condition,matched_condition_states
 from ilslens.contrast import contrast_with_null
 from ilslens.readout import raw
@@ -20,10 +20,10 @@ def main():
     for i,user in enumerate(users):
         for arm in completions:
             prefix=render_condition(tokenizer,config[arm],user)
-            text=tokenizer.decode(prefix)
-            completions[arm].append(generate_answers(model,tokenizer,text,draws=1,max_new_tokens=32,seed=config['seed']+i)[0])
+            completions[arm].append(generate_token_completions(model,tokenizer,prefix,draws=1,max_new_tokens=32,seed=config['seed']+i)[0])
     layers=config['layers'];states,groups,excluded=matched_condition_states(model,tokenizer,users,
-        config['condition'],config['control'],completions['condition'],completions['control'],layers,config['offsets'])
+        config['condition'],config['control'],[content_tokens(r['token_ids'],tokenizer.all_special_ids) for r in completions['condition']],
+        [content_tokens(r['token_ids'],tokenizer.all_special_ids) for r in completions['control']],layers,config['offsets'])
     target_ids=candidate_ids(tokenizer,config['target'])
     if not target_ids:raise ValueError('Target is not single-token; use the phrase experiment')
     rows=[]

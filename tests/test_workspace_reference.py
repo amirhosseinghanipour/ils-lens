@@ -2,6 +2,15 @@ import os,unittest
 from pathlib import Path
 
 class WorkspaceReferenceTests(unittest.TestCase):
+    def test_cross_benchmark_labeled_dev_leakage_is_excluded(self):
+        import hashlib
+        from ilslens.eval.readout_tasks import ReadoutItem,normalize
+        from ilslens.eval.workspacebench import overlaps_labeled_dev
+        item=ReadoutItem('workspacebench:multihop:renamed','multihop','A copied prompt.','question',['answer'],['hidden'],'test')
+        meta={'dev_item_ids':[], 'dev_prompt_hashes':[hashlib.sha256(normalize('A copied prompt.').encode()).hexdigest()]}
+        self.assertTrue(overlaps_labeled_dev(item,meta))
+        self.assertTrue(overlaps_labeled_dev(item,{'dev_item_ids':['multihop:renamed']}))
+        self.assertFalse(overlaps_labeled_dev(item,{'dev_item_ids':['multihop:other']}))
     def test_registered_banks_and_actual_tokenizer_read_sites(self):
         root=Path(os.environ.get('ILS_WORKSPACE_REFERENCE','../references/workspace-bench'))
         model=os.environ.get('ILS_MODEL_PATH')

@@ -33,6 +33,10 @@ class DiagnosticsTests(unittest.TestCase):
         short=torch.diag(torch.tensor([1.,1.,0.,0.]));long=torch.eye(4)
         b=projection(short,long,torch.eye(4),1e-6)
         torch.testing.assert_close(long-b@short,torch.diag(torch.tensor([0.,0.,1.,1.])),atol=2e-6,rtol=1e-5)
+    def test_full_rank_concept_projection_collapses_without_regularization(self):
+        short=torch.randn(4,4)+3*torch.eye(4);long=torch.randn(4,4);covariance=torch.eye(4)
+        b=projection(short,long,covariance,0.)
+        torch.testing.assert_close(long-b@short,torch.zeros(4,4),atol=1e-5,rtol=1e-5)
     def test_exact_null_sampler_agrees_with_explicit_random_dictionaries(self):
         target=torch.randn(16);generator=torch.Generator().manual_seed(17)
         exact=random_dictionary_gains(target,8,20000,generator)
@@ -47,3 +51,17 @@ class DiagnosticsTests(unittest.TestCase):
         plus,minus=cache.effects(1,19,delta,return_branches=True)
         effects=cache.effects(1,19,delta)
         torch.testing.assert_close((plus-minus)/2,effects,atol=2e-7,rtol=1e-4)
+    def test_procrustes_removes_known_rotational_disagreement(self):
+        from ilslens.eval.diagnostics import procrustes_experts
+        rotations=torch.stack([torch.linalg.qr(torch.randn(4,4)).Q for _ in range(8)])
+        scale=torch.diag(torch.tensor([1.,2.,3.,4.]));maps=rotations@scale
+        result=procrustes_experts(maps)
+        torch.testing.assert_close(result['aligned'],maps[0],atol=5e-6,rtol=5e-6)
+    def test_hmm_oracle_report_pair_has_no_extra_transition(self):
+        from ilslens.eval.hmm_oracle import posterior_states
+        ids=torch.tensor([[13,8,11,4,8,9]])
+        p=posterior_states(ids)
+        torch.testing.assert_close(p[0,2],torch.tensor([0.,0.,1.,0.]))
+        torch.testing.assert_close(p[0,4],.92*p[0,3]+.02)
+        torch.testing.assert_close(p[0,5],torch.tensor([1.,0.,0.,0.]))
+        torch.testing.assert_close(p.sum(-1),torch.ones(1,6))

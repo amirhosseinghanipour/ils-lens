@@ -19,8 +19,8 @@ def matched_condition_states(model,tokenizer,users,condition,control,condition_c
     modes={mode:{arm:{layer:[] for layer in layers} for arm in ('condition','control')} for mode in ('on_policy','off_policy')}
     groups=[];excluded=[]
     for i,user in enumerate(users):
-        first=tokenizer.encode(condition_completions[i],add_special_tokens=False)
-        second=tokenizer.encode(control_completions[i],add_special_tokens=False)
+        first=condition_completions[i];second=control_completions[i]
+        if isinstance(first,str) or isinstance(second,str):raise ValueError('Pass exact generated token IDs; on-policy text must not be retokenized')
         if min(len(first),len(second))<=max(offsets):excluded.append(i);continue
         prefixes={arm:render_condition(tokenizer,system,user) for arm,system in [('condition',condition),('control',control)]}
         for mode in modes:

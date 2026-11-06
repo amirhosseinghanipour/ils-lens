@@ -96,6 +96,12 @@ def generate_answers(model,tokenizer,text,draws=10,max_new_tokens=24,seed=0,temp
     ids=tokenizer(text,add_special_tokens=False).input_ids
     return [row['text'] for row in generate_token_completions(model,tokenizer,ids,draws,max_new_tokens,seed,temperature)]
 
+def content_tokens(token_ids,special_ids):
+    """Preserve the sampled segmentation, excluding terminal stop/special tokens."""
+    result=list(token_ids);special=set(special_ids)
+    while result and result[-1] in special:result.pop()
+    return result
+
 @torch.no_grad()
 def generate_token_completions(model,tokenizer,ids,draws=10,max_new_tokens=24,seed=0,temperature=.8,greedy=False):
     device=model.model.embed_tokens.weight.device

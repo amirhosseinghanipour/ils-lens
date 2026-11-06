@@ -43,7 +43,7 @@ def main():
     config=yaml.safe_load(Path(args.config).read_text())
     digest=hashlib.sha256(Path(args.corpus).read_bytes()).hexdigest()
     run=Experiment(args.output,dict(config=config,corpus_sha256=digest,device=args.device))
-    model,tokenizer=load_local(args.device);d=model.config.hidden_size;layers=len(model.model.layers)
+    model,tokenizer=load_local(args.device,min_free_gib=config.get('estimated_gpu_gib',6.));d=model.config.hidden_size;layers=len(model.model.layers)
     torch.manual_seed(config['seed'])
     tcs=[SkipTranscoder(d,config['width_multiplier']*d,config['top_k']).to(model.device) for _ in range(layers)]
     # Sequential optimizer updates bound temporary state, while all optimizers persist for exact resume.

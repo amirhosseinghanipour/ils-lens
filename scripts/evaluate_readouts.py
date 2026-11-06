@@ -9,7 +9,7 @@ from ilslens.artifacts import primary_bank
 from ilslens.eval.readout_tasks import load_reference_items,generate_answers,gate_item,candidate_ids,recall_report
 from ilslens.hooks import capture_blocks
 from ilslens.readout import raw,sparse_pursuit
-from ilslens.calibration import calibrated_readout
+from ilslens.calibration import calibrated_readout,matrix_fingerprint
 from ilslens.jpp import readout_filter
 
 def main():
@@ -79,6 +79,8 @@ def main():
                         calibration=torch.load(calibration_path,weights_only=True,map_location='cpu')
                         if calibration['metadata']['primary_fingerprint']!=metadata['fingerprint']:
                             raise ValueError('Calibration and lens fitting provenance differ')
+                        if calibration['metadata'].get('matrix_sha256')!=matrix_fingerprint(maps[layer]):
+                            raise ValueError('Calibration belongs to a different lens matrix')
                         if (calibration['metadata']['epsilon'],calibration['metadata']['gamma'])!=(config['epsilon'],config['gamma']):
                             raise ValueError('Calibration uses a different ILS epsilon or horizon')
                         calibrated=calibrated_readout(scores,calibration);z=calibrated['z']

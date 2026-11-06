@@ -1,7 +1,12 @@
 """Vocabulary-block calibration; never allocate reference_count × vocabulary."""
 import numpy as np
+import hashlib
 import torch
 from .readout import calibrate_token,dead_rows,zscore,fdr
+
+def matrix_fingerprint(matrix):
+    matrix=matrix.detach().cpu().contiguous()
+    return hashlib.sha256(str((tuple(matrix.shape),str(matrix.dtype))).encode()+matrix.numpy().tobytes()).hexdigest()
 
 @torch.no_grad()
 def fit_calibration(transported,unembedding,gain,frequencies,minimum=100000,token_chunk=64,eps=1e-6):

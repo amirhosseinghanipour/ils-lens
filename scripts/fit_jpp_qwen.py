@@ -1,5 +1,5 @@
 """Use upstream expert fitting and labeled-dev weighting on the exact local model."""
-import argparse,json,time
+import argparse,hashlib,json,time
 from pathlib import Path
 import torch
 from ilslens.model import load_local
@@ -7,7 +7,7 @@ from ilslens.data import wikitext_sequences
 from ilslens.reference import load_reference,token_adapter
 from ilslens.jpp import load_jpp,fit_experts,fit_labeled_weights,readout_filter
 from ilslens.hooks import capture_blocks
-from ilslens.eval.readout_tasks import candidate_ids
+from ilslens.eval.readout_tasks import candidate_ids,normalize
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True);parser.add_argument('--reference',required=True)
@@ -31,7 +31,7 @@ def main():
         experts.save(str(expert_path))
     gates=json.loads(Path(args.gates).read_text())
     selected=[r['item'] for r in gates if r['retained'] and r['item']['split']=='dev']
-    state_lists={layer:[] for layer in experts.layers};candidate_lists=[];tasks=[];dev_ids=[]
+    state_lists={layer:[] for layer in experts.layers};candidate_lists=[];tasks=[];dev_ids=[];dev_prompt_hashes=[]
     for item in selected:
         candidates={concept:candidate_ids(tokenizer,concept) for concept in item['intermediates']}
         candidates={concept:ids for concept,ids in candidates.items() if ids}
@@ -40,10 +40,11 @@ def main():
         with torch.no_grad(),capture_blocks(model,experts.layers) as states:model.model(tokens,use_cache=False)
         for layer in experts.layers:state_lists[layer].append(states[layer][0,-1].clone())
         candidate_lists.append(candidates);tasks.append(item['task']);dev_ids.append(item['id'])
+        dev_prompt_hashes.append(hashlib.sha256(normalize(item['prompt']).encode()).hexdigest())
     if not candidate_lists:raise ValueError('No capability-filtered labeled dev items; J++ cannot be fitted')
     lens,weight_metadata=fit_labeled_weights(experts,adapter,{layer:torch.stack(values) for layer,values in state_lists.items()},
         candidate_lists=candidate_lists,eval_slugs=tasks,excluded_mask=readout_filter(tokenizer,model.config.vocab_size))
-    metadata=dict(label_tuned=True,dev_item_ids=dev_ids,primary_fingerprint=manifest['fingerprint'],
+    metadata=dict(label_tuned=True,dev_item_ids=dev_ids,dev_prompt_hashes=dev_prompt_hashes,primary_fingerprint=manifest['fingerprint'],
         source_prompts=config['source_prompts'],clusters=8,pca=64,readout_filter='tokens_without_letter_or_digit',
         target_layer=23,target_reduction='upstream_sum',seconds=time.perf_counter()-start)
     matrices=dict(lens.jacobians_L_dict_FN)

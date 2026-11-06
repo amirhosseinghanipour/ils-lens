@@ -55,7 +55,7 @@ def main():
     excluded=[];groups=[]
     # First sampled completion per prompt, four matched offsets, fixed before results.
     for i,user in enumerate(prompts):
-        texts={arm:tokenizer.encode(records[arm][i]['completions'][0],add_special_tokens=False) for arm in ('tuned','base')}
+        texts={arm:records[arm][i]['token_completions'][0] for arm in ('tuned','base')}
         if min(map(len,texts.values()))<4:excluded.append(i);continue
         prefix=render_condition(tokenizer,None,user)
         for mode,arms in states.items():
@@ -76,8 +76,10 @@ def main():
                 def read(h):return raw(h,matrix,model.lm_head.weight,model.model.norm.weight).softmax(-1)
                 with torch.no_grad():
                     result=contrast_with_null(tuned,base,read,target,groups,seed=config['seed'])
-                    absolute={arm:rank_of(read(h).mean(0),target) for arm,h in [('base',base),('tuned',tuned)]}
-                    model_diff_rank=rank_of(read((tuned-base).mean(0)),target)
+                    absolute={mode:{arm:rank_of(read(h).mean(0) if mode=='mean_of_lens' else read(h.mean(0)),target)
+                        for arm,h in [('base',base),('tuned',tuned)]} for mode in ('mean_of_lens','lens_of_mean')}
+                    model_diff_rank={'lens_of_mean':rank_of(read((tuned-base).mean(0)),target),
+                                     'mean_of_lens':rank_of(read(tuned-base).mean(0),target)}
                 for read_mode,statistics in result.items():
                     save_tensor(run.path/f'contrast-{name}-{layer}-{mode}-{read_mode}.pt',statistics.pop('contrast_scores'))
                     rows.append(dict(lens=name,layer=layer,mode=mode,read_mode=read_mode,absolute_ranks=absolute,

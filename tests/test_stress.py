@@ -35,3 +35,18 @@ class StressTests(unittest.TestCase):
         self.assertEqual(report['fraction'],1);self.assertEqual(report['rows'][0]['unexplained'],2)
     def test_calibration_refuses_small_reference_set(self):
         with self.assertRaises(ValueError):fit_calibration(torch.randn(20,4),torch.randn(8,4),torch.ones(4),torch.ones(8))
+    def test_calibration_fingerprint_binds_actual_matrix(self):
+        from ilslens.calibration import matrix_fingerprint
+        matrix=torch.eye(4);identity=matrix_fingerprint(matrix)
+        self.assertEqual(identity,matrix_fingerprint(matrix.clone()))
+        matrix[0,0]+=.01
+        self.assertNotEqual(identity,matrix_fingerprint(matrix))
+    def test_positive_100k_calibration_keeps_dead_rows_out_of_fdr(self):
+        from ilslens.calibration import fit_calibration,calibrated_readout
+        h=torch.randn(100000,4);unembedding=torch.randn(8,4);gain=torch.ones(4);counts=torch.ones(8);counts[0]=0
+        calibration=fit_calibration(h,unembedding,gain,counts,token_chunk=4)
+        scores=unembedding@h[0]/h[0].square().mean().sqrt();scores[0]=100.
+        result=calibrated_readout(scores,calibration)
+        self.assertEqual(calibration['reference_count'],100000)
+        self.assertNotIn(0,result['accepted_ids']);self.assertTrue(torch.isneginf(result['z'][0]))
+        self.assertTrue(torch.isfinite(result['z'][1:]).all())

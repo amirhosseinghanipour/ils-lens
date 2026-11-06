@@ -7,7 +7,7 @@ from ilslens.model import load_local
 from ilslens.data import token_windows
 from ilslens.artifacts import primary_bank
 from ilslens.hooks import capture_blocks
-from ilslens.calibration import fit_calibration
+from ilslens.calibration import fit_calibration,matrix_fingerprint
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True);parser.add_argument('--frequencies',required=True)
@@ -53,12 +53,16 @@ def main():
         destination=root/name;destination.mkdir(exist_ok=True)
         for layer,matrix in matrices.items():
             path=destination/f'layer-{layer:02d}.pt'
-            if path.exists():continue
+            if path.exists():
+                existing=torch.load(path,weights_only=True,map_location='cpu')
+                if existing['metadata'].get('matrix_sha256')!=matrix_fingerprint(matrix):raise ValueError('Existing calibration belongs to a different lens matrix')
+                continue
             begin=time.perf_counter()
             h=torch.from_numpy(np.array(maps[layer])).to(model.device)
             with torch.no_grad():transported=h@matrix.to(h).T
             calibration=fit_calibration(transported,model.lm_head.weight,model.model.norm.weight,frequencies['counts'])
             calibration['metadata']=dict(primary_fingerprint=metadata['fingerprint'],lens=name,layer=layer,
+                matrix_sha256=matrix_fingerprint(matrix),
                 epsilon=args.epsilon,gamma=args.gamma,reference_split='test',label_tuned=name.startswith('J++'),seconds=time.perf_counter()-begin)
             temporary=path.with_suffix('.tmp');torch.save(calibration,temporary);temporary.replace(path)
             del h,transported

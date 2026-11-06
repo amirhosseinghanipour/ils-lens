@@ -30,6 +30,8 @@ def main():
         for index,item in enumerate(cached['items']):
             if layer not in cached['states'][index]:continue
             h=cached['states'][index][layer].to(model.device)
+            long_state=h@l.T;concept_state=long_state-(h@s.T)@b.T
+            remaining_norm=concept_state.norm(dim=-1)/long_state.norm(dim=-1).clamp_min(1e-30)
             with torch.no_grad():
                 scores={'short':raw(h,s,model.lm_head.weight,model.model.norm.weight),
                         'long':raw(h,l,model.lm_head.weight,model.model.norm.weight),
@@ -42,6 +44,7 @@ def main():
                         ids=candidate_ids(tokenizer,target)
                         if ids:ranks.append(int((values[j]>values[j,ids].max()).sum())+1)
                     rows.append(dict(item_id=item['id'],layer=layer,position=position,method=method,
+                        concept_remaining_norm_fraction=float(remaining_norm[j]),
                         next_token_rank=None if next_token is None else int((values[j]>values[j,next_token]).sum())+1,
                         concept_ranks=ranks,unscoreable_concepts=len(item['targets'])-len(ranks)))
     summaries=[];rng=np.random.default_rng(config['seed'])

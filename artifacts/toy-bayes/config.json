@@ -1,0 +1,8 @@
+{
+  "seed": 160000,
+  "prompts": 4000,
+  "length": 128,
+  "estimated_seconds": 10,
+  "estimated_disk_mb": 1,
+  "purpose": "Exact Bayes hidden-state accuracy on non-report positions; no fitted parameters"
+}

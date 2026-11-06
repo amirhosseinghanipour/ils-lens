@@ -3,7 +3,7 @@
 This does not claim equivalence to the benchmark's LLM judge. Family-specific
 renderers, gates and read positions must be preserved in each emitted item.
 """
-import json
+import json,hashlib
 import sys
 from pathlib import Path
 from .readout_tasks import ReadoutItem,dev_split,normalize,exact_match
@@ -58,6 +58,12 @@ def paired_accuracy(records):
     complete=[rows for rows in groups.values() if len(rows)==2]
     return dict(pairs=len(complete),incomplete_pairs=len(groups)-len(complete),
                 accuracy=None if not complete else sum(all(row['correct'] for row in rows) for rows in complete)/len(complete))
+
+def overlaps_labeled_dev(item,metadata):
+    """Exclude copied tasks across benchmark namespaces, not just identical IDs."""
+    identity=item.id.removeprefix('workspacebench:')
+    digest=hashlib.sha256(normalize(item.prompt).encode()).hexdigest()
+    return identity in metadata.get('dev_item_ids',[]) or digest in metadata.get('dev_prompt_hashes',[])
 
 def resolve_positions(tokenizer,prompt,readout):
     encoded=tokenizer(prompt,add_special_tokens=False,return_offsets_mapping=True)

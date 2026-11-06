@@ -1,15 +1,16 @@
 """Prompt-level preference measurements; generation draws are not independent items."""
 import numpy as np
-from .readout_tasks import contains_concept,generate_answers
+from .readout_tasks import contains_concept,generate_token_completions,content_tokens
 from .contrastive import render_condition
 
 def measure_preference(model,tokenizer,prompts,concept,draws=10,seed=0,max_new_tokens=32):
     records=[]
     for i,prompt in enumerate(prompts):
-        text=tokenizer.decode(render_condition(tokenizer,None,prompt))
-        completions=generate_answers(model,tokenizer,text,draws=draws,seed=seed+100*i,max_new_tokens=max_new_tokens)
+        prefix=render_condition(tokenizer,None,prompt)
+        generations=generate_token_completions(model,tokenizer,prefix,draws=draws,seed=seed+100*i,max_new_tokens=max_new_tokens)
+        completions=[row['text'] for row in generations]
         hits=[contains_concept(answer,concept) or contains_concept(answer,concept+'s') for answer in completions]
-        records.append(dict(prompt=prompt,completions=completions,hits=hits,rate=float(np.mean(hits))))
+        records.append(dict(prompt=prompt,completions=completions,token_completions=[content_tokens(row['token_ids'],tokenizer.all_special_ids) for row in generations],hits=hits,rate=float(np.mean(hits))))
     return records
 
 def preference_difference(condition,control,seed=0,repeats=1000):

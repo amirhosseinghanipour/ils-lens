@@ -24,3 +24,6 @@ must be preserved or explicitly reconciled in baseline comparisons.
   inspected revision `fc96bf532ce3df0461126ba0c20b1c739a3c7603`. WorkspaceBench's
   former hallucination family has moved here. Its older vendored index is not
   an evaluation of this project's Qwen checkpoint.
+- [UltraChat 200k](https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k):
+  a pinned 512-conversation sample of `train_sft` supplies chat-formatted text.
+  Source documents, rather than token windows, determine the held-out partition.

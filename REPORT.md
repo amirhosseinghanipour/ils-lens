@@ -34,6 +34,11 @@ include earlier pilot limitations; this report supplies the current status.
 
 - The four-block HMM model learned report behavior: held-out STATE-report
   accuracy 83.48%, CE 1.5292, after 204800 training token presentations.
+- An exact Bayesian filter on 4000 independent HMM sequences achieved 92.716%
+  [92.624%, 92.803%] state accuracy at 363711 valid non-report positions. Its
+  posterior-expected accuracy was 92.722%. This is a separate observability
+  diagnostic, not a lens result or a training target: uncertainty about the hidden
+  state remains even with the correct generative model.
 - In its normalized-horizon pilot, ILS interventional R² was approximately
   .08–.14; J/R confidence intervals overlap ILS. **No improvement is established.**
 - Any-layer toy recall@1 was 0% for ILS, 30% [17.5%, 45.0%] for upstream J,
@@ -83,7 +88,7 @@ production Qwen results yet.
 | 1. Does ILS beat J/R, especially early? | Unknown for Qwen. Toy R² intervals overlap; no improvement claim. |
 | 2. Does unsupervised ILS match label-tuned J++ readout? | Not in the observed toy top-1 measurements, subject to the stated estimand/band confounds. Unknown for Qwen. |
 | 3. Do lens interventions beat the random gate? | Occasionally for toy ILS/J/R; no broad selectivity result. J++ (label-tuned) passed none of its 24 toy tests. Qwen unknown. |
-| 4. Does the concept lens separate horizons? | Not measured; the projection and evaluation runner have numerical checks. |
+| 4. Does the concept lens separate horizons? | Qwen readouts not measured. Algebraically, the specified residual vanishes at eta=0 when the short-horizon map and covariance are full rank. Regularized residual content alone cannot establish a distinct concept space. |
 | 5. Which tool detects the planted trait, and how much is outside the workspace? | No Qwen organism has been trained yet. Adapter training/resume and control restoration pass tiny tests. Model-diff R² will measure the base model's response to those perturbations, not total behavioral trait variance. |
 | 6. Is early expert disagreement rotation or curvature? | Unknown. Fixed-expert Procrustes diagnostics and epsilon sweeps are implemented. Source-position-dependent horizon normalization is an additional confound. |
 | 7. What fraction is dark matter? | 0/32 in the limited toy budget diagnostic; unknown for Qwen. |
@@ -101,12 +106,13 @@ production Qwen results yet.
 | Toy matched causal controls | 19.35 seconds | Complete |
 | Toy transcoders/graphs/budget | 3.35 seconds | Complete |
 | Toy isotropic-limit | 1.02 seconds | Complete |
+| HMM Bayesian observability diagnostic | 10 seconds estimated / 0.87 seconds actual, CPU | Complete; no model fitting |
 | New production stages | Config estimates are unbenchmarked GPU budgets, not actual costs | Not run |
 
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 38 small-input tests pass. This includes numerical identities,
+The current 51 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
@@ -162,6 +168,22 @@ checkpoint resume. These checks do not replace end-to-end Qwen measurements.
     diversity. Variants are compared on a common held-out donor/antithetic target,
     with their own native-target R² reported separately. This prevents changing the
     evaluation estimand from masquerading as an ablation improvement.
+15. **Concept-lens identifiability:** for invertible `A_S` and positive-definite
+    `Sigma`, setting eta=0 gives `B = A_L inverse(A_S)` and hence
+    `A_L - B A_S = 0`. A numerical test verifies this identity. The specified
+    regularized method is retained, and the evaluator records its remaining
+    state-norm fraction; a nonzero residual need not represent uniquely
+    long-horizon information.
+16. **Gaussian qualification:** a Gaussian activation law supplies a sufficient
+    setting for the Stein-identity link between mean derivatives and least
+    squares. An assertion of equality *only* for Gaussian activations is too
+    strong for a particular map: any linear map gives equality under arbitrary
+    full-rank activation covariance. Donor perturbations also depend on source
+    activations; their small-epsilon fit need not equal an unweighted Jacobian.
+17. **Cross-benchmark leakage:** copied WorkspaceBench items are excluded from
+    the common evaluation pool using both canonical IDs and normalized prompt
+    hashes from J++'s labeled dev data. A namespace change does not make an item
+    held out. Calibrations are bound to a hash of the exact fitted matrix.
 
 The remaining production runs, calibration artifacts, stress results and full
 coverage tables are required before this report can be called complete. An
@@ -172,3 +194,9 @@ Statistical tail fitting and bootstrap summaries use NumPy/SciPy native precisio
 model evaluations, Jacobians, perturbations and regression tensors remain fp32.
 The exact random-dictionary CDF uses float64 internally to avoid rounding its
 near-one maximum quantiles to one at this vocabulary size.
+
+The prepared transcoder corpus contains 4096 FineWeb documents and 512 UltraChat
+conversations (4201 training / 407 validation documents; 16.34 MB). Revisions and
+the content hash are in `artifacts/transcoder-corpus-manifest.json`; raw text is
+kept out of the repository. The initial download duration was not instrumented
+and is explicitly unknown, rather than reconstructed as a measured cost.
