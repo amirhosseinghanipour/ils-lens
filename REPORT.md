@@ -110,6 +110,24 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Contrastive split-half nulls now reuse per-prompt activation/readout sums and
+batch the vocabulary projections. The same seeded prompt permutations are
+retained; normalization uses each half's actual position count, so unequal
+numbers of positions per prompt preserve the original sample-weighted estimand.
+Tests compare both readout modes with the unbatched reference and verify the
+reduced readout call count. No GPU wall-time speedup is claimed yet.
+
+Flat observed contrasts now retain their deterministic target rank but have
+undefined rank significance. A constructed zero-contrast test shows why: the
+target's ID tie-break yields observed rank 1 while every control split yields
+rank 2, giving a rank-only p-value of 1/1001 despite zero effect. Such a value
+would not justify concept detection. The new output records
+`rank_test_status=undefined_flat_contrast` and a null p-value, preserving all
+1,000 null ranks. Nonflat contrasts retain the specified rank-null comparison.
+The planted runner's protocol fingerprint changes. No production contrastive
+results preceded this correction.
+
+
 Held-out faithfulness evaluation now shares each antithetic forward pair and its
 per-position token log probabilities across all pending horizon kernels. The old
 runner reset the same sampling seed and repeated those calculations once per
@@ -307,7 +325,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **112 passing
+the specified semantics remain unresolved. The current suite has **114 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -521,7 +539,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 112 small-input tests pass. This includes numerical identities,
+The current 114 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
