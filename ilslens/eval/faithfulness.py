@@ -2,18 +2,22 @@ import numpy as np
 from scipy.stats import spearmanr
 from ..fit import r2
 
-def horizon_log_probability_change(model,plus,minus,weights,position_batch=8):
-    """Average actual per-position log-probability changes, after normalization."""
+def horizon_log_probability_changes(model,plus,minus,weights,position_batch=8):
+    """Read each branch once, then reduce a horizon-by-position weight matrix."""
     import torch
-    if plus.shape!=minus.shape or len(plus)!=len(weights):raise ValueError('Mismatched target positions')
-    result=plus.new_zeros(model.config.vocab_size)
+    if plus.shape!=minus.shape or weights.ndim!=2 or len(plus)!=weights.shape[1]:raise ValueError('Mismatched target positions')
+    result=plus.new_zeros((len(weights),model.config.vocab_size))
     with torch.no_grad():
         for start in range(0,len(plus),position_batch):
             end=start+position_batch
             p=model.lm_head(model.model.norm(plus[start:end])).log_softmax(-1)
             m=model.lm_head(model.model.norm(minus[start:end])).log_softmax(-1)
-            result+=((p-m)*weights[start:end,None]).sum(0)/2
+            result+=weights[:,start:end]@((p-m)/2)
     return result
+
+def horizon_log_probability_change(model,plus,minus,weights,position_batch=8):
+    """Single-horizon wrapper, with normalization before position averaging."""
+    return horizon_log_probability_changes(model,plus,minus,weights[None],position_batch)[0]
 
 def token_spearman(predicted,actual,k=1000):
     ids = actual.abs().topk(min(k,len(actual))).indices

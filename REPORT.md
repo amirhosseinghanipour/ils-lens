@@ -110,6 +110,20 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Held-out faithfulness evaluation now shares each antithetic forward pair and its
+per-position token log probabilities across all pending horizon kernels. The old
+runner reset the same sampling seed and repeated those calculations once per
+horizon. The source/donor draws, predictions, bootstrap groups and estimands are
+unchanged. With all four horizons pending, this removes fourfold duplication of
+branch evaluation and actual-log-probability computation, not all evaluation
+work; no GPU wall-time speedup is claimed yet. Per-horizon matrices are retained
+on the device for the current layer. Tests compare the shared reductions with
+independent per-position definitions, count branch/readout calls, and verify
+unchanged-cache resume and changed-matrix rejection. The cache protocol changes
+because fp32 reduction ordering can differ. No primary evaluation result was used
+to choose this implementation change.
+
+
 Sparse-pursuit stopping previously compared the best new atom's squared projection
 with the random-dictionary threshold before applying the constrained gradient
 step. Those gains need not equal the actual marginal reconstruction improvement.
@@ -293,7 +307,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **111 passing
+the specified semantics remain unresolved. The current suite has **112 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -507,7 +521,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 111 small-input tests pass. This includes numerical identities,
+The current 112 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

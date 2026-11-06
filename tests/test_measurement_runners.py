@@ -47,7 +47,10 @@ class MeasurementRunnerTests(unittest.TestCase):
             argv=['evaluate_faithfulness','--config',str(root/'config.yaml'),'--dataset','unused','--output',str(root/'run'),'--device','cpu']
             with patch.object(sys,'argv',argv),patch.object(module,'load_local',return_value=(model,tokenizer)),\
                  patch.object(module,'primary_bank',return_value=(bank,{'fingerprint':'tiny'})),patch.object(module,'wikitext_sequences',return_value=(sequences,[])):
-                module.main()
+                original=module.QwenSuffix.effects
+                with patch.object(module.QwenSuffix,'effects',autospec=True,side_effect=original) as effects:
+                    module.main()
+                    self.assertEqual(effects.call_count,config['prompts']*config['samples_per_prompt']*len(config['layers']))
             rows=json.loads((root/'run/results.json').read_text())['rows'];self.assertEqual(len(rows),4)
             identity=[r for r in rows if r['layer']==3 and r['gamma']==0.][0]
             self.assertGreater(identity['r2'],.999);self.assertGreater(identity['spearman'],.99)
