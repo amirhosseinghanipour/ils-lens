@@ -1,0 +1,186 @@
+{
+  "seed": 1,
+  "dtype": "float32",
+  "device": "cpu",
+  "trained": false,
+  "model": "Synthetic random Qwen2 architecture: 4 layers, d=16, vocabulary=32",
+  "source_layer": 0,
+  "target_layer": 3,
+  "position": 20,
+  "threshold": 0.001,
+  "estimate": {
+    "seconds": 10,
+    "bytes": 20000,
+    "device": "cpu",
+    "scope": "Tiny deterministic numerical diagnostic"
+  },
+  "rows": [
+    {
+      "scale": 0.0,
+      "displacement_norm": 0.0,
+      "predicted": 0.0,
+      "intervention_effect": 0.0,
+      "relative_error": 0.0,
+      "passes": true,
+      "support_changes": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 1e-06,
+      "displacement_norm": 3.611921420088038e-05,
+      "predicted": -0.8056511878967285,
+      "intervention_effect": 0.5396771430969238,
+      "relative_error": 1.669864516064118,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 16
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 1e-05,
+      "displacement_norm": 0.000361192156560719,
+      "predicted": -8.056514739990234,
+      "intervention_effect": 47.463523864746094,
+      "relative_error": 1.169741184050059,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 0,
+        "2": 2,
+        "3": 22
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 0.0001,
+      "displacement_norm": 0.0036119213327765465,
+      "predicted": -80.56510925292969,
+      "intervention_effect": -90.99004364013672,
+      "relative_error": 0.11457225395382135,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 4,
+        "2": 28,
+        "3": 58
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 0.001,
+      "displacement_norm": 0.036119215190410614,
+      "predicted": -805.6512451171875,
+      "intervention_effect": -1011.2106323242188,
+      "relative_error": 0.20328048443731545,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 12,
+        "2": 46,
+        "3": 62
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 0.01,
+      "displacement_norm": 0.36119213700294495,
+      "predicted": -8056.51171875,
+      "intervention_effect": -11670.9091796875,
+      "relative_error": 0.309692878702898,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 22,
+        "2": 62,
+        "3": 62
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 0.05,
+      "displacement_norm": 1.8059608936309814,
+      "predicted": -40282.546875,
+      "intervention_effect": -55480.52734375,
+      "relative_error": 0.2739335979015723,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 34,
+        "2": 60,
+        "3": 62
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 0.1,
+      "displacement_norm": 3.611921787261963,
+      "predicted": -80565.09375,
+      "intervention_effect": -110242.4765625,
+      "relative_error": 0.26920098076420607,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 40,
+        "2": 60,
+        "3": 62
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 0.25,
+      "displacement_norm": 9.029803276062012,
+      "predicted": -201412.75,
+      "intervention_effect": -274528.3125,
+      "relative_error": 0.26633159193735256,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 54,
+        "2": 60,
+        "3": 62
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 0.5,
+      "displacement_norm": 18.059606552124023,
+      "predicted": -402825.5,
+      "intervention_effect": -548339.0625,
+      "relative_error": 0.26537150542689997,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 58,
+        "2": 60,
+        "3": 62
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    },
+    {
+      "scale": 1.0,
+      "displacement_norm": 36.11921310424805,
+      "predicted": -805651.0,
+      "intervention_effect": -1095959.25,
+      "relative_error": 0.2648896389167754,
+      "passes": false,
+      "support_changes": {
+        "0": 0,
+        "1": 60,
+        "2": 60,
+        "3": 62
+      },
+      "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+    }
+  ],
+  "actual_seconds": 0.1348734829807654,
+  "interpretation": "Fixed scale sweep of the original counterexample; support counts are endpoint changes, not a proof that support stayed fixed along the path. No production scale selection or validation threshold change. No sampling CIs apply to this deterministic fixture."
+}

@@ -662,8 +662,9 @@ Repeated presentations of the existing small corpus are not 100 million distinct
 tokens. The trainer now preflights a finite, globally deduplicated training-window
 stream and rejects overlap with validation windows before loading the model.
 The existing corpus yields **2,557,568** distinct eligible tokens in the configured
-mixture, so it correctly fails the 100M preflight. Larger pinned FineWeb and
-UltraChat shards are being obtained; no 100M training run has occurred.
+mixture, so it correctly fails the 100M preflight. The larger pinned FineWeb and
+UltraChat corpus has since been prepared and audited as described above;
+no 100M training run has occurred.
 
 `QwenGraph.replacement()` implements live transcoder features plus the fixed
 clean reconstruction error, freezing only attention patterns and RMS
@@ -677,12 +678,39 @@ equating a local derivative with an arbitrary propagated finite intervention,
 not a counterexample to a direct edge with its mediated paths excluded. It is
 not a trained-model causal or workspace claim. No random-direction claim is made.
 
+A fixed scale sweep of exactly the same seeded fixture is preserved in
+[replacement-scale-diagnostic.json](artifacts/replacement-scale-diagnostic.json).
+It reproduces the original scale-one result exactly. Every nonzero tested scale
+changes downstream TopK support and fails the unchanged 0.001 tolerance:
+
+| Displacement scale | Relative derivative/effect error | Pass |
+| --- | --- | --- |
+| 0 | 0 | Trivial zero-intervention equality only |
+| 0.000001 | 1.669865 | No |
+| 0.00001 | 1.169741 | No |
+| 0.0001 | 0.114572 | No |
+| 0.001 | 0.203280 | No |
+| 0.01 | 0.309693 | No |
+| 0.05 | 0.273934 | No |
+| 0.1 | 0.269201 | No |
+| 0.25 | 0.266332 | No |
+| 0.5 | 0.265372 | No |
+| 1 | 0.264890 | No |
+
+The smallest nonzero scale already changes 16 feature-support entries in the
+final layer. Endpoint support counts alone do not prove where support changed
+along the path, and this untrained fixture does not establish behavior in trained
+transcoders. No production scale was selected from these results. Deterministic
+fixture values have no sampling confidence intervals. The measured diagnostic
+computation took 0.135 seconds (excluding interpreter/import startup) and its
+artifact is 5,284 bytes, against pre-run estimates of 10 seconds and 20,000 bytes.
+
 The previous independent-feature affine graph passes its own tests but uses an
 extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **131 passing
+the specified semantics remain unresolved. The current suite has **136 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)

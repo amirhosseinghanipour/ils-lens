@@ -31,3 +31,8 @@ all layers, fp32 finite matrices, analytic final identities, source provenance,
 file hashes, and measured costs. Large per-prompt tensor checkpoints remain in
 the local run directory. Fitted-baseline completion does not establish held-out
 faithfulness or readout performance.
+
+`replacement-scale-diagnostic.json` records a fixed scale sweep of the retained
+untrained live-TopK counterexample. All nonzero scales fail finite derivative/effect
+agreement; this is a tiny numerical diagnostic, not a trained-model causal claim.
+It neither selects a production scale nor relaxes the graph validation criterion.
