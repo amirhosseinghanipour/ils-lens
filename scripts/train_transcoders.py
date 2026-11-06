@@ -7,7 +7,7 @@ import torch,torch.nn.functional as F,yaml
 from ilslens.model import load_local
 from ilslens.transcoders.train import SkipTranscoder
 from ilslens.transcoders.corpus import mixed_examples,audit_budget
-from ilslens.transcoders.eval import ce_recovered
+from ilslens.transcoders.eval import ce_recovered,output_statistics,explained_from_statistics,uncertainty
 from ilslens.experiment import Experiment,save_tensor,write_json
 
 @contextmanager
@@ -42,7 +42,7 @@ def main():
     p.add_argument('--output',default='runs/transcoders');p.add_argument('--device',default='cuda');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text())
     digest=hashlib.sha256(Path(args.corpus).read_bytes()).hexdigest()
-    run=Experiment(args.output,dict(config=config,corpus_sha256=digest,device=args.device))
+    run=Experiment(args.output,dict(config=config,corpus_sha256=digest,device=args.device,evaluation_protocol='centered-moments-undefined-v2'))
     unique=config.get('unique_training_windows',False)
     if unique:
         from transformers import AutoTokenizer
@@ -110,27 +110,33 @@ def main():
             ids=tokens[None].to(model.device);clean.append(ce(model,ids));row=[]
             for layer,tc in enumerate(tcs):
                 x=inputs[layer];y=outputs[layer];pred=tc(x)
-                row.append(dict(sse=float((pred-y).square().sum()),sum=y.sum((0,1)).cpu(),ss=float(y.square().sum()),n=y.numel()//d))
+                row.append(output_statistics(pred,y))
                 dead[layer]&=tc.features(x).sum((0,1))==0
             with substitute(model,tcs):replaced.append(ce(model,ids))
             with substitute(model):ablated.append(ce(model,ids))
-            records.append(dict(document_id=provenance['document_id'],metrics=row))
+            records.append(dict(document_id=provenance['document_id'],provenance=provenance,metrics=row))
     if len(records)<2:raise ValueError('Need at least two held-out windows for evaluation')
+    save_tensor(run.path/'heldout-statistics.pt',dict(records=records,clean=clean,replaced=replaced,ablated=ablated,
+        metadata=dict(fingerprint=run.fingerprint,bootstrap_seed=config['seed'],bootstrap_repeats=200,
+            model_dtype='float32',reporting_moments_dtype='float64')))
     groups=sorted(set(r['document_id'] for r in records));rng=np.random.default_rng(config['seed'])
+    if len(groups)<2:raise ValueError('Need at least two independent held-out documents for document bootstrap')
     def indices(sample):return [i for group in sample for i,r in enumerate(records) if r['document_id']==group]
     boot=[indices(rng.choice(groups,len(groups),replace=True)) for _ in range(200)]
-    def explained(layer,index):
-        rows=[records[i]['metrics'][layer] for i in index];n=sum(r['n'] for r in rows)
-        denominator=sum(r['ss'] for r in rows)-float(sum(r['sum'] for r in rows).square().sum())/n
-        return 1-sum(r['sse'] for r in rows)/denominator if denominator>0 else float('nan')
-    metrics=[dict(layer=layer,variance_explained=explained(layer,range(len(records))),
-        variance_explained_ci=np.nanquantile([explained(layer,index) for index in boot],[.025,.975]).tolist(),
-        dead_fraction=float((~training_active[layer]).float().mean()),dead_definition='Never activated on any training window, tracked before optimizer updates',
-        heldout_inactive_fraction=float(dead[layer].float().mean()),heldout_inactive_definition='Inactive on held-out evaluation windows') for layer in range(layers)]
+    def explained(layer,index):return explained_from_statistics([records[i]['metrics'][layer] for i in index])
+    metrics=[]
+    for layer in range(layers):
+        summary=uncertainty(explained(layer,range(len(records))),[explained(layer,index) for index in boot],
+            'undefined_zero_output_variance')
+        metrics.append(dict(layer=layer,variance_explained=summary.pop('value'),variance_explained_ci=summary.pop('ci'),
+            variance_uncertainty=summary,
+            dead_fraction=float((~training_active[layer]).float().mean()),dead_definition='Never activated on any training window, tracked before optimizer updates',
+            heldout_inactive_fraction=float(dead[layer].float().mean()),heldout_inactive_definition='Inactive on held-out evaluation windows'))
     clean,replaced,ablated=map(np.array,(clean,replaced,ablated))
     recovered=ce_recovered(clean.mean(),replaced.mean(),ablated.mean())
-    cis=np.nanquantile([ce_recovered(clean[i].mean(),replaced[i].mean(),ablated[i].mean()) for i in boot],[.025,.975]).tolist()
-    run.result(dict(transcoders=metrics,ce=dict(clean=float(clean.mean()),replaced=float(replaced.mean()),ablated=float(ablated.mean()),recovered=float(recovered),ci=cis),
+    summary=uncertainty(recovered,[ce_recovered(clean[i].mean(),replaced[i].mean(),ablated[i].mean()) for i in boot],
+        'undefined_equal_clean_and_ablated_loss')
+    run.result(dict(transcoders=metrics,ce=dict(clean=float(clean.mean()),replaced=float(replaced.mean()),ablated=float(ablated.mean()),recovered=summary.pop('value'),ci=summary.pop('ci'),uncertainty=summary),
         evaluation_windows=len(records),evaluation_documents=len(groups),bootstrap_unit='source_document',training=metadata,
         deviation=('Below the 100M-token target' if total_steps*128<100000000 else None),
         window_policy='No repeated training windows' if unique else 'Explicit legacy cycling; presentations are not unique tokens'))

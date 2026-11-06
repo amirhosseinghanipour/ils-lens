@@ -79,6 +79,23 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Transcoder evaluation now computes centered float64 reporting moments from fp32
+model outputs, replacing cancellation-prone subtraction of raw fp32 moments.
+The model, gradients and training remain fp32. Window-level moments merge with
+between-window mean corrections, including repeated windows in document bootstrap
+samples. Zero output variance and equal clean/ablated cross-entropy produce
+explicitly undefined ratios rather than NaNs that would fail JSON serialization.
+Intervals require at least 20 finite bootstrap replicates; undefined replicate
+counts are retained. At least two distinct held-out documents are required for
+document-bootstrap intervals. Held-out moments, window provenance and all three
+per-window CE measurements are saved for independent reaggregation. Tests cover
+small variance on a large offset, repeated windows, constant outputs, equal CE
+and undefined resamples. A tiny end-to-end training/evaluation test loads the
+saved window statistics and independently reproduces each reported layer variance
+and the all-MLP CE-recovery ratio. The evaluation protocol changes; no production Qwen
+transcoder measurements preceded this correction.
+
+
 Faithfulness-cell caches now bind the actual lens-matrix hashes, primary fitting
 metadata, and source/donor row provenance. Previously the experiment fingerprint
 covered evaluation settings but did not identify the matrices, so changing a
@@ -212,7 +229,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **104 passing
+the specified semantics remain unresolved. The current suite has **108 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -426,7 +443,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 104 small-input tests pass. This includes numerical identities,
+The current 108 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
