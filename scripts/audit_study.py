@@ -48,8 +48,13 @@ def audit(root,primary_run=None):
     for name in required:
         path=root/name/'results.json'
         result=json.loads(path.read_text()) if path.exists() else {}
-        check(name+'_measured_results',bool(result) and result.get('status') not in ('gates_only','collect_only','fit_only','insufficient_matched_prompts'),
-              'Present' if result else 'No result artifact; an implementation is not a measurement')
+        # Most existing runners have no top-level status; their substantive
+        # checks remain separate. An explicit status must positively identify
+        # measurement, rather than pass an open-ended exclusion list.
+        measured_status='status' not in result or result['status']=='measured'
+        check(name+'_measured_results',bool(result) and measured_status,
+              dict(artifact_present=bool(result),status=result.get('status','legacy_unspecified'),
+                   scope='Artifact/status check only; substantive validation is separate'))
     # Conditional requirements inspect substantive outcomes, not a success marker.
     for name,field in [('numerical','smallest_epsilon_passes_all_layers'),('readouts','complete_calibration')]:
         path=root/name/'results.json';a=json.loads(path.read_text()) if path.exists() else {}

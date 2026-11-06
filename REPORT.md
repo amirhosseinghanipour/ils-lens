@@ -12,6 +12,15 @@ Full production execution is disabled during the specification audit. Independen
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
 
+The completion audit previously accepted arbitrary explicit stage statuses
+unless they appeared on a short exclusion list. Seven regression cases reproduced
+false acceptance (`failed`, `partial`, `running`, `queued`, `not_requested`, an
+unknown status, and null). Explicit status now must be `measured`; legacy runners
+without a top-level status retain their separate substantive checks. Measured
+zero effects remain valid findings. This repairs completion accounting, not the
+research method, and does not establish completeness of legacy artifacts. All
+140 local tests pass, including reference checks (6.925 seconds).
+
 The independent all-layer transcoder throughput benchmark can be queued with
 `scripts/benchmark_after_primary.py` after the primary GPU controller terminates
 successfully. The queue refuses failed/incomplete or mismatched controller

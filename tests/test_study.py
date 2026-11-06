@@ -5,6 +5,28 @@ from ilslens.study import stages,source_digest
 from ilslens.graphs.compare import compare_graphs
 
 class StudyTests(unittest.TestCase):
+    def test_measurement_audit_rejects_incomplete_or_unknown_statuses(self):
+        from test_runners import script
+        module=script('audit_study')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'contrast').mkdir()
+            path=root/'contrast/results.json'
+            for status in ('failed','partial','running','queued','not_requested','unknown_future_status',None):
+                with self.subTest(status=status):
+                    path.write_text(json.dumps(dict(status=status,rows=[{'effect':0}])))
+                    result=module.audit(root)
+                    self.assertFalse(next(c for c in result['checks'] if c['criterion']=='contrast_measured_results')['passes'])
+
+    def test_measurement_audit_keeps_measured_negative_results(self):
+        from test_runners import script
+        module=script('audit_study')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'contrast').mkdir()
+            for result in (dict(status='measured',rows=[{'effect':0}]),dict(rows=[{'effect':0}])):
+                (root/'contrast/results.json').write_text(json.dumps(result))
+                checked=module.audit(root)
+                self.assertTrue(next(c for c in checked['checks'] if c['criterion']=='contrast_measured_results')['passes'])
+
     def test_stage_order_guards_dependencies_and_never_requests_cpu(self):
         plan=stages('/data','/references','/corpus');names=[row['name'] for row in plan]
         self.assertEqual(len(names),len(set(names)));self.assertEqual(names[-1],'audit')
