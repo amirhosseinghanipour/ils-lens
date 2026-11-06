@@ -4,8 +4,9 @@ Updated 2026-11-06. **The requested research criteria are not yet met.** Complet
 measurements are the Qwen numerical/reference benchmarks and the trained toy HMM
 experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
-the all-layer GPU matrix-equivalence validation has completed, and primary J/R
-fitting has started. Missing measurements are unknown, not null findings.
+the all-layer GPU matrix-equivalence validation and primary J/R fitting have
+completed. Donor-intervention collection is running. Missing measurements are
+unknown, not null findings.
 
 Full production execution is disabled during the specification audit. Independent
 numerical validation and primary fitting run separately on the GPU. The current implementation is
@@ -18,6 +19,26 @@ at source position 64 took 0.2033, 0.1279, 0.0659 and 0.000575 seconds at blocks
 exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
+
+## Completed primary J/R baseline fitting
+
+J and R were fitted on the same 32 shuffled WikiText training prompts used by the
+primary source-plus-donor corpus, across all 24 block-output layers. The
+[baseline artifact audit](artifacts/qwen-primary-baselines.json) verifies all
+64 per-prompt checkpoints: 768 matrices per lens, all 896×896, fp32, finite, and
+bound to the primary corpus fingerprint. Both lenses use the upstream summed
+future-target convention and target the final block output before final norm.
+The final-block matrix is the documented analytic identity, not an upstream fit.
+No evaluation labels were used.
+
+The `baselines-complete` event records 1,339.57 seconds (22.33 minutes), including
+model/data preparation, against the pre-run 14,232-second estimate. Checkpoint
+files occupy 4,933,026,496 bytes. The read-only artifact audit took 14.64 seconds;
+it records individual file hashes, prompt provenance, and per-prompt fitting
+times. [Reproduce the audit](scripts/audit_primary_baselines.py) after completion.
+This is completion of J/R fitting only: no primary held-out R2, readout score,
+causal pass rate, or J++ result is established by it. Donor-intervention collection
+is now running in the same immutable execution checkout.
 
 ## Completed full training-vocabulary counts and corrected provenance check
 
@@ -95,8 +116,8 @@ final result/log writes, versus the 3,000-MB estimate. Final directory bytes are
 also recorded in the artifact. This confirms the earlier storage underestimate.
 The numerical process exited normally; the waiting supervisor verified all cells
 and launched primary J/R fitting on the corrected shuffled corpus in the fixed
-`cd400d0` execution checkout. That work remains in progress, with no primary
-faithfulness result yet.
+`cd400d0` execution checkout. J/R fitting has since completed and donor collection remains in progress, with
+no primary faithfulness result yet.
 
 Reproduce publication with `scripts/report_numerical_validation.py` after running
 the read-only cosine audit over layers 0–23. The large numerical tensors remain

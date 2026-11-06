@@ -25,3 +25,9 @@ counts for the local Qwen tokenizer, including zero-frequency model vocabulary
 rows. Its JSON companion records pinned dataset/tokenizer hashes, count totals,
 measured preparation costs, and the source commit. These counts support the
 required corpus-frequency mask; unseen tokens are not declared globally useless.
+
+`qwen-primary-baselines.json` verifies the complete 32-prompt J/R fitting bank:
+all layers, fp32 finite matrices, analytic final identities, source provenance,
+file hashes, and measured costs. Large per-prompt tensor checkpoints remain in
+the local run directory. Fitted-baseline completion does not establish held-out
+faithfulness or readout performance.
