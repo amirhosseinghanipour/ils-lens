@@ -3,6 +3,7 @@ import argparse,json
 from pathlib import Path
 import torch
 from ilslens.experiment import write_json
+from ilslens.budget import baseline_count
 
 def audit(root):
     root=Path(root);checks=[]
@@ -12,7 +13,9 @@ def audit(root):
     check('primary_manifest',manifest is not None,'Registered fitting data/conventions must be recorded')
     if manifest:
         config=manifest['config'];fingerprint=manifest['fingerprint']
-        baseline_files=[primary/'baselines'/f'{name}-prompt-{i:03d}.pt' for name in ('J','R') for i in range(config['source_prompts'])]
+        check('matched_fitting_corpus',config.get('baseline_corpus')=='source_and_donor',
+              'J/R/J++ must see the same source-plus-donor training corpus as ILS')
+        baseline_files=[primary/'baselines'/f'{name}-prompt-{i:03d}.pt' for name in ('J','R') for i in range(baseline_count(config))]
         check('all_J_R_baseline_prompts',all(p.exists() for p in baseline_files),dict(expected=len(baseline_files),present=sum(p.exists() for p in baseline_files)))
         for split,count in [('train',config['source_prompts']),('validation',config['heldout_prompts'])]:
             files=[primary/'samples'/split/f'prompt-{i:03d}-layer-{layer:02d}.pt' for i in range(count) for layer in range(24)]

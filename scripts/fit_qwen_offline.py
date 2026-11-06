@@ -3,6 +3,7 @@ import argparse,json,time
 from pathlib import Path
 import torch
 from ilslens.fit import select
+from ilslens.budget import baseline_count,prior_prompt_indices
 from ilslens.eval.faithfulness import bootstrap_r2
 from ilslens.runtime import resolve_device
 
@@ -37,7 +38,7 @@ for layer in args.layers:
     per_prompt={}
     for name in ('J','R'):
         values=[]
-        for i in range(config['source_prompts']):
+        for i in range(baseline_count(config)):
             artifact=torch.load(root/'baselines'/f'{name}-prompt-{i:03d}.pt',weights_only=True)
             if artifact['metadata']['fingerprint']!=manifest['fingerprint']:
                 raise ValueError('Baseline fingerprint mismatch')
@@ -48,7 +49,7 @@ for layer in args.layers:
     def fold_prior(name,train_groups):
         key=(name,tuple(train_groups.tolist()))
         if key not in cache:
-            cache[key]=priors['I'] if name=='I' else per_prompt[name][train_groups].mean(0).to(device)
+            cache[key]=priors['I'] if name=='I' else per_prompt[name][prior_prompt_indices(config,train_groups)].mean(0).to(device)
         return cache[key]
     for e,epsilon in enumerate(config['epsilons']):
         for g,gamma in enumerate(config['gammas']):

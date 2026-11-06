@@ -5,8 +5,20 @@ import torch
 from ilslens.eval.faithfulness import bootstrap_r2,bootstrap_prompt_mean,token_spearman
 from ilslens.eval.readout_tasks import load_simplified_items,gate_item
 from ilslens.fit import select
+from ilslens.eval.faithfulness import horizon_log_probability_change
+from test_core import tiny_model
 
 class DegenerateMeasurementTests(unittest.TestCase):
+    def test_token_changes_normalize_before_horizon_averaging(self):
+        model=tiny_model();torch.manual_seed(73)
+        plus=torch.randn(5,16)*torch.arange(1,6)[:,None];minus=torch.randn(5,16)
+        weights=torch.tensor([.1,.2,.3,.25,.15])
+        lp=lambda h:model.lm_head(model.model.norm(h)).log_softmax(-1)
+        expected=((lp(plus)-lp(minus))*weights[:,None]).sum(0)/2
+        actual=horizon_log_probability_change(model,plus,minus,weights,position_batch=2)
+        torch.testing.assert_close(actual,expected,atol=1e-6,rtol=1e-5)
+        wrong=(lp((plus*weights[:,None]).sum(0))-lp((minus*weights[:,None]).sum(0)))/2
+        self.assertGreater(float((actual-wrong).norm()),.01)
     def test_zero_effect_is_undefined_not_a_perfect_fit_or_serialization_failure(self):
         value=bootstrap_r2(torch.zeros(12,4),torch.zeros(12,4),torch.arange(12),repeats=20)
         self.assertIsNone(value['r2']);self.assertEqual(value['ci'],[None,None])

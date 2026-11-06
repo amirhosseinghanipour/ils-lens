@@ -22,6 +22,9 @@ class MeasurementRunnerTests(unittest.TestCase):
             (root/'items.json').write_text(json.dumps([item,short]));(root/'phrases').mkdir()
             for layer in (0,3):torch.save(dict(ils=torch.randn(1,16),metadata=dict(phrases=['red house'],fingerprint='test-phrase')),root/f'phrases/rows-layer-{layer:02d}.pt')
             argv=['evaluate_graphs','--config',str(root/'config.yaml'),'--items',str(root/'items.json'),'--dataset','unused','--output',str(root/'run'),'--device','cpu','--phrase-rows',str(root/'phrases')]
+            with patch('sys.argv',argv),self.assertRaisesRegex(RuntimeError,'not proposal-compliant'):
+                module.main()
+            argv.append('--exploratory-affine')
             with patch.object(sys,'argv',argv),patch.object(module,'load_local',return_value=(model,tokenizer)),\
                  patch.object(module,'primary_bank',return_value=(bank,{'fingerprint':'tiny'})),patch.object(module,'wikitext_sequences',return_value=(donors,[])),\
                  patch.object(module,'load_transcoders',return_value=transcoders):module.main()

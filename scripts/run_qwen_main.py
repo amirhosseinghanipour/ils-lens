@@ -11,6 +11,7 @@ from transformers import AutoModelForCausalLM,AutoTokenizer
 from ilslens.data import wikitext_sequences
 from ilslens.reference import load_reference,token_adapter
 from ilslens.baselines import lrp_rules
+from ilslens.budget import baseline_count
 from ilslens.suffix import QwenSuffix
 from ilslens.runtime import resolve_device,synchronize
 
@@ -72,8 +73,10 @@ def main():
     if args.phase in ('baselines','all'):
         root=output/'baselines';root.mkdir(exist_ok=True)
         reference=load_reference(args.reference)
-        for i in range(len(ids)):
-            adapter=token_adapter(reference,model,tokenizer,ids[i:i+1])
+        baseline_ids=torch.cat((ids,donors)) if baseline_count(config)>len(ids) else ids
+        baseline_rows=rows+donor_rows if baseline_count(config)>len(ids) else rows
+        for i in range(len(baseline_ids)):
+            adapter=token_adapter(reference,model,tokenizer,baseline_ids[i:i+1])
             for name in ('J','R'):
                 destination=root/f'{name}-prompt-{i:03d}.pt'
                 if destination.exists():continue
@@ -82,7 +85,7 @@ def main():
                     lens=reference.fit(adapter,['0'],dim_batch=config['dim_batch'],max_seq_len=128,skip_first=16)
                 matrices=lens.jacobians;matrices[23]=torch.eye(896)
                 atomic_save(dict(matrices=matrices,metadata=dict(fingerprint=fingerprint,
-                    prompt=i,source_row=rows[i],target_layer=23,source_convention='block_output',
+                    prompt=i,source_row=baseline_rows[i],target_layer=23,source_convention='block_output',
                     target_reduction='sum',label_tuned=False,execution_device=str(device))),destination)
                 progress('baseline-prompt',lens=name,prompt=i,seconds=time.perf_counter()-before)
         progress('baselines-complete')

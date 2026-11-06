@@ -2,6 +2,19 @@ import numpy as np
 from scipy.stats import spearmanr
 from ..fit import r2
 
+def horizon_log_probability_change(model,plus,minus,weights,position_batch=8):
+    """Average actual per-position log-probability changes, after normalization."""
+    import torch
+    if plus.shape!=minus.shape or len(plus)!=len(weights):raise ValueError('Mismatched target positions')
+    result=plus.new_zeros(model.config.vocab_size)
+    with torch.no_grad():
+        for start in range(0,len(plus),position_batch):
+            end=start+position_batch
+            p=model.lm_head(model.model.norm(plus[start:end])).log_softmax(-1)
+            m=model.lm_head(model.model.norm(minus[start:end])).log_softmax(-1)
+            result+=((p-m)*weights[start:end,None]).sum(0)/2
+    return result
+
 def token_spearman(predicted,actual,k=1000):
     ids = actual.abs().topk(min(k,len(actual))).indices
     if predicted[ids].max()==predicted[ids].min() or actual[ids].max()==actual[ids].min():return float('nan')

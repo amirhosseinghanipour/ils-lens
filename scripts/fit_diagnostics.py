@@ -4,6 +4,7 @@ from pathlib import Path
 import torch,yaml
 from ilslens.runtime import resolve_device
 from ilslens.fit import select
+from ilslens.budget import baseline_count,prior_prompt_indices
 from ilslens.eval.diagnostics import balanced_prefix
 from ilslens.eval.faithfulness import bootstrap_r2
 from ilslens.experiment import Experiment,save_tensor,write_json
@@ -29,9 +30,9 @@ def main():
     rows=[]
     for layer in config['layers']:
         per_prompt={name:torch.stack([torch.load(root/'baselines'/f'{name}-prompt-{i:03d}.pt',weights_only=True,map_location='cpu')['matrices'][layer]
-            for i in range(primary['source_prompts'])]) for name in ('J','R')}
+            for i in range(baseline_count(primary))]) for name in ('J','R')}
         d=per_prompt['J'].shape[-1];priors={'I':torch.eye(d,device=device),**{name:values.mean(0).to(device) for name,values in per_prompt.items()}}
-        def fold_prior(name,groups):return priors['I'] if name=='I' else per_prompt[name][groups.cpu()].mean(0).to(device)
+        def fold_prior(name,groups):return priors['I'] if name=='I' else per_prompt[name][prior_prompt_indices(primary,groups)].mean(0).to(device)
         jobs=[('main',None,None,gi,primary['estimators'],primary['lambda_candidates'])]
         jobs += [(f'N-{n}',None,n,gi,primary['estimators'],primary['lambda_candidates']) for n in [d,2*d,4*d,8*d]]
         jobs += [('no_robust',None,None,gi,['ridge'],primary['lambda_candidates']),('lambda_zero',None,None,gi,primary['estimators'],[0.]),

@@ -1,0 +1,23 @@
+{
+  "seed": 1,
+  "dtype": "float32",
+  "device": "cpu",
+  "trained": false,
+  "model": "Synthetic random Qwen2 architecture: 4 layers, d=16, vocabulary=32",
+  "estimand": "Finite MLP-output patch versus local derivative with live downstream TopK",
+  "result": {
+    "predicted": -805651.0,
+    "intervention_effect": -1095959.25,
+    "relative_error": 0.2648896389167754,
+    "passes": false,
+    "support_changes": {
+      "0": 0,
+      "1": 60,
+      "2": 60,
+      "3": 62
+    },
+    "freeze": "Attention patterns and RMS denominators only; live transcoder features"
+  },
+  "actual_seconds": 0.023482188989873976,
+  "interpretation": "A support-switch counterexample tests the universal finite-edge equality requirement; not a trained-model causal claim."
+}

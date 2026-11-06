@@ -8,6 +8,8 @@ core, a four-layer toy HMM experiment, and a local Qwen2.5-0.5B numerical pilot.
 It does not yet contain a completed Qwen benchmark, validated full attribution
 graphs, or evidence that ILS outperforms existing lenses. Null results and
 limitations are reported in [RESULTS.md](RESULTS.md).
+Production execution is disabled while methodological departures are corrected;
+see the [current specification findings](REPORT.md#specification-corrections-and-a-failed-graph-criterion).
 The [toy research extension](TOY_RESULTS.md) includes upstream label-tuned J++,
 random-direction controls, toy transcoders and per-item budget closure.
 
@@ -128,9 +130,10 @@ predeclares up to five concepts; a failed transmission remains a result.
 
 `train_transcoders.py` consumes a versioned local web/chat corpus, trains all-layer
 TopK skip transcoders, and reports held-out variance explained, dead features and
-all-MLP substitution CE recovery. Its 524288-token presentation budget is below
-the requested 100M target; distinct tokens and repeated presentations are separate.
-`evaluate_graphs.py` validates feature, error and embedding edges, separately checks
+all-MLP substitution CE recovery. Its configured budget is now 100M token
+presentations per layer; distinct tokens and repeated presentations are separate.
+That budget has not been run. `evaluate_graphs.py --exploratory-affine` validates
+feature, error and embedding edges under an additional feature freeze, separately checks
 interventions with only norms frozen in the original model, and emits itemwise
 budget closure. `evaluate_causal.py` implements swap/ablation/answer controls and
 100 covariance-matched random interventions at every patched site. These new

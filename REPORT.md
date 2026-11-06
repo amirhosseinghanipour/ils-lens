@@ -7,6 +7,54 @@ presence is not a result. Long CPU runs were stopped at the owner's request;
 the available RTX 3060 remains occupied by another workload. Missing measurements
 are unknown, not null findings.
 
+Production execution is now disabled during the specification audit. GPU
+availability alone will not restart the study. The current implementation is
+not an exact implementation of the entire proposal.
+
+## Specification corrections and a failed graph criterion
+
+The token-change Spearman implementation previously applied normalization and
+log-softmax to a horizon-averaged residual. This is not the actual averaged
+change in token log probabilities. It now reads each perturbed final position
+first, then averages its antithetic log-probability change with the horizon
+weights. Lens predictions use the source state mapped by that lens, without
+centering predictions on the observed final residual. The corrected protocol
+has a new cache fingerprint. A regression test distinguishes these quantities.
+No production Spearman results were generated with the old implementation.
+
+Fitting-corpus exposure was also unequal: ILS used 16 source and 16 donor prompts
+while fitted J/R/J++ used only the sources. All three fitted baselines now use
+the same 32-prompt union. ILS retains the independent donor bank. Fold-specific
+J/R priors use only training-fold sources plus the separate donor bank; held-out
+source prompts are excluded. This equalizes corpus exposure, not the number or
+distribution of derivative/intervention observations. J++ still additionally
+uses labeled dev data and remains labeled accordingly. Configuration fingerprints
+prevent reusing the old baseline shards as new-protocol artifacts.
+
+Read-layer configurations now cover all 24 blocks. The transcoder configuration
+now requests 100 million token presentations per layer. Its approximately
+2.75-million-second estimate is a linear extrapolation, not a measured GPU cost.
+Repeated presentations of the existing small corpus are not 100 million distinct
+tokens; the data budget still needs resolution before production.
+
+`QwenGraph.replacement()` implements live transcoder features plus the fixed
+clean reconstruction error, freezing only attention patterns and RMS
+denominators. It reproduces clean outputs on tiny inputs. A finite intervention
+can change downstream TopK support, however, so the local derivative need not
+equal the finite effect. The reproducible untrained four-layer diagnostic in
+[replacement-semantics.json](artifacts/replacement-semantics.json) records relative
+error **0.26489**, failing the requested **<0.001** criterion. Downstream support
+changes number 60, 60 and 62 coordinates. This is a synthetic counterexample,
+not a trained-model causal or workspace claim. No random-direction claim is made.
+
+The previous independent-feature affine graph passes its own tests but uses an
+extra freeze. Its existing results remain exploratory. Its runner now requires
+an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
+threshold, frozen additional gates in the new replacement, or represented the
+failed criterion as success. Full graph attribution and budget closure under
+the specified semantics remain unresolved. The current suite has **69 passing
+tests**, including tests that correctly preserve this measured failure.
+
 ## Model and numerical conventions
 
 The subject is **Qwen2.5-0.5B-Instruct**, 24 blocks, residual width 896, vocabulary
@@ -167,8 +215,9 @@ checkpoint resume. These checks do not replace end-to-end Qwen measurements.
    affine-graph assumption. Bias remainder counts as unexplained attribution.
    New norms-only survival uses original attention/MLPs; old toy survival kept
    feature sources fixed. Neither is silently described as an unfrozen graph.
-7. **Transcoder scale:** the production configuration uses 524288 token
-   presentations/layer, below 100M. Web/chat windows are explicitly interleaved;
+7. **Transcoder scale:** the previous production configuration requested 524288
+   token presentations/layer. The corrected configuration requests 100M; neither
+   production budget has been run. Web/chat windows are explicitly interleaved;
    distinct tokens, presentations and source mix are separately counted.
 8. **Capability/judging:** exact-match gates are conservative; no LLM judge is
    configured. WSB's registered banks and renderers are used, including association

@@ -3,6 +3,7 @@ threads: 4
 dtype: float32
 source_prompts: 16
 donor_prompts: 16
+baseline_corpus: source_and_donor
 heldout_prompts: 32
 sequence_length: 128
 skip_first: 16
@@ -17,11 +18,11 @@ delta_dist: donor
 prior_candidates: [I, J, R]
 lambda_candidates: [0.0, 0.000001, 0.0001, 0.01, 1.0]
 estimators: [ridge, huber, mom]
-baseline_estimated_seconds: 7116
+baseline_estimated_seconds: 14232
 collection_unoptimized_estimated_seconds: 500000
 estimated_samples_disk_bytes: 19818086400
 deviations:
   - Sixteen source prompts reused for 7168 independently drawn donor interventions per layer/epsilon.
-  - Disjoint donor prompts are additional ILS exposure; source corpus is identical for J/R and ILS.
+  - All fitted lenses see the same 32 training prompts; ILS assigns 16 source and 16 donor roles, while J/R/J++ fit over all 32.
   - Upstream J/R sum over future targets; ILS horizons are normalized. Report both conventions explicitly.
   - Reference API excludes final source layer; use analytic identity for the upstream final-block sum map.

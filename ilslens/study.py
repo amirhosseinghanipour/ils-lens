@@ -71,6 +71,9 @@ def main(argv=None):
         plan=plan[:names.index(args.through)+1]
     requirements=preflight(root,args.dataset,args.references,args.corpus)
     if args.dry_run:print(json.dumps(dict(stages=plan,preflight=requirements),indent=2));return
+    compliance=json.loads((root/'configs/proposal-compliance.json').read_text())
+    if not compliance['production_enabled']:
+        raise RuntimeError('Production disabled until proposal compliance is validated: '+ '; '.join(compliance['blocking_method_gaps']))
     output=Path(args.output);output.mkdir(parents=True,exist_ok=True)
     lock=(output/'process.lock').open('w')
     fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)

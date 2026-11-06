@@ -48,6 +48,17 @@ class QwenGraph:
             self.clean_embeddings=model.model.embed_tokens(ids).detach()
 
     @contextmanager
+    def replacement(self):
+        """Specified replacement: live TopK features plus fixed clean errors.
+
+        Only attention patterns and RMS denominators are frozen. In particular,
+        upstream interventions may change downstream TopK support. The legacy
+        independent-source graph in ``frozen`` is a separate approximation.
+        """
+        with self.frozen(feature_sources=False):
+            yield self
+
+    @contextmanager
     def frozen(self,freeze_attention=True,feature_sources=True):
         saved=[];self.nodes={}
         def replace(module,method):
@@ -71,6 +82,8 @@ class QwenGraph:
             self.nodes[f'feature:{i}']=feature;self.nodes[f'error:{i}']=error
             def forward(module,h):
                 features=feature if feature_sources else tc.features(h)
+                if not feature_sources:
+                    self.nodes[f'feature:{i}']=features
                 # Algebraically identical to decoder(features)+skip(h)+error,
                 # but centered at clean values to avoid cancellation of a large
                 # reconstruction and error at every layer in fp32.

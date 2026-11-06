@@ -1,0 +1,9 @@
+{
+  "production_enabled": false,
+  "blocking_method_gaps": [
+    "Live-feature replacement is implemented, but finite gradient-edge equality fails when TopK support changes; graph attribution semantics remain unresolved.",
+    "Resolve distinct-token versus repeated-presentation transcoder budgets and benchmark the 100M configuration.",
+    "Complete per-item/site/layer budget closure, including unsupported phrase targets.",
+    "Finish the requirement-by-requirement audit before allowing production execution."
+  ]
+}

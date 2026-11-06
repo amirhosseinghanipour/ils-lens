@@ -22,7 +22,12 @@ def main():
     p.add_argument('--dataset',required=True);p.add_argument('--transcoders',default='runs/transcoders')
     p.add_argument('--run',default='runs/qwen-main');p.add_argument('--config',default='configs/graphs.yaml')
     p.add_argument('--output',default='runs/graphs');p.add_argument('--device',default='cuda');p.add_argument('--adapter')
-    p.add_argument('--phrase-rows',help='Optional directory of fitted phrase ILS rows');args=p.parse_args()
+    p.add_argument('--phrase-rows',help='Optional directory of fitted phrase ILS rows')
+    p.add_argument('--exploratory-affine',action='store_true',help='Explicitly opt into the non-proposal independent-feature freeze')
+    args=p.parse_args()
+    if not args.exploratory_affine:
+        raise RuntimeError('This graph runner uses an additional independent-feature freeze and is not proposal-compliant. '
+                           'Production is blocked; --exploratory-affine is only for separately labeled exploratory results.')
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())
     run=Experiment(args.output,dict(config=config,items=items,adapter=args.adapter,phrase_rows=args.phrase_rows,device=args.device,
         coverage_convention='Exact task context plus excluded EOS sentinel, source skip=0; WikiText fitting remains skip16'))
