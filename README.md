@@ -4,11 +4,14 @@ Research code for fitting **Interventional Least-Squares lenses** to transformer
 residual streams and measuring what their readouts explain.
 
 **Status: experimental, incomplete.** The repository contains a working numerical
-core, a four-layer toy HMM experiment, and a local Qwen2.5-0.5B numerical pilot.
+core, a four-layer toy HMM experiment, all-layer Qwen2.5-0.5B-Instruct numerical
+validation, and completed primary J/R fitting on 32 WikiText prompts.
 It does not yet contain a completed Qwen benchmark, validated full attribution
 graphs, or evidence that ILS outperforms existing lenses. Null results and
-limitations are reported in [RESULTS.md](RESULTS.md).
-Production execution is disabled while methodological departures are corrected;
+limitations and current measured evidence are reported in [REPORT.md](REPORT.md);
+[RESULTS.md](RESULTS.md) retains the initial pilot findings.
+Full-study execution is disabled while methodological departures are corrected;
+independent primary donor collection is running on the GPU, with fitting queued.
 see the [current specification findings](REPORT.md#specification-corrections-and-a-failed-graph-criterion).
 The [toy research extension](TOY_RESULTS.md) includes upstream label-tuned J++,
 random-direction controls, toy transcoders and per-item budget closure.
@@ -54,7 +57,8 @@ Weights are loaded locally and cast to fp32. Qwen weights and external datasets
 are not redistributed here. To download reference repositories and WikiText-103
 in a network-enabled environment, run `bash scripts/download_inputs.sh`.
 Inspect the downloaded code before using it. Reference commit IDs are recorded
-in `references/`; downloaded repositories remain untracked.
+in [configs/reference-revisions.json](configs/reference-revisions.json) and
+[REFERENCES.md](REFERENCES.md); downloaded repositories remain untracked.
 
 ## Methods
 
@@ -71,16 +75,22 @@ random-direction controls, transcoders and phrase readout rows.
 
 **Convention warning:** upstream `jlens.fit` averages source-position gradients
 after summing over valid future targets. ILS uses a normalized future horizon
-per source. These are different estimands. Their nonlinear equivalence has not
-been established. See [RESULTS.md](RESULTS.md) and [REFERENCES.md](REFERENCES.md).
+per source. These are different estimands. The completed isotropic-limit check
+compares ILS with our own normalized-horizon J map, not the upstream summed map.
+All 72 layer/epsilon cells passed its matrix/readout thresholds, while the
+small-epsilon directional JVP error remains a documented limitation. See
+[the numerical result](artifacts/qwen-numerical-validation.json) and
+[REPORT.md](REPORT.md).
 
 ## Repository contents
 
 - `ilslens/`: collection, fitting, readout and evaluation primitives.
 - `tests/`: numerical, causality and tiny-model substitution checks.
 - `configs/` and `scripts/`: reproducible experiment settings and commands.
-- `artifacts/`: small toy weights, sample tensors, fitted lenses and measured results.
-- `RESULTS.md`: research findings and limitations.
+- `artifacts/`: small toy weights, sample tensors, fitted lenses and measured results,
+  including hashes for larger local Qwen artifacts.
+- `REPORT.md`: current research findings, costs, deviations and missing evidence.
+- `RESULTS.md`: initial pilot findings and limitations.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for research and contribution standards.
 The original code is MIT licensed; third-party models, data and repositories
@@ -91,8 +101,14 @@ retain their own licenses. See [NOTICE](NOTICE).
 The resumable J/R and donor-collection runner uses the preregistered settings in
 `configs/qwen-main.yaml`: 16 source prompts, independent donor prompts, 7168
 interventions per layer/epsilon, all 24 layers, six epsilons and four horizons.
-On the measured CPU, collection is estimated at about three days. Inspect the
-configuration and benchmark before launching on another machine.
+The fp32 GPU suffix benchmark projects about 4.91 hours for suffix intervention
+work at the registered budget; this excludes bank construction, baseline fitting,
+cross-validation, checkpoint overhead and downstream evaluations. It is not a
+study completion forecast. Primary J/R fitting completed in 1,339.6 seconds
+including preparation; the full donor collection and ILS fits are still pending.
+See the [resource projection](artifacts/primary-resource-projection.json) and
+[baseline audit](artifacts/qwen-primary-baselines.json). Benchmark before running
+on another machine and use a fresh output directory for a different protocol.
 
 ```sh
 export ILS_MODEL_PATH=/path/to/Qwen2.5-0.5B-Instruct
@@ -109,10 +125,11 @@ training-fold-only J/R priors. These commands cover only the primary fitting and
 intervention work, not the entire planned research study.
 
 Production model runners now default to guarded CUDA execution. They reject a
-busy GPU or insufficient free VRAM and never silently fall back to CPU. CPU
-checkpoints remain reusable; newly written checkpoints record their execution
-device. TF32 is disabled for fp32 research. These GPU paths require validation
-on an idle device before accepting production GPU measurements.
+busy GPU or insufficient free VRAM and never silently fall back to CPU. Existing
+checkpoints are reusable only when the required experiment provenance matches;
+newly written checkpoints record their execution device. TF32 is disabled for
+fp32 research. Completed numerical validation does not establish held-out
+faithfulness or causal readout accuracy.
 
 Additional evaluation entry points include `evaluate_readouts.py` (strict
 capability/leakage gates), `fit_jpp_qwen.py` (labeled dev only),
@@ -138,6 +155,13 @@ interventions with only norms frozen in the original model, and emits itemwise
 budget closure. `evaluate_causal.py` implements swap/ablation/answer controls and
 100 covariance-matched random interventions at every patched site. These new
 production experiments have not yet been run on Qwen.
+
+The verified 100M distinct-token web/chat corpus has zero exact-window overlap
+with its validation split. The all-layer transcoder throughput benchmark is
+queued after successful primary fitting in a fixed checkout; its weights will
+be discarded, and it will not launch training. Live-TopK graph propagation still
+fails the required finite derivative/effect equality on the retained synthetic
+fixture. That failure has not been waived or presented as a causal result.
 
 Before the large transcoder run, measure the registered all-layer update workload:
 
