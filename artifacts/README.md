@@ -40,3 +40,8 @@ It neither selects a production scale nor relaxes the graph validation criterion
 `primary-samples-integrity-snapshot.json` records hashes and integrity checks for
 the first 81 completed primary intervention shards. Collection was still running;
 this is explicitly an incomplete snapshot, not a fitted or held-out result.
+
+`qwen-baseline-norms.json` and `plots/qwen-baseline-norms.png` summarize the
+completed 32-prompt J/R matrix bank. Norm intervals resample fitting prompts;
+the norm-of-mean ratios describe cancellation, not causal faithfulness or a
+rotation/curvature decomposition. Saved fp32 matrices are unchanged.

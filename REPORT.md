@@ -29,6 +29,58 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
 
+## Descriptive norms of the completed J/R baseline bank
+
+The 32 fitted per-prompt matrices were summarized without loading a model or
+refitting any lens. Their original fp32 artifact hashes were checked; these
+reporting reductions use float64. The table reports mean per-prompt Frobenius
+norms with 95% descriptive bootstrap intervals (1,000 prompt resamples, seed
+4101, paired across lenses/layers). Shared-article dependence is not modeled.
+The ratio columns give norm of the mean matrix divided by mean matrix norm;
+these describe cancellation in this fixed bank and have no inference interval.
+All maps retain the upstream **summed-future-target** convention. Block 23 is the
+analytic identity, so its identical norms are a construction check.
+
+| Block | J mean norm [95% CI] | R mean norm [95% CI] | J ratio | R ratio | J/R mean-matrix cosine |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 63.41 [60.56, 66.78] | 42.66 [41.37, 44.07] | 0.615 | 0.838 | 0.727 |
+| 1 | 53.22 [50.84, 55.96] | 40.27 [39.05, 41.59] | 0.658 | 0.838 | 0.737 |
+| 2 | 49.21 [46.85, 51.94] | 39.71 [38.44, 41.09] | 0.671 | 0.836 | 0.729 |
+| 3 | 49.81 [47.41, 52.54] | 42.07 [40.64, 43.57] | 0.699 | 0.851 | 0.757 |
+| 4 | 43.00 [41.52, 44.60] | 37.55 [36.57, 38.58] | 0.752 | 0.865 | 0.761 |
+| 5 | 41.47 [40.30, 42.75] | 36.05 [35.27, 36.84] | 0.792 | 0.879 | 0.791 |
+| 6 | 41.17 [40.02, 42.42] | 36.79 [36.02, 37.58] | 0.802 | 0.886 | 0.807 |
+| 7 | 41.58 [40.53, 42.71] | 38.58 [37.79, 39.35] | 0.804 | 0.888 | 0.806 |
+| 8 | 43.35 [42.31, 44.46] | 40.06 [39.27, 40.85] | 0.790 | 0.885 | 0.804 |
+| 9 | 45.81 [44.70, 46.99] | 42.59 [41.74, 43.44] | 0.780 | 0.887 | 0.801 |
+| 10 | 46.22 [45.15, 47.33] | 41.54 [40.76, 42.29] | 0.790 | 0.899 | 0.818 |
+| 11 | 50.98 [49.73, 52.28] | 45.12 [44.25, 45.94] | 0.806 | 0.908 | 0.830 |
+| 12 | 45.71 [44.82, 46.66] | 40.91 [40.23, 41.57] | 0.818 | 0.914 | 0.838 |
+| 13 | 46.09 [45.26, 46.97] | 41.37 [40.73, 42.02] | 0.832 | 0.923 | 0.851 |
+| 14 | 43.44 [42.69, 44.28] | 39.22 [38.68, 39.78] | 0.855 | 0.940 | 0.857 |
+| 15 | 47.04 [46.33, 47.84] | 40.90 [40.42, 41.42] | 0.888 | 0.954 | 0.891 |
+| 16 | 46.24 [45.71, 46.80] | 41.15 [40.74, 41.55] | 0.906 | 0.962 | 0.909 |
+| 17 | 43.56 [43.10, 44.02] | 38.75 [38.41, 39.06] | 0.918 | 0.968 | 0.927 |
+| 18 | 41.79 [41.44, 42.15] | 36.73 [36.51, 36.96] | 0.930 | 0.973 | 0.933 |
+| 19 | 41.41 [41.09, 41.75] | 35.44 [35.24, 35.65] | 0.941 | 0.975 | 0.945 |
+| 20 | 38.10 [37.89, 38.34] | 32.67 [32.56, 32.79] | 0.962 | 0.983 | 0.957 |
+| 21 | 37.35 [37.15, 37.57] | 32.53 [32.45, 32.63] | 0.978 | 0.991 | 0.965 |
+| 22 | 34.23 [34.14, 34.33] | 31.30 [31.26, 31.33] | 0.992 | 0.997 | 0.978 |
+| 23 | 29.93 [29.93, 29.93] | 29.93 [29.93, 29.93] | 1.000 | 1.000 | 1.000 |
+
+![Baseline norm diagnostics](artifacts/plots/qwen-baseline-norms.png)
+
+Early matrices show more cancellation under averaging in this bank. This does
+not identify rotation versus curvature, demonstrate workspace structure, or
+establish a faithfulness advantage for either lens. These norms are of averaged
+per-prompt maps, not individual Jacobians, so they do not measure a gradient
+explosion distribution. No model selection used this diagnostic.
+
+Full values are in [qwen-baseline-norms.json](artifacts/qwen-baseline-norms.json).
+The summary took 12.796 seconds versus a pre-run estimate of 60 seconds; its
+66,353-byte JSON exceeded the 50,000-byte output estimate. The separate figure
+is a rendering of those saved values, not an additional experiment.
+
 ## Primary sample integrity snapshot
 
 A read-only snapshot audited 81 completed primary intervention shards (3.903 GB)
