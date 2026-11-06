@@ -5,8 +5,11 @@ def close_budget(items,coverage_threshold=.5,completeness_threshold=.5,repeats=2
     rows=[]
     for item in items:
         coverage=item.get('lens_r2');completeness=item.get('graph_completeness')
-        known=coverage is not None and completeness is not None and np.isfinite(coverage) and np.isfinite(completeness)
-        if known and not 0<=completeness<=1:raise ValueError('Graph completeness must be in [0,1]')
+        for name,value in (('lens_r2',coverage),('graph_completeness',completeness)):
+            if value is not None and not np.isfinite(value):
+                raise ValueError(f'{name} must be finite or explicitly missing (None)')
+        if completeness is not None and not 0<=completeness<=1:raise ValueError('Graph completeness must be in [0,1]')
+        known=coverage is not None and completeness is not None
         rows.append(dict(item,unexplained=None if coverage is None else 1-coverage,
             dark_matter=(coverage<coverage_threshold and completeness<completeness_threshold) if known else None))
     ids=sorted(set(row['item_id'] for row in rows))

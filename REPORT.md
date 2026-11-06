@@ -20,6 +20,18 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
 
+## Budget-closure input validation
+
+An adversarial regression test exposed eight input-validation failures: nonfinite
+R² or completeness values, and completeness outside [0,1], could escape validation
+when the paired measurement was missing. Such values could silently enlarge the
+unknown-case count instead of exposing a failed calculation. Budget closure now
+rejects these invalid inputs independently. Explicit `null` measurements remain
+unknown; finite negative R² remains measured, with unexplained variance `1 − R²`
+allowed to exceed one. This correction changes no thresholds or valid measured
+results. All 133 tests pass, including the local upstream layer-convention and
+WorkspaceBench tokenizer checks (5.753 seconds under unittest).
+
 ## Ablation finite-precision ordering corrected before production
 
 The primary collector subtracts antithetic branches per position before applying
