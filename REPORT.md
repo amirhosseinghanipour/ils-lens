@@ -127,6 +127,16 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+R-lens validation now checks backward rules directly in addition to preserving
+forward outputs. The RMSNorm VJP is compared with the detached-denominator
+formula and distinguished from the ordinary normalization gradient. The gated
+MLP VJP is compared with the explicit half-weighted sum of the gate and up paths,
+using the detached SiLU sigmoid factor, including a zero gate activation with
+nonzero up activation. Tests also verify method restoration after an exception.
+These checks pass without changing the implementation or any fitted artifacts;
+they validate the specified heuristic rules, not their causal faithfulness.
+
+
 The web/chat corpus iterator now filters document kind before tokenization. The
 old pair of streams tokenized documents of both kinds before discarding the
 unwanted kind, making the first chat window scan and tokenize the entire preceding
@@ -367,7 +377,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **117 passing
+the specified semantics remain unresolved. The current suite has **119 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -581,7 +591,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 117 small-input tests pass. This includes numerical identities,
+The current 119 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
