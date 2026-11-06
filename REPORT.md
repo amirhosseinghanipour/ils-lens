@@ -66,7 +66,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **73 passing
+the specified semantics remain unresolved. The current suite has **74 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -88,6 +88,21 @@ cross-validation. Targets outside 2–5 model tokens remain explicitly unsupport
 this change does not claim complete budget closure. The artifact audit now
 explicitly rejects exploratory affine graph outputs as full proposal compliance
 and checks distinct training tokens for the registered transcoder budget.
+
+Readout exports now exclude masked/nonfinite entries rather than filling a
+top-ten list with invalid token IDs when fewer than ten remain. Raw and z-score
+dead-row rates are both recorded; an empty list has an undefined rate. The
+transcoder trainer now persists training-wide feature-activation masks and
+reports both never-active-during-training fractions and held-out inactivity.
+Legacy checkpoints without this history cannot silently claim the former.
+
+Checkpoint cadence changed from 128 to 8192 updates for the 100M-token run,
+without changing data, optimization, or sample counts. The 24 transcoders contain
+about 327.7M parameters; fp32 weights plus two Adam moments occupy about 3.93 GB
+per training checkpoint. The former cadence implied about 6104 saves (24 TB of
+writes); the new cadence implies 96 saves (378 GB), before serialization overhead.
+These are engineering estimates, not observed training costs. The disk estimate
+is now 10 GB to cover simultaneous old/new checkpoint files during atomic writes.
 
 ## Model and numerical conventions
 
@@ -225,7 +240,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 73 small-input tests pass. This includes numerical identities,
+The current 74 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

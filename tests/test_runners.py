@@ -26,6 +26,12 @@ class RunnerTests(unittest.TestCase):
                 module.main();first=json.loads((root/'run/results.json').read_text())
                 module.main();second=json.loads((root/'run/results.json').read_text())
             self.assertEqual(first['ce'],second['ce']);self.assertEqual(len(first['transcoders']),4)
+            self.assertEqual(first['transcoders'],second['transcoders'])
+            checkpoint=torch.load(root/'run/training-state.pt',weights_only=True)
+            self.assertEqual(len(checkpoint['training_active']),4)
+            for layer,mask in enumerate(checkpoint['training_active']):
+                self.assertEqual(first['transcoders'][layer]['dead_fraction'],float((~mask).float().mean()))
+                self.assertIn('heldout_inactive_fraction',first['transcoders'][layer])
             self.assertTrue((root/'run/layer-03.pt').exists())
 
     def test_planted_runner_training_behavior_and_resume(self):

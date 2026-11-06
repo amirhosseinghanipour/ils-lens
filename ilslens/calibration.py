@@ -8,6 +8,11 @@ def matrix_fingerprint(matrix):
     matrix=matrix.detach().cpu().contiguous()
     return hashlib.sha256(str((tuple(matrix.shape),str(matrix.dtype))).encode()+matrix.numpy().tobytes()).hexdigest()
 
+def finite_topk(scores,k=10):
+    """A masked/nonfinite score is not a readout, even if fewer than k remain."""
+    eligible=torch.where(torch.isfinite(scores))[0]
+    return eligible[scores[eligible].topk(min(k,len(eligible))).indices]
+
 @torch.no_grad()
 def fit_calibration(transported,unembedding,gain,frequencies,minimum=100000,token_chunk=64,eps=1e-6):
     if len(transported)<minimum:raise ValueError('At least 100k held-out reference activations are required')
@@ -34,9 +39,12 @@ def calibrated_readout(scores,calibration,q=.05):
     means=scores.new_tensor([r['mean'] for r in records]);stds=scores.new_tensor([r['std'] for r in records])
     z=zscore(scores,means,stds)
     dead=calibration['dead_mask'].to(scores.device)
-    raw_top=scores.topk(min(10,len(scores))).indices
-    dead_top_fraction=dead[raw_top].float().mean().item()
+    raw_top=finite_topk(scores)
+    dead_top_fraction=dead[raw_top].float().mean().item() if len(raw_top) else None
     z=z.masked_fill(dead,-torch.inf)
+    z_top=finite_topk(z)
     accepted,p=fdr(scores.detach().cpu().numpy(),z.detach().cpu().numpy(),records,q=q)
     return dict(z=z,accepted_ids=accepted.tolist(),pvalues=p,
-                raw_dead_top10_fraction=dead_top_fraction)
+                raw_top10_ids=raw_top.tolist(),z_top10_ids=z_top.tolist(),
+                raw_dead_top10_fraction=dead_top_fraction,
+                z_dead_top10_fraction=dead[z_top].float().mean().item() if len(z_top) else None)

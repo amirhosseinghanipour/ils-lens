@@ -56,18 +56,22 @@ def main():
     tcs=[SkipTranscoder(d,config['width_multiplier']*d,config['top_k']).to(model.device) for _ in range(layers)]
     # Sequential optimizer updates bound temporary state, while all optimizers persist for exact resume.
     optimizers=[torch.optim.Adam(tc.parameters(),lr=config['learning_rate']) for tc in tcs]
+    training_active=[torch.zeros(tc.encoder.out_features,dtype=torch.bool,device=model.device) for tc in tcs]
     state_path=run.path/'training-state.pt';completed=0;source_counts={};documents=set();window_hashes=set()
     if state_path.exists():
         state=torch.load(state_path,weights_only=True,map_location=model.device)
         if state['fingerprint']!=run.fingerprint:raise ValueError('Checkpoint provenance mismatch')
         for tc,opt,weights,optimizer in zip(tcs,optimizers,state['models'],state['optimizers']):tc.load_state_dict(weights);opt.load_state_dict(optimizer)
+        if 'training_active' not in state:raise ValueError('Legacy checkpoint lacks training feature-activity history; cannot report training dead features')
+        training_active=[mask.to(model.device) for mask in state['training_active']]
         completed=state['steps'];source_counts=state['source_counts'];documents=set(state['documents']);window_hashes=set(state['window_hashes'])
         del state
     total_steps=config['token_presentations']//128
     if config['token_presentations']%128:raise ValueError('Budget must be a multiple of 128')
     def checkpoint(step):
         save_tensor(state_path,dict(fingerprint=run.fingerprint,steps=step,models=[tc.state_dict() for tc in tcs],
-            optimizers=[o.state_dict() for o in optimizers],source_counts=source_counts,documents=sorted(documents),window_hashes=sorted(window_hashes)))
+            optimizers=[o.state_dict() for o in optimizers],training_active=training_active,
+            source_counts=source_counts,documents=sorted(documents),window_hashes=sorted(window_hashes)))
     # Deterministic corpus order; resume advances over the already processed prefix.
     iterator=mixed_examples(args.corpus,tokenizer,'train',config['chat_every'],cycle=not unique,unique=unique)
     with capture_mlp(model) as (inputs,outputs):
@@ -80,7 +84,9 @@ def main():
             with torch.no_grad():model.model(ids,use_cache=False)
             for layer,(tc,optimizer) in enumerate(zip(tcs,optimizers)):
                 optimizer.zero_grad(set_to_none=True)
-                loss=(tc(inputs[layer])-outputs[layer]).square().mean()
+                features=tc.features(inputs[layer])
+                training_active[layer]|=(features.detach()!=0).any(dim=(0,1))
+                loss=(tc.decoder(features)+tc.skip(inputs[layer])-outputs[layer]).square().mean()
                 if not torch.isfinite(loss):raise FloatingPointError('Nonfinite transcoder loss')
                 loss.backward();optimizer.step()
             source_counts[provenance['source']]=source_counts.get(provenance['source'],0)+128
@@ -94,6 +100,7 @@ def main():
             model='Qwen/Qwen2.5-0.5B-Instruct',width=config['width_multiplier']*d,top_k=config['top_k'],
             token_presentations=total_steps*128,distinct_token_windows=len(window_hashes),distinct_tokens=len(window_hashes)*128,
             unique_training_windows=unique,
+            training_dead_fraction=float((~training_active[layer]).float().mean()),
             distinct_documents=len(documents),source_token_presentations=source_counts,seed=config['seed'])
         save_tensor(run.path/f'layer-{layer:02d}.pt',dict(state_dict={k:v.cpu() for k,v in tc.state_dict().items()},metadata=metadata))
     clean=[];replaced=[];ablated=[];records=[];dead=[torch.ones(tc.encoder.out_features,dtype=torch.bool,device=model.device) for tc in tcs]
@@ -118,7 +125,8 @@ def main():
         return 1-sum(r['sse'] for r in rows)/denominator if denominator>0 else float('nan')
     metrics=[dict(layer=layer,variance_explained=explained(layer,range(len(records))),
         variance_explained_ci=np.nanquantile([explained(layer,index) for index in boot],[.025,.975]).tolist(),
-        dead_fraction=float(dead[layer].float().mean()),dead_definition='Inactive on held-out evaluation windows') for layer in range(layers)]
+        dead_fraction=float((~training_active[layer]).float().mean()),dead_definition='Never activated on any training window, tracked before optimizer updates',
+        heldout_inactive_fraction=float(dead[layer].float().mean()),heldout_inactive_definition='Inactive on held-out evaluation windows') for layer in range(layers)]
     clean,replaced,ablated=map(np.array,(clean,replaced,ablated))
     recovered=ce_recovered(clean.mean(),replaced.mean(),ablated.mean())
     cis=np.nanquantile([ce_recovered(clean[i].mean(),replaced[i].mean(),ablated[i].mean()) for i in boot],[.025,.975]).tolist()

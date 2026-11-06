@@ -88,7 +88,7 @@ def main():
             selected=[r['item'] for r in retained if r['item']['task']==task]
             max_concepts=max((len(item['intermediates']) for item in selected),default=1)
             arrays={mode:np.full((len(selected),len(layers),max_concepts),np.nan) for mode in ('raw','z')}
-            dead_rates={layer:[] for layer in layers}
+            dead_rates={layer:[] for layer in layers};z_dead_rates={layer:[] for layer in layers}
             for i,item in enumerate(selected):
                 tokens,position=read_site(tokenizer,item['prompt'],task);tokens=tokens.to(model.device)
                 with torch.no_grad(),capture_blocks(model,layers) as states:model.model(tokens,use_cache=False)
@@ -107,10 +107,12 @@ def main():
                         if (calibration['metadata']['epsilon'],calibration['metadata']['gamma'])!=(config['epsilon'],config['gamma']):
                             raise ValueError('Calibration uses a different ILS epsilon or horizon')
                         calibrated=calibrated_readout(scores,calibration);z=calibrated['z']
-                        dead_rates[layer].append(calibrated['raw_dead_top10_fraction'])
+                        if calibrated['raw_dead_top10_fraction'] is not None:dead_rates[layer].append(calibrated['raw_dead_top10_fraction'])
+                        if calibrated['z_dead_top10_fraction'] is not None:z_dead_rates[layer].append(calibrated['z_dead_top10_fraction'])
                         details.append(dict(item_id=item['id'],lens=name,label_tuned=name.startswith('J++'),layer=layer,
-                            raw_top10=scores.topk(10).indices.cpu().tolist(),z_top10=z.topk(10).indices.cpu().tolist(),
-                            fdr_selected_ids=calibrated['accepted_ids'],raw_dead_top10_fraction=calibrated['raw_dead_top10_fraction']))
+                            raw_top10=calibrated['raw_top10_ids'],z_top10=calibrated['z_top10_ids'],
+                            fdr_selected_ids=calibrated['accepted_ids'],raw_dead_top10_fraction=calibrated['raw_dead_top10_fraction'],
+                            z_dead_top10_fraction=calibrated['z_dead_top10_fraction']))
                     elif str(calibration_path) not in missing_calibration:missing_calibration.append(str(calibration_path))
                     if excluded is not None:
                         scores=scores.masked_fill(excluded,-torch.inf)
@@ -137,7 +139,9 @@ def main():
                     report['layer']=layers[report['layer']] if isinstance(report['layer'],int) else report['layer']
                     rows.append(dict(report,lens=name,label_tuned=name.startswith('J++'),task=task,mode=mode))
             for layer,rates in dead_rates.items():
-                rows.append(dict(lens=name,label_tuned=name.startswith('J++'),task=task,layer=layer,raw_dead_top10_fraction=None if not rates else float(np.mean(rates))))
+                rows.append(dict(lens=name,label_tuned=name.startswith('J++'),task=task,layer=layer,
+                    raw_dead_top10_fraction=None if not rates else float(np.mean(rates)),
+                    z_dead_top10_fraction=None if not z_dead_rates[layer] else float(np.mean(z_dead_rates[layer]))))
     (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
         seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),
