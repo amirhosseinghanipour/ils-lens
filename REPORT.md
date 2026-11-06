@@ -19,6 +19,22 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
 
+## Full training-vocabulary counts prepared for execution
+
+The dead-row mask requires zero-frequency tokens from the complete training
+corpus. The tokenizer-only count runner now binds the saved counts to the pinned
+WikiText manifest, loaded split fingerprint, and tokenizer/config file hashes.
+It preserves the existing tokenization rule (every row followed by a newline,
+without added special tokens), includes unused model-vocabulary rows, and checks
+all 1,801,350 training records. Existing counts are reused only after provenance,
+shape, nonnegativity, record-count, and total-count checks pass.
+
+The pre-run estimate is 7,200 seconds and 2 MB. This preparation uses two CPU
+threads and loads no model weights; it does not move model fitting off the GPU.
+A tiny counting test verifies exact results across flush sizes, empty rows,
+newline counts, unused vocabulary rows, and out-of-vocabulary rejection. The
+complete corpus count has not yet finished, so no dead-token count is reported.
+
 ## Completed all-layer normalized-J equivalence validation
 
 All 72 registered layer/epsilon cells pass matrix cosine ≥ 0.95 and mean held-out
@@ -566,7 +582,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **128 passing
+the specified semantics remain unresolved. The current suite has **129 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -780,7 +796,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 128 small-input tests pass. This includes numerical identities,
+The current 129 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
