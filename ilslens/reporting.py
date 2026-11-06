@@ -42,6 +42,10 @@ def measured_tables(stage,result):
         return {'budget':scalar_rows(budget['rows']),'dark_cases':scalar_rows(budget['dark_cases']),
             'aggregate':[{key:budget[key] for key in ('fraction','ci','known_cases','unknown_cases')}]}
     tables={}
+    if stage=='contrast':
+        cohort={key:result[key] for key in ('status','matched_prompts','required_control_prompts',
+            'excluded_short_completion_pairs','cohort_protocol') if key in result}
+        if cohort:tables['cohort']=[cohort]
     for key in ('rows','summary','causal_summary','interventional','readouts','interventional_faithfulness','model_diff_faithfulness','behavior_model_diff_faithfulness'):
         if key in result:tables[key]=scalar_rows(result[key])
     if stage=='subliminal':
@@ -64,10 +68,12 @@ def render(runs,output):
         if not path.exists():missing.append(stage);text.append('Not measured.\n');continue
         result=json.loads(path.read_text());found[stage]=result
         tables=measured_tables(stage,result)
-        summary=dict(source=str(path),source_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),fingerprint=result.get('fingerprint',result.get('metadata',{}).get('fingerprint')),tables=tables,
+        outcome={key:result[key] for key in ('status','exploratory_affine','any_transmits') if key in result}
+        summary=dict(source=str(path),source_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),fingerprint=result.get('fingerprint',result.get('metadata',{}).get('fingerprint')),tables=tables,outcome=outcome,
             seconds_this_invocation=result.get('seconds_this_invocation',result.get('seconds')),
             deviations=result.get('deviations',result.get('deviation')),interpretation=result.get('interpretation'))
         (output/f'{stage}.json').write_text(json.dumps(summary,indent=2,allow_nan=False))
+        if outcome:text.append('Recorded outcome: '+cell(outcome)+'\n')
         for name,rows in tables.items():
             text.append(f'### {name}\n');columns=list(dict.fromkeys(key for row in rows for key in row))
             text.append(table(rows,columns)+'\n')

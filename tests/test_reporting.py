@@ -38,3 +38,30 @@ class ReportingTests(unittest.TestCase):
     def test_flattening_rejects_colliding_column_names(self):
         from ilslens.reporting import scalar_rows
         with self.assertRaises(ValueError):scalar_rows([{'a.b':1,'a':{'b':2}}])
+
+    def test_unmeasured_contrast_outcome_and_cohort_survive_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'runs/contrast').mkdir(parents=True)
+            result=dict(rows=[],status='insufficient_matched_prompts',matched_prompts=3,
+                required_control_prompts=4,excluded_short_completion_pairs=[1,3],
+                interpretation='No contrast or null test measured.')
+            (root/'runs/contrast/results.json').write_text(json.dumps(result))
+            text,_,_=render(root/'runs',root/'artifacts')
+            self.assertIn('insufficient_matched_prompts',text)
+            saved=json.loads((root/'artifacts/contrast.json').read_text())
+            self.assertEqual(saved['outcome']['status'],result['status'])
+            cohort=saved['tables']['cohort'][0]
+            self.assertEqual(cohort['matched_prompts'],3)
+            self.assertEqual(cohort['required_control_prompts'],4)
+            self.assertEqual(cohort['excluded_short_completion_pairs'],[1,3])
+
+    def test_exploratory_graph_flag_survives_export(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'runs/graphs').mkdir(parents=True)
+            result=dict(exploratory_affine=True,budget=dict(rows=[],dark_cases=[],fraction=None,
+                ci=[None,None],known_cases=0,unknown_cases=0))
+            (root/'runs/graphs/results.json').write_text(json.dumps(result))
+            text,_,_=render(root/'runs',root/'artifacts')
+            self.assertIn('exploratory_affine',text)
+            saved=json.loads((root/'artifacts/graphs.json').read_text())
+            self.assertIs(saved['outcome']['exploratory_affine'],True)

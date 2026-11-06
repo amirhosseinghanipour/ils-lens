@@ -11,6 +11,6 @@ def main():
     for image in images:text+=f'\n![{image}]({Path(args.output)/image})\n'
     text+='\nMissing stages: '+(', '.join(missing) if missing else 'none; substantive completeness still requires the research audit and review')+'\n'
     Path(args.report).write_text(text)
-    print(f'Exported {len(found)} measured stages; {len(missing)} missing. No scientific completion claim.')
+    print(f'Exported {len(found)} stage result artifacts; {len(missing)} missing. Artifact presence does not establish a measured or complete stage.')
 
 if __name__=='__main__':main()

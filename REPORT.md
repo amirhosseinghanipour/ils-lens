@@ -22,6 +22,14 @@ isotropic-limit validation was launched separately with an unbenchmarked
 
 ## Budget-closure input validation
 
+The downstream report exporter also failed two new regressions: it omitted the
+explicit insufficient-cohort status/counts from contrast results and the
+`exploratory_affine` flag from graph results. Generated Markdown and JSON now
+retain the recorded outcome, contrast cohort counts and excluded-pair IDs.
+The reporting CLI counts result artifacts rather than calling every existing
+artifact a measured stage. All 135 tests pass with local reference checks enabled
+(6.134 seconds under unittest). No experimental outcomes or thresholds changed.
+
 An adversarial regression test exposed eight input-validation failures: nonfinite
 R² or completeness values, and completeness outside [0,1], could escape validation
 when the paired measurement was missing. Such values could silently enlarge the
