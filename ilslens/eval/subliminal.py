@@ -5,6 +5,15 @@ import sys
 import numpy as np
 from scipy.stats import binomtest
 
+def transmission_summary(rows):
+    """Missing training cohorts cannot establish measured non-transmission."""
+    evaluated=sum(row.get('status')=='evaluated' and isinstance(row.get('transmitted'),bool) for row in rows)
+    positive=any(row.get('status')=='evaluated' and row.get('transmitted') is True for row in rows)
+    complete=bool(rows) and evaluated==len(rows)
+    return dict(status='measured' if complete else 'partial' if evaluated else 'no_evaluable_configurations',
+        any_transmits=True if positive else False if complete else None,
+        evaluated_configurations=evaluated,unmeasured_configurations=len(rows)-evaluated)
+
 def load_number_reference(root):
     path=Path(root)/'sljlens/numbers.py'
     spec=importlib.util.spec_from_file_location('_ils_subliminal_numbers',path)

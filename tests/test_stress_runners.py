@@ -66,6 +66,29 @@ class StressRunnerIntegrationTests(unittest.TestCase):
             self.assertFalse(result['any_transmits']);self.assertEqual(len(result['rows'][0]['seeds']),3)
             self.assertEqual(len(list((root/'run').glob('*/adapter.pt'))),6)
 
+    def test_subliminal_no_training_pairs_is_unknown_not_nontransmission(self):
+        module=script('run_subliminal');model=tiny_model();tokenizer=TinyTokenizer()
+        config=dict(concepts=['owl'],seeds=[0,1,2],teacher_prompts=2,teacher_temperature=1.,repetition_penalty=1.,
+            max_new_tokens=4,rank=2,alpha=4,steps=1,learning_rate=.01,max_length=128,prompt_seed=42,evaluation_draws=1)
+        reference=SimpleNamespace(make_prompts=lambda n,seed:[dict(id=i,prompt=f'Continue sequence {i}') for i in range(n)],passes=lambda answer:False)
+        original=SimpleNamespace(get_reject_reasons=lambda *args,**kwargs:["rejected"])
+        prompt_reference=SimpleNamespace(messages=lambda concept,prompt:[dict(role='user',content=prompt)])
+        records=[dict(prompt=f'Question {i}',completions=['cat'],hits=[False],rate=0.) for i in range(4)]
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'config.yaml').write_text(yaml.safe_dump(config));(root/'prompts.json').write_text(json.dumps([r['prompt'] for r in records]))
+            argv=['run_subliminal','--config',str(root/'config.yaml'),'--prompts',str(root/'prompts.json'),'--output',str(root/'run'),
+                  '--device','cpu','--reference','unused','--learning-reference','unused']
+            with patch.object(sys,'argv',argv),patch.object(module,'load_local',return_value=(model,tokenizer)),\
+                 patch.object(module,'load_number_reference',return_value=reference),patch.object(module,'load_module',side_effect=[original,prompt_reference]),\
+                 patch.object(module.subprocess,'check_output',return_value='test-revision'),patch.object(module,'generate_answers',return_value=['1 2 3']),\
+                 patch.object(module,'measure_preference',return_value=records):
+                module.main()
+            result=json.loads((root/'run/results.json').read_text())
+            self.assertIsNone(result['any_transmits'])
+            self.assertEqual(result['status'],'no_evaluable_configurations')
+            self.assertIsNone(result['rows'][0]['transmitted'])
+            self.assertEqual(len(list((root/'run').glob('*/adapter.pt'))),0)
+
     def test_planted_small_cohort_keeps_independent_model_diff_measurements(self):
         for eligible in (0,3):
             with self.subTest(eligible=eligible),tempfile.TemporaryDirectory() as directory:

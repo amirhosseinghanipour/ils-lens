@@ -12,6 +12,17 @@ Full production execution is disabled during the specification audit. Independen
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
 
+The subliminal runner's outcome accounting now distinguishes an unusable teacher
+cohort from measured non-transmission. A tiny integration test reproduced the old
+behavior: no matched number-only examples nevertheless yielded
+`any_transmits=false`. Missing configurations now retain unknown outcomes; the
+aggregate is false only when every configuration was evaluated and none passed,
+true when at least one evaluated configuration passed, and otherwise null.
+Partial and entirely unevaluable attempts cannot pass the completion audit.
+The protocol fingerprint records this reporting correction. Teacher sampling,
+training, three-seed testing and the p<0.01 criterion are unchanged. All 142 local
+tests pass, including reference checks; no production subliminal result exists yet.
+
 The completion audit previously accepted arbitrary explicit stage statuses
 unless they appeared on a short exclusion list. Seven regression cases reproduced
 false acceptance (`failed`, `partial`, `running`, `queued`, `not_requested`, an

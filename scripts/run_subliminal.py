@@ -5,7 +5,7 @@ import torch,yaml
 from ilslens.model import load_local
 from ilslens.lora import AdapterSet,encode_completion,train_adapters
 from ilslens.experiment import Experiment,write_json,save_tensor
-from ilslens.eval.subliminal import load_number_reference,filtered_teacher_pairs,transmission_test
+from ilslens.eval.subliminal import load_number_reference,filtered_teacher_pairs,transmission_test,transmission_summary
 from ilslens.eval.readout_tasks import generate_answers
 from ilslens.eval.behavior import measure_preference
 
@@ -24,7 +24,8 @@ def main():
     if config['teacher_temperature']!=1 or config['repetition_penalty']!=1:raise ValueError('Unregistered teacher sampling')
     revisions={name:subprocess.check_output(['git','-C',path,'rev-parse','HEAD'],text=True).strip()
                for name,path in [('subliminal-jlens',args.reference),('subliminal-learning',args.learning_reference)]}
-    run=Experiment(args.output,dict(config=config,evaluation_prompts=prompts,revisions=revisions,device=args.device))
+    run=Experiment(args.output,dict(config=config,evaluation_prompts=prompts,revisions=revisions,device=args.device,
+        outcome_protocol='retain-unmeasured-configurations-v1'))
     numbers=load_number_reference(args.reference)
     original=load_module(Path(args.learning_reference)/'sl/datasets/nums_dataset.py','_ils_original_numbers')
     prompt_reference=load_module(Path(args.reference)/'sljlens/prompts.py','_ils_teacher_prompts')
@@ -75,7 +76,7 @@ def main():
                     run.event('student-evaluated',concept=concept,arm=arm,seed=seed,training_examples=len(pairs))
                 finally:adapters.remove()
         results.append(dict(concept=concept,status='evaluated',matched_training_examples=len(pairs),**transmission_test(hits['student'],hits['control'])))
-    run.result(dict(rows=results,any_transmits=any(r.get('transmitted') is True for r in results),
+    run.result(dict(rows=results,**transmission_summary(results),
         statistical_unit='held-out prompt, paired between arms, separately for each training seed',
         limitation='Small LoRA attempt with 32 evaluation prompts and 256 candidate teacher prompts; failure is not evidence against transmission at larger scale.',
         multiplicity='Up to five concept configurations; per-seed p values are nominal. No configuration is selected for primary ILS fitting.'))

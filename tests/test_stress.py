@@ -2,11 +2,22 @@ import unittest
 import torch
 from test_core import tiny_model
 from ilslens.lora import AdapterSet,train_adapters
-from ilslens.eval.subliminal import transmission_test
+from ilslens.eval.subliminal import transmission_test,transmission_summary
 from ilslens.eval.budget import close_budget
 from ilslens.calibration import fit_calibration
 
 class StressTests(unittest.TestCase):
+    def test_missing_subliminal_configurations_are_not_negative_findings(self):
+        missing=dict(status='no-matched-number-only-training-data',transmitted=None)
+        negative=dict(status='evaluated',transmitted=False)
+        positive=dict(status='evaluated',transmitted=True)
+        for rows,status,outcome in [([], 'no_evaluable_configurations',None),
+                ([missing],'no_evaluable_configurations',None),([negative,missing],'partial',None),
+                ([positive,missing],'partial',True),([negative]*5,'measured',False),([positive,negative],'measured',True)]:
+            with self.subTest(rows=rows):
+                result=transmission_summary(rows)
+                self.assertEqual(result['status'],status);self.assertIs(result['any_transmits'],outcome)
+                self.assertEqual(result['evaluated_configurations']+result['unmeasured_configurations'],len(rows))
     def setUp(self):torch.set_num_threads(2);torch.manual_seed(61)
     def test_adapter_training_preserves_base_and_disabled_output(self):
         model=tiny_model();ids=torch.randint(0,32,(1,24))
