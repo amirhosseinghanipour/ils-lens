@@ -19,7 +19,7 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
-## Larger transcoder corpus prepared; budget audit pending
+## Larger transcoder corpus fails validation-overlap audit
 
 Both pinned FineWeb and UltraChat parquet shards passed their size and SHA-256
 checks. Downloading them took 6654.7 seconds against the original
@@ -31,11 +31,21 @@ the subsequent tokenizer audit.
 
 [Verified shard metadata](artifacts/transcoder-shards-verified.json) and
 [prepared corpus manifest](artifacts/transcoder-corpus-100m-manifest.json) record
-pinned revisions and hashes. At this snapshot, the distinct-window budget and
-train/validation token-window overlap audit is still running. The corpus filename
-contains the intended 100M target; it is **not** evidence that this target passed.
-No transcoder training has started on this corpus. Any budget or overlap failure
-will be retained and reported before selecting a corrective preprocessing step.
+pinned revisions and hashes. The [completed tokenizer audit](artifacts/transcoder-corpus-100m-budget.json)
+took 171.06 seconds. It found all 100,000,000 distinct training tokens (703,125 web
+and 78,125 chat windows), but **46 validation windows overlap the selected training
+prefix**. The original corpus and failed audit are retained. No transcoder
+training has started on this corpus.
+
+The tested correction in `scripts/deduplicate_transcoder_validation.py` removes
+entire validation documents containing overlapping windows into a separate corpus,
+verifies that training records remain byte-for-byte identical, and independently
+repeats the budget and overlap audit. Its pre-run estimate is 600 seconds and
+780,757,466 additional bytes. This correction responds to corpus contamination,
+without inspecting model outcomes or evaluation labels. The corrected corpus has
+not yet passed its independent audit. The new tiny-input regression test checks
+preservation of the original corpus and training rows, exclusion of the offending
+validation document, and the independently recomputed zero-overlap budget.
 
 ## Numerical-run resource snapshot
 
@@ -395,7 +405,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **119 passing
+the specified semantics remain unresolved. The current suite has **120 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -609,7 +619,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 119 small-input tests pass. This includes numerical identities,
+The current 120 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

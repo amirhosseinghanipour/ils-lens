@@ -21,5 +21,5 @@
     "estimated_seconds": 7200,
     "estimated_disk_bytes": 6000000000
   },
-  "status": "Both pinned shards size-and-SHA256 verified; corpus token-budget audit pending"
+  "status": "Both pinned shards verified; prepared corpus supplies 100M distinct training tokens but fails validation overlap audit (46 windows); training not started"
 }
