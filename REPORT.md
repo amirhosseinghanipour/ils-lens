@@ -19,6 +19,23 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Insufficient contrast cohorts remain unmeasured
+
+A tiny-model runner test with fixed generated-token fixtures reproduced two
+previous crashes: zero eligible completion pairs failed state extraction, and
+three eligible pairs failed the existing four-prompt minimum for split-half nulls.
+The contrast runner now preserves all completions and excluded prompt indices and
+writes `insufficient_matched_prompts` with no measured rows. It does not shorten
+the registered offsets, generate replacement samples, lower the minimum, or
+interpret the missing test as negative evidence. The artifact audit explicitly
+rejects this status as an incomplete contrast measurement.
+
+The regression test also checks the four-prompt boundary using actual tiny-model
+state extraction and the 1,000-split null procedure for both on/off-policy modes
+and both averaging orders. Sampling is a fixed fixture; this is implementation
+validation, not a Qwen behavioral or readout result. The original synthetic failures
+were observed before the correction, and the full suite now passes 123 tests.
+
 ## Primary-run routing correction
 
 The serial study launcher previously relied on every consumer's legacy
@@ -426,7 +443,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **121 passing
+the specified semantics remain unresolved. The current suite has **123 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -640,7 +657,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 121 small-input tests pass. This includes numerical identities,
+The current 123 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

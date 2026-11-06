@@ -48,7 +48,7 @@ def audit(root,primary_run=None):
     for name in required:
         path=root/name/'results.json'
         result=json.loads(path.read_text()) if path.exists() else {}
-        check(name+'_measured_results',bool(result) and result.get('status') not in ('gates_only','collect_only','fit_only'),
+        check(name+'_measured_results',bool(result) and result.get('status') not in ('gates_only','collect_only','fit_only','insufficient_matched_prompts'),
               'Present' if result else 'No result artifact; an implementation is not a measurement')
     # Conditional requirements inspect substantive outcomes, not a success marker.
     for name,field in [('numerical','smallest_epsilon_passes_all_layers'),('readouts','complete_calibration')]:

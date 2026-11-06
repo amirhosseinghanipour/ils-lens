@@ -7,6 +7,7 @@ from ilslens.eval.readout_tasks import generate_token_completions,candidate_ids,
 from ilslens.eval.contrastive import render_condition,matched_condition_states
 from ilslens.contrast import contrast_with_null
 from ilslens.readout import raw
+from ilslens.experiment import write_json
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--prompts',required=True)
@@ -21,9 +22,21 @@ def main():
         for arm in completions:
             prefix=render_condition(tokenizer,config[arm],user)
             completions[arm].append(generate_token_completions(model,tokenizer,prefix,draws=1,max_new_tokens=32,seed=config['seed']+i)[0])
-    layers=config['layers'];states,groups,excluded=matched_condition_states(model,tokenizer,users,
-        config['condition'],config['control'],[content_tokens(r['token_ids'],tokenizer.all_special_ids) for r in completions['condition']],
-        [content_tokens(r['token_ids'],tokenizer.all_special_ids) for r in completions['control']],layers,config['offsets'])
+    offsets=config['offsets']
+    if not offsets or min(offsets)<0:raise ValueError('Nonempty nonnegative fixed read offsets required')
+    generated={arm:[content_tokens(r['token_ids'],tokenizer.all_special_ids) for r in values] for arm,values in completions.items()}
+    excluded=[i for i in range(len(users)) if min(len(generated['condition'][i]),len(generated['control'][i]))<=max(offsets)]
+    matched=len(users)-len(excluded)
+    if matched<4:
+        write_json(root/'results.json',dict(config=config,rows=[],metadata=metadata,
+            status='insufficient_matched_prompts',matched_prompts=matched,required_control_prompts=4,
+            excluded_short_completion_pairs=excluded,completions=completions,seconds=time.perf_counter()-start,
+            ranking='score-descending-id-ascending-v2',cohort_protocol='fixed-offset-minimum-four-v1',
+            interpretation='No contrast or null test measured; insufficient complete prompt pairs at the registered offsets. This is not a null detection result.'))
+        return
+    layers=config['layers'];states,groups,state_excluded=matched_condition_states(model,tokenizer,users,
+        config['condition'],config['control'],generated['condition'],generated['control'],layers,offsets)
+    if state_excluded!=excluded:raise AssertionError('Contrast cohort changed during state extraction')
     target_ids=candidate_ids(tokenizer,config['target'])
     if not target_ids:raise ValueError('Target is not single-token; use the phrase experiment')
     rows=[]
@@ -38,7 +51,8 @@ def main():
                     score_file=root/f'{name}-L{layer}-{mode}-{read_mode}.pt'
                     torch.save(statistic.pop('contrast_scores'),score_file)
                     rows.append(dict(lens=name,layer=layer,mode=mode,read_mode=read_mode,**statistic))
-    (root/'results.json').write_text(json.dumps(dict(config=config,rows=rows,metadata=metadata,
-        excluded_short_completion_pairs=excluded,completions=completions,seconds=time.perf_counter()-start,ranking='score-descending-id-ascending-v2'),indent=2))
+    write_json(root/'results.json',dict(config=config,rows=rows,metadata=metadata,
+        status='measured',matched_prompts=matched,required_control_prompts=4,cohort_protocol='fixed-offset-minimum-four-v1',
+        excluded_short_completion_pairs=excluded,completions=completions,seconds=time.perf_counter()-start,ranking='score-descending-id-ascending-v2'))
 
 if __name__=='__main__':main()
