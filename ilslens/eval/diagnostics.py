@@ -1,6 +1,8 @@
 import torch
 from ..fit import fit,r2
 
+ABLATION_DIFFERENCE_ORDER = 'per-position-before-horizon-v2'
+
 def effective_rank(matrix):
     s=torch.linalg.svdvals(matrix)
     if s.sum()==0:return 0.

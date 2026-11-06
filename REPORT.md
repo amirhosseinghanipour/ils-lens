@@ -20,6 +20,30 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
 
+## Ablation finite-precision ordering corrected before production
+
+The primary collector subtracts antithetic branches per position before applying
+the horizon kernel. The ablation collector instead subtracted horizon-reduced
+branches; its one-sided variant also used different reduction paths for patched
+and clean states. These expressions are equal in exact arithmetic but need not
+be numerically equivalent in fp32.
+
+A new tiny-model regression sets the final residual to a common value of 1,000,
+patches one source by 0.01, and checks all four horizons against the directly
+represented per-position change. Before correction, the Gaussian/isotropic
+antithetic path had a maximum relative discrepancy of 1.524%; the one-sided path
+had a maximum relative discrepancy of 10.506 (1,050.6%). These are synthetic
+collection-arithmetic errors, not Qwen readout scores or sampling estimates.
+
+The corrected ablation collector differences per position first. Gaussian and
+isotropic variants use the same antithetic path as primary collection; one-sided
+responses subtract the clean per-position state before averaging. All 131 tests
+pass. Artifact metadata records `per-position-before-horizon-v2`; diagnostic
+fitting rejects older or unverified ablation difference-order metadata. No
+production ablation results were overwritten, no evaluation labels or epsilon
+selection were involved, and the active immutable primary run is unchanged.
+This correction does not remove the separately reported small-epsilon JVP error.
+
 ## Completed primary J/R baseline fitting
 
 J and R were fitted on the same 32 shuffled WikiText training prompts used by the
@@ -629,7 +653,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **130 passing
+the specified semantics remain unresolved. The current suite has **131 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -843,7 +867,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 130 small-input tests pass. This includes numerical identities,
+The current 131 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

@@ -5,7 +5,7 @@ import torch,yaml
 from ilslens.runtime import resolve_device
 from ilslens.fit import select
 from ilslens.budget import baseline_count,prior_prompt_indices
-from ilslens.eval.diagnostics import balanced_prefix
+from ilslens.eval.diagnostics import balanced_prefix,ABLATION_DIFFERENCE_ORDER
 from ilslens.eval.faithfulness import bootstrap_r2
 from ilslens.experiment import Experiment,save_tensor,write_json
 
@@ -13,7 +13,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--run',default='runs/qwen-main');p.add_argument('--samples',default='runs/ablations')
     p.add_argument('--output',default='runs/diagnostics');p.add_argument('--config',default='configs/diagnostics.yaml');p.add_argument('--device',default='cuda');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());root=Path(args.run);manifest=json.loads((root/'manifest.json').read_text());primary=manifest['config']
-    device=resolve_device(args.device);run=Experiment(args.output,dict(config=config,primary_fingerprint=manifest['fingerprint'],device=args.device))
+    device=resolve_device(args.device);run=Experiment(args.output,dict(config=config,primary_fingerprint=manifest['fingerprint'],device=args.device,difference_order=ABLATION_DIFFERENCE_ORDER))
     ei=primary['epsilons'].index(config['epsilon']);gi=primary['gammas'].index(config['gamma']);uniform=primary['gammas'].index(1.)
     def samples(split,layer,variant=None,gamma_index=gi):
         directory=root if variant is None else Path(args.samples)
@@ -23,6 +23,8 @@ def main():
         chunks=[torch.load(path,weights_only=True,map_location='cpu') for path in files]
         provenance='fingerprint' if variant is None else 'primary_fingerprint'
         if any(c['metadata'][provenance]!=manifest['fingerprint'] for c in chunks):raise ValueError('Diagnostics provenance mismatch')
+        if variant is not None and any(c['metadata'].get('difference_order')!=ABLATION_DIFFERENCE_ORDER for c in chunks):
+            raise ValueError('Ablation differencing order is unverified or obsolete; recollect variants')
         x=torch.cat([c['delta'][:,ei] if variant is None else c['variants'][variant]['delta'] for c in chunks]).to(device)
         y=torch.cat([c['response'][:,ei,gamma_index] if variant is None else c['variants'][variant]['response'][:,gamma_index] for c in chunks]).to(device)
         groups=torch.cat([c['prompt_ids'] for c in chunks])
