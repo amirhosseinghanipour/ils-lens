@@ -82,17 +82,22 @@ necessary; new sampler code must not be used with its existing checkpoints.
 Sparse-pursuit stopping previously compared the best new atom's squared projection
 with the random-dictionary threshold before applying the constrained gradient
 step. Those gains need not equal the actual marginal reconstruction improvement.
-A deterministic synthetic counterexample (seed 14, dimension 16, 40 atoms,
-iteration 18) gives candidate gain 0.05271 but achieved gain 0.03477. The corrected
+A deterministic synthetic counterexample (seed 18, dimension 16, 40 atoms,
+iteration 6) gives candidate gain 1.02693 but achieved gain 0.85648. The corrected
 procedure forms the candidate step, measures the actual reduction in squared
 residual norm, and accepts only if it exceeds the existing 95th-percentile null.
 The null remains the best nonnegative one-atom gain from an isotropic random
 dictionary of matched size and row norms, sampled by its exact order-statistic
-distribution. No evaluation labels select this rule. Tests force a 0.04 threshold
+distribution. No evaluation labels select this rule. Tests force a 0.9 threshold
 to verify rejection of the counterexample step and preservation of the prior
 coefficients, and verify an empty decomposition for a zero dictionary. Readout
 results identify the new pursuit protocol. No production sparse readout results
 preceded this correction.
+The first counterexample fixture failed validation because its diagnostic search
+continued after a zero-gain stopping point. That unreachable fixture (seed 14)
+was rejected and replaced with the reachable seed-18 example. Commit 6b9b159
+was pushed before its failing test result was checked; the follow-up commit
+records and corrects the fixture. The actual-gain acceptance rule was not relaxed.
 
 
 A dedicated all-layer transcoder benchmark now precedes the 100M-token training
