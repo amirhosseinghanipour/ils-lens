@@ -5,10 +5,10 @@ import torch
 from ilslens.experiment import write_json
 from ilslens.budget import baseline_count
 
-def audit(root):
+def audit(root,primary_run=None):
     root=Path(root);checks=[]
     def check(name,condition,detail):checks.append(dict(criterion=name,passes=bool(condition),detail=detail))
-    primary=root/'qwen-main';manifest_path=primary/'manifest.json'
+    primary=Path(primary_run) if primary_run is not None else root/'qwen-main';manifest_path=primary/'manifest.json'
     manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else None
     check('primary_manifest',manifest is not None,'Registered fitting data/conventions must be recorded')
     if manifest:
@@ -75,8 +75,8 @@ def audit(root):
         scope='Artifact completeness checks only; passing does not establish scientific validity or method superiority')
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--runs',default='runs');p.add_argument('--output',default='runs/study-audit.json');args=p.parse_args()
-    result=audit(args.runs);write_json(args.output,result)
+    p=argparse.ArgumentParser();p.add_argument('--runs',default='runs');p.add_argument('--primary-run',help='Explicit primary run directory; otherwise RUNS/qwen-main');p.add_argument('--output',default='runs/study-audit.json');args=p.parse_args()
+    result=audit(args.runs,args.primary_run);write_json(args.output,result)
     print(json.dumps(dict(complete=result['complete'],passed=result['passed'],total=result['total'],missing=[r['criterion'] for r in result['checks'] if not r['passes']]),indent=2))
     if not result['complete']:raise SystemExit(1)
 

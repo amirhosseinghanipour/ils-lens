@@ -27,3 +27,24 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(same['summary'][0]['difference'],0);self.assertEqual(same['summary'][0]['ci'],[0,0])
         self.assertEqual(len(same['summary'][0]['control_split_half_null']),1000)
         with self.assertRaises(ValueError):compare_graphs(base,base[:-1])
+
+    def test_explicit_primary_directory_routes_all_consumers_and_audit(self):
+        plan=stages('/data','/references','/corpus',primary_run='/registered/primary-v4')
+        routed=[]
+        for stage in plan:
+            command=stage['command']
+            if '--run' in command or '--primary-run' in command or stage['name'] in ('gpu-benchmark','primary-collection'):
+                option='--run' if '--run' in command else '--primary-run' if '--primary-run' in command else '--output'
+                self.assertEqual(command[command.index(option)+1],'/registered/primary-v4')
+                routed.append(stage['name'])
+            self.assertNotIn('runs/qwen-main',command)
+        self.assertEqual(len(routed),22)
+        from test_runners import script
+        module=script('audit_study')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            # A malformed legacy manifest must not be read for an explicit run.
+            (root/'qwen-main').mkdir();(root/'qwen-main/manifest.json').write_text('invalid JSON')
+            result=module.audit(root,root/'registered-primary')
+            self.assertFalse(result['complete'])
+            self.assertFalse(next(c for c in result['checks'] if c['criterion']=='primary_manifest')['passes'])

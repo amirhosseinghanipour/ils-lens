@@ -174,9 +174,9 @@ records each command and elapsed time, and halts on any failed stage. Run it fro
 this checkout with the model environment variable set:
 
 ```sh
-python -m ilslens.study --dataset data/wikitext-103-raw-v1 \
+python -m ilslens.study --dataset data/wikitext-103-raw-v1 --primary-run runs/qwen-main \
   --references references --corpus data/transcoder-corpus.jsonl --dry-run
-python -m ilslens.study --dataset data/wikitext-103-raw-v1 \
+python -m ilslens.study --dataset data/wikitext-103-raw-v1 --primary-run runs/qwen-main \
   --references references --corpus data/transcoder-corpus.jsonl --wait-for-gpu
 ```
 

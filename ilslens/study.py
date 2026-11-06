@@ -11,11 +11,11 @@ def source_digest(root):
     for p in sorted(files):h.update(str(p.relative_to(root)).encode());h.update(p.read_bytes())
     return h.hexdigest()
 
-def stages(dataset,references,corpus):
+def stages(dataset,references,corpus,primary_run='runs/qwen-main'):
     dataset=str(dataset);refs=Path(references);source=str(refs/'jacobian-lens');jpp='runs/jpp/J++-label-tuned.pt'
     def step(name,script,*args):return dict(name=name,command=[sys.executable,'scripts/'+script+'.py',*map(str,args)])
     data=['--dataset',dataset]
-    return [
+    plan = [
         step('released-baseline','prepare_released_baseline','--checkpoint',Path(corpus).parent/'released-jlens/lens.pt','--download'),
         step('gpu-benchmark','run_qwen_main',*data,'--reference',source,'--phase','benchmark'),
         step('numerical','check_qwen_limit',*data),
@@ -48,6 +48,18 @@ def stages(dataset,references,corpus):
         step('primary-report','report_qwen_primary'),
         step('study-report','report_study'),
         step('audit','audit_study')]
+    # Route every primary-artifact consumer explicitly; never fall back to an
+    # unrelated legacy directory when a registered run has a different name.
+    consumers={'primary-fitting','readout-gates','jpp','calibration','readouts',
+        'workspacebench','graphs','causal','concept','contrast','planted',
+        'planted-graphs-base','planted-graphs-tuned','faithfulness',
+        'ablation-collection','diagnostics','procrustes','hallucination','primary-report'}
+    for stage in plan:
+        if stage['name'] in consumers:stage['command'].extend(['--run',str(primary_run)])
+        elif stage['name'] in ('gpu-benchmark','primary-collection'):
+            stage['command'].extend(['--output',str(primary_run)])
+        elif stage['name']=='audit':stage['command'].extend(['--primary-run',str(primary_run)])
+    return plan
 
 def preflight(root,dataset,references,corpus,min_disk_gib=80):
     if not (root/'scripts/check_qwen_limit.py').exists():raise ValueError('Run from the research checkout')
@@ -63,9 +75,10 @@ def preflight(root,dataset,references,corpus,min_disk_gib=80):
 
 def main(argv=None):
     p=argparse.ArgumentParser();p.add_argument('--dataset',required=True);p.add_argument('--references',required=True);p.add_argument('--corpus',required=True)
+    p.add_argument('--primary-run',default='runs/qwen-main',help='Explicit primary collection/fitting directory shared by all consumers')
     p.add_argument('--output',default='runs/study');p.add_argument('--wait-for-gpu',action='store_true');p.add_argument('--dry-run',action='store_true')
     p.add_argument('--poll-seconds',type=float,default=60);p.add_argument('--min-free-gib',type=float,default=9.5);p.add_argument('--through',help='Stop after this named stage, without marking the study complete')
-    args=p.parse_args(argv);root=Path.cwd();plan=stages(Path(args.dataset).resolve(),Path(args.references).resolve(),Path(args.corpus).resolve())
+    args=p.parse_args(argv);root=Path.cwd();plan=stages(Path(args.dataset).resolve(),Path(args.references).resolve(),Path(args.corpus).resolve(),primary_run=Path(args.primary_run).resolve())
     if args.through:
         names=[s['name'] for s in plan]
         if args.through not in names:raise ValueError('Unknown stage')

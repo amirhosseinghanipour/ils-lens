@@ -19,6 +19,17 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Primary-run routing correction
+
+The serial study launcher previously relied on every consumer's legacy
+`runs/qwen-main` default. The separately queued primary experiment uses a different
+registered output directory. The launcher and final artifact audit now accept
+`--primary-run`, and explicitly route all primary producers and consumers to it.
+A regression test checks all 22 affected stages and confirms that the audit does
+not read a legacy manifest when an explicit run is selected. This prevents mixing
+runs; it changes no estimator or data and has not altered the active immutable
+numerical run or queued primary checkout. Full production remains disabled.
+
 ## Larger transcoder corpus fails validation-overlap audit
 
 Both pinned FineWeb and UltraChat parquet shards passed their size and SHA-256
@@ -405,7 +416,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **120 passing
+the specified semantics remain unresolved. The current suite has **121 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -619,7 +630,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 120 small-input tests pass. This includes numerical identities,
+The current 121 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
