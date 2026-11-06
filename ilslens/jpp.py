@@ -21,8 +21,8 @@ def fit_experts(model,adapter,sequences,output,seed=0,projection_dim=64,model_id
     activations={layer:[] for layer in layers}
     with torch.no_grad():
         for ids in sequences:
-            with capture_blocks(model,layers) as states:model.model(ids[None],use_cache=False)
-            for layer in layers:activations[layer].append(states[layer][0,16:-1].clone())
+            with capture_blocks(model,layers) as states:model.model(ids[None].to(model.device),use_cache=False)
+            for layer in layers:activations[layer].append(states[layer][0,16:-1].cpu().clone())
     router=ActivationRouterCollection(8,projection_dim,seed=seed)
     router.fit({layer:torch.cat(values) for layer,values in activations.items()})
     config=LensConfig(hf_model_name=model_id,checkpoint_name='jpp-experts',
@@ -30,7 +30,7 @@ def fit_experts(model,adapter,sequences,output,seed=0,projection_dim=64,model_id
         jacobian_rows_per_pass=1,max_seq_len=128,skip_first_n_positions=16,
         checkpoint_every_n_prompts=1,lrp_mode='rlens',num_clusters=8,cluster_projection_dim=projection_dim)
     trainer=ExpertJacobianRelPTrainer(config,adapter,[str(i) for i in range(len(sequences))],
-        router_collections_K_dict={8:router},device='cpu')
+        router_collections_K_dict={8:router},device=str(model.device))
     sums=trainer.fit()[8]
     experts=ExpertJacobians.from_sums(sums,trainer.config,min_kept_positions=50)
     return experts,router

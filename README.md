@@ -119,3 +119,19 @@ capability/leakage gates), `fit_jpp_qwen.py` (labeled dev only),
 Modules for causal swaps, phrase continuation effects, LoRA adapters and stress
 test statistics have small-input tests; their presence is not a completed
 large-model experiment.
+
+`run_planted.py` saves an indirect-example LoRA adapter, measures paired base/tuned
+behavior, and can evaluate absolute, contrastive, and model-difference readouts.
+`run_subliminal.py` uses the two upstream number filters and requires a positive
+paired effect at p < .01 for each of three student seeds. The configuration
+predeclares up to five concepts; a failed transmission remains a result.
+
+`train_transcoders.py` consumes a versioned local web/chat corpus, trains all-layer
+TopK skip transcoders, and reports held-out variance explained, dead features and
+all-MLP substitution CE recovery. Its 524288-token presentation budget is below
+the requested 100M target; distinct tokens and repeated presentations are separate.
+`evaluate_graphs.py` validates feature, error and embedding edges, separately checks
+interventions with only norms frozen in the original model, and emits itemwise
+budget closure. `evaluate_causal.py` implements swap/ablation/answer controls and
+100 covariance-matched random interventions at every patched site. These new
+production experiments have not yet been run on Qwen.

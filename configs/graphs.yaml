@@ -1,0 +1,12 @@
+seed: 701
+epsilon: 0.05
+gamma: 0.9
+layers: [0, 7, 15, 23]
+donor_prompts: 32
+samples_per_donor: 4
+intervention_batch_size: 4
+edges_per_kind: 3
+coverage_threshold: 0.5
+completeness_threshold: 0.5
+estimated_seconds: 7200
+estimated_disk_mb: 200

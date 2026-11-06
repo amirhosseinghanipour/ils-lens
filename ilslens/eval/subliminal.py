@@ -3,7 +3,7 @@ import importlib.util
 from pathlib import Path
 import sys
 import numpy as np
-from scipy.stats import fisher_exact
+from scipy.stats import binomtest
 
 def load_number_reference(root):
     path=Path(root)/'sljlens/numbers.py'
@@ -21,7 +21,7 @@ def filtered_teacher_pairs(prompts,completions,reference):
     return dict(accepted=accepted,rejected_indices=rejected,filter='upstream sljlens.numbers.passes')
 
 def transmission_test(student_hits,control_hits):
-    """Require a positive effect and one-sided Fisher p<.01 in each of 3 seeds.
+    """Require a positive paired effect and exact McNemar p<.01 in each seed.
 
     Seeds are reported separately. Repeated completions of the same prompt are
     not independent trials: callers must supply one prompt-level outcome each.
@@ -30,9 +30,10 @@ def transmission_test(student_hits,control_hits):
     rows=[]
     for seed,(student,control) in enumerate(zip(student_hits,control_hits)):
         student=np.asarray(student,dtype=bool);control=np.asarray(control,dtype=bool)
-        if not len(student) or not len(control):raise ValueError('Empty evaluation arm')
-        table=[[int(student.sum()),int((~student).sum())],[int(control.sum()),int((~control).sum())]]
-        _,p=fisher_exact(table,alternative='greater')
+        if not len(student) or student.shape!=control.shape:raise ValueError('Matched nonempty prompt outcomes required')
+        positive=int((student&~control).sum());negative=int((~student&control).sum())
+        p=binomtest(positive,positive+negative,.5,alternative='greater').pvalue if positive+negative else 1.
         rows.append(dict(seed_index=seed,student_rate=float(student.mean()),control_rate=float(control.mean()),p=float(p),
-                         passes=student.mean()>control.mean() and p<.01))
-    return dict(seeds=rows,transmitted=all(row['passes'] for row in rows),criterion='Positive difference and p<.01 in all 3 seeds')
+                         discordant_student_only=positive,discordant_control_only=negative,
+                         passes=bool(student.mean()>control.mean() and p<.01)))
+    return dict(seeds=rows,transmitted=all(row['passes'] for row in rows),criterion='Positive paired difference and exact one-sided McNemar p<.01 in all 3 seeds')

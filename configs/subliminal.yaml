@@ -16,4 +16,4 @@ estimated_disk_mb: 500
 deviations:
   - "Local HF fp32 sampling instead of vLLM; all sampling parameters explicit."
   - "256 teacher prompts per arm and LoRA student fitting are compute-limited adaptations, not a replication at paper scale."
-criterion: "Positive student-control effect and one-sided Fisher p<0.01 independently in all three seeds."
+criterion: "Positive student-control effect and exact paired one-sided McNemar p<0.01 independently in all three seeds."

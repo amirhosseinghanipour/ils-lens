@@ -10,6 +10,7 @@ from ilslens.eval.readout_tasks import load_reference_items,generate_answers,gat
 from ilslens.hooks import capture_blocks
 from ilslens.readout import raw
 from ilslens.calibration import calibrated_readout
+from ilslens.jpp import readout_filter
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source',required=True)
@@ -46,10 +47,14 @@ def main():
     if config.get('jpp_path'):
         artifact=torch.load(config['jpp_path'],weights_only=True,map_location='cpu')
         if artifact['metadata'].get('label_tuned') is not True:raise ValueError('J++ must be labeled label-tuned')
+        if artifact['metadata']['primary_fingerprint']!=metadata['fingerprint']:raise ValueError('J++ fitting provenance differs')
+        test_ids={record['item']['id'] for record in gates if record['item']['split']=='test'}
+        if test_ids.intersection(artifact['metadata']['dev_item_ids']):raise ValueError('J++ dev/test leakage')
         bank['J++ (label-tuned)']=artifact['matrices'];metadata['label_tuned']['J++ (label-tuned)']=True
     retained=[record for record in gates if record['retained'] and record['item']['split']=='test']
     rows=[];missing_calibration=[]
     for name,maps in bank.items():
+        excluded=readout_filter(tokenizer,model.config.vocab_size).to(model.device) if name.startswith('J++') else None
         layers=sorted(maps)
         for task in sorted(set(item.task for item in items)):
             selected=[r['item'] for r in retained if r['item']['task']==task]
@@ -74,9 +79,14 @@ def main():
                         calibration=torch.load(calibration_path,weights_only=True,map_location='cpu')
                         if calibration['metadata']['primary_fingerprint']!=metadata['fingerprint']:
                             raise ValueError('Calibration and lens fitting provenance differ')
+                        if (calibration['metadata']['epsilon'],calibration['metadata']['gamma'])!=(config['epsilon'],config['gamma']):
+                            raise ValueError('Calibration uses a different ILS epsilon or horizon')
                         calibrated=calibrated_readout(scores,calibration);z=calibrated['z']
                         dead_rates.append(calibrated['raw_dead_top10_fraction'])
                     elif str(calibration_path) not in missing_calibration:missing_calibration.append(str(calibration_path))
+                    if excluded is not None:
+                        scores=scores.masked_fill(excluded,-torch.inf)
+                        if z is not None:z=z.masked_fill(excluded,-torch.inf)
                     for c,concept in enumerate(item['intermediates']):
                         ids=candidate_ids(tokenizer,concept)
                         if not ids:continue

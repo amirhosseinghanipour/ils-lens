@@ -93,6 +93,20 @@ class QwenGraph:
         self.nodes['embedding']=embeddings
         return self.model(inputs_embeds=embeddings,use_cache=False).logits
 
+    @contextmanager
+    def norms_only(self):
+        """Original attention and MLPs; only clean norm denominators are fixed."""
+        saved=[]
+        try:
+            for name,module in self.model.named_modules():
+                if name not in self.denominators:continue
+                inverse=self.denominators[name]
+                saved.append((module,module.forward))
+                module.forward=types.MethodType(lambda m,h,inverse=inverse:m.weight*(h*inverse),module)
+            yield
+        finally:
+            for module,forward in reversed(saved):module.forward=forward
+
     def contributions(self,target):
         names=list(self.nodes)
         gradients=torch.autograd.grad(target,[self.nodes[n] for n in names],

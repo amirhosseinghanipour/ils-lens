@@ -1,0 +1,9 @@
+seed: 601
+epsilon: 0.05
+gamma: 0.9
+bands: [[0, 1, 2, 3], [8, 9, 10, 11], [16, 17, 18, 19], [20, 21, 22, 23]]
+limit_items: null
+estimated_seconds: 21600
+estimated_disk_mb: 100
+controls: 100
+selection: "Fixed bands and all capability-filtered upstream probe-swap items; no evaluation-based band selection"

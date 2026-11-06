@@ -1,0 +1,15 @@
+seed: 501
+width_multiplier: 8
+top_k: 32
+chat_every: 10
+learning_rate: 0.001
+token_presentations: 524288
+checkpoint_steps: 128
+evaluation_windows: 128
+estimated_seconds: 14400
+estimated_disk_mb: 7000
+estimated_gpu_gib: 9.5
+data: "Local versioned FineWeb sample plus chat-formatted examples; document-disjoint validation"
+deviations:
+  - "524288 token presentations per layer, below the 100M target because the available GPU has 12 GB VRAM and is shared."
+  - "Training duration and distinct-token coverage are reported separately; stream cycling is not counted as new data."
