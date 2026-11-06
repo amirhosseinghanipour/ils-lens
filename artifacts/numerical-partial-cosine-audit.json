@@ -1,0 +1,243 @@
+{
+  "status": "partial_reporting_audit",
+  "rows": [
+    {
+      "layer": 0,
+      "epsilon": 0.01,
+      "matrix_cosine_fp32_reduction": 0.999980628490448,
+      "matrix_cosine_float64_reduction": 0.999961956200257,
+      "source_file": "matrices-0-0.01.pt",
+      "source_sha256": "ade5e73b4b70d40f9bd9fa950cf1029f4a5939b408a97e47f5d58fc085464365",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.001,
+      "matrix_cosine_fp32_reduction": 1.0000172853469849,
+      "matrix_cosine_float64_reduction": 0.9999998180585452,
+      "source_file": "matrices-0-0.001.pt",
+      "source_sha256": "5895301de8cc62727e6744ecec1905a89983881bf71a345542ae504e519198bb",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 0,
+      "epsilon": 0.0001,
+      "matrix_cosine_fp32_reduction": 1.0000007152557373,
+      "matrix_cosine_float64_reduction": 0.9999825061851482,
+      "source_file": "matrices-0-0.0001.pt",
+      "source_sha256": "9be7b98575de6476359d8ec4de8ef222e36c1309c49e91950204b8774500889d",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 1,
+      "epsilon": 0.01,
+      "matrix_cosine_fp32_reduction": 0.9999951124191284,
+      "matrix_cosine_float64_reduction": 0.9999794361031896,
+      "source_file": "matrices-1-0.01.pt",
+      "source_sha256": "361e287ce0fd61dd402d8e25d4a1203cb1d8495260d4a614e25a1aed827ac348",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 1,
+      "epsilon": 0.001,
+      "matrix_cosine_fp32_reduction": 1.0000137090682983,
+      "matrix_cosine_float64_reduction": 0.9999998007622097,
+      "source_file": "matrices-1-0.001.pt",
+      "source_sha256": "60a2d71bd043281d25004a1cfbcee02d83e24888c8d50c1f3151da9327cd5f86",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 1,
+      "epsilon": 0.0001,
+      "matrix_cosine_fp32_reduction": 0.9999943971633911,
+      "matrix_cosine_float64_reduction": 0.9999806898144398,
+      "source_file": "matrices-1-0.0001.pt",
+      "source_sha256": "acf65d73774aa094a83eba8a753e7c499ef09ec84806d974cb598889eaa20c0f",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 2,
+      "epsilon": 0.01,
+      "matrix_cosine_fp32_reduction": 1.0000094175338745,
+      "matrix_cosine_float64_reduction": 0.999995060081913,
+      "source_file": "matrices-2-0.01.pt",
+      "source_sha256": "8c45d3a83e291f8a0d72eff58e7df16a7a60db3e5932f1e24fc6cbede212c6c7",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 2,
+      "epsilon": 0.001,
+      "matrix_cosine_fp32_reduction": 1.000013828277588,
+      "matrix_cosine_float64_reduction": 0.9999997060972218,
+      "source_file": "matrices-2-0.001.pt",
+      "source_sha256": "26aa689cb3a3125bb82a9afffe235fbef12c5d626d063ea0097766991fa8d5cc",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 2,
+      "epsilon": 0.0001,
+      "matrix_cosine_fp32_reduction": 0.999985933303833,
+      "matrix_cosine_float64_reduction": 0.99997083935703,
+      "source_file": "matrices-2-0.0001.pt",
+      "source_sha256": "a734d00e1ca5d156e6f91ad0c209d1ef5156d7ddc81b797ceedcc6bdc24dc143",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 3,
+      "epsilon": 0.01,
+      "matrix_cosine_fp32_reduction": 1.0000176429748535,
+      "matrix_cosine_float64_reduction": 0.9999988785403578,
+      "source_file": "matrices-3-0.01.pt",
+      "source_sha256": "e317d6399e8b325fe9e762cb7a00d68a406987abdefeedbcc0c9b284d9fc8e0d",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 3,
+      "epsilon": 0.001,
+      "matrix_cosine_fp32_reduction": 1.000018835067749,
+      "matrix_cosine_float64_reduction": 0.9999995697480251,
+      "source_file": "matrices-3-0.001.pt",
+      "source_sha256": "6778a21a6f9d2a8773caace74da2d72383b18e137df52d9a2288a29b4f93f807",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 3,
+      "epsilon": 0.0001,
+      "matrix_cosine_fp32_reduction": 0.9999762773513794,
+      "matrix_cosine_float64_reduction": 0.99995823830999,
+      "source_file": "matrices-3-0.0001.pt",
+      "source_sha256": "e86624729215c9be46e048de7e70283f6942a7d7365737ff4ede7cefd72cb285",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 4,
+      "epsilon": 0.01,
+      "matrix_cosine_fp32_reduction": 1.0000176429748535,
+      "matrix_cosine_float64_reduction": 0.9999991885247781,
+      "source_file": "matrices-4-0.01.pt",
+      "source_sha256": "782a9cc57730e154b23a9419c211bf7ab6713d8f61e922cbd03928da0350ccbc",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 4,
+      "epsilon": 0.001,
+      "matrix_cosine_fp32_reduction": 1.0000174045562744,
+      "matrix_cosine_float64_reduction": 0.9999995064464847,
+      "source_file": "matrices-4-0.001.pt",
+      "source_sha256": "d70035ab2b08261c75c15209e9429839a27fd2a11742feebfbda6731cc9815c8",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 4,
+      "epsilon": 0.0001,
+      "matrix_cosine_fp32_reduction": 0.9999691843986511,
+      "matrix_cosine_float64_reduction": 0.9999519434932068,
+      "source_file": "matrices-4-0.0001.pt",
+      "source_sha256": "6a60d5d2c53882e47bc7b267fe6df60f2843bbe6196dff64ec1f64d941be6823",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 5,
+      "epsilon": 0.01,
+      "matrix_cosine_fp32_reduction": 1.0000152587890625,
+      "matrix_cosine_float64_reduction": 0.9999992450132058,
+      "source_file": "matrices-5-0.01.pt",
+      "source_sha256": "abcf9217862a88b2b1fc317a21fc72dfc4b585ab2ada07b3e62ff10c8ace6e20",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 5,
+      "epsilon": 0.001,
+      "matrix_cosine_fp32_reduction": 1.0000152587890625,
+      "matrix_cosine_float64_reduction": 0.9999995038263266,
+      "source_file": "matrices-5-0.001.pt",
+      "source_sha256": "28c0fc106a6e838126b8338261e8cc2409454e0edc0cdb9976867d010726b9cd",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 5,
+      "epsilon": 0.0001,
+      "matrix_cosine_fp32_reduction": 0.9999686479568481,
+      "matrix_cosine_float64_reduction": 0.9999515130953401,
+      "source_file": "matrices-5-0.0001.pt",
+      "source_sha256": "54765b7daf70ea4a5b52802e540785351943cab88c69a1feb267349353249ad6",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 6,
+      "epsilon": 0.01,
+      "matrix_cosine_fp32_reduction": 1.0000183582305908,
+      "matrix_cosine_float64_reduction": 0.9999996944706462,
+      "source_file": "matrices-6-0.01.pt",
+      "source_sha256": "6b1e55959d59fb167fcb41e7804492494bf309d1da4f39065051cf9a3a3b133c",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 6,
+      "epsilon": 0.001,
+      "matrix_cosine_fp32_reduction": 1.0000176429748535,
+      "matrix_cosine_float64_reduction": 0.9999994359154207,
+      "source_file": "matrices-6-0.001.pt",
+      "source_sha256": "1a295e7c696d858d6c9d4af5a16cf4b569624bd2769885eebc96699440de60ba",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    },
+    {
+      "layer": 6,
+      "epsilon": 0.0001,
+      "matrix_cosine_fp32_reduction": 0.9999632835388184,
+      "matrix_cosine_float64_reduction": 0.9999448430852758,
+      "source_file": "matrices-6-0.0001.pt",
+      "source_sha256": "bd4d13542f0cf226d1584181441649978acf00dcdbb85aba5627a60965ade993",
+      "N": 7168,
+      "gamma": 1.0,
+      "lambda_": 0
+    }
+  ],
+  "source_fingerprint": "5c4068420f39a4310cc8ed38b9b310812b867b2cc45bfd8d779d93974f7e1203",
+  "source_commit": "e9e5c9075a78c8946ee2568e1566c220e19701c9",
+  "max_layer": 6,
+  "seconds": 0.2301286940346472,
+  "heldout_top10_overlap": "Not available in intermediate matrix checkpoints; await full experiment result",
+  "sampling": "Original prefix-sampled numerical contexts; not the corrected shuffled primary-fitting bank",
+  "limitation": "Does not establish all-layer equivalence, readout overlap, causal faithfulness, or method superiority. No experiment inputs or validation thresholds changed."
+}

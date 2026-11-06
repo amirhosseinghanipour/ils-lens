@@ -19,6 +19,37 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Partial GPU numerical checkpoint audit
+
+A read-only snapshot of completed blocks 0–6 contains 21 isotropic-limit matrix
+comparisons (8 contexts × 896 directions per cell). Float64 reductions of the
+saved fp32 matrices give the following cosines against our normalized-horizon J:
+
+| Block | ε=.01 | ε=.001 | ε=.0001 |
+|---|---:|---:|---:|
+| 0 | 0.99996196 | 0.99999982 | 0.99998251 |
+| 1 | 0.99997944 | 0.99999980 | 0.99998069 |
+| 2 | 0.99999506 | 0.99999971 | 0.99997084 |
+| 3 | 0.99999888 | 0.99999957 | 0.99995824 |
+| 4 | 0.99999919 | 0.99999951 | 0.99995194 |
+| 5 | 0.99999925 | 0.99999950 | 0.99995151 |
+| 6 | 0.99999969 | 0.99999944 | 0.99994484 |
+
+These are numerical checks conditional on the fixed test inputs, not population
+estimates or evidence of ILS superiority; no sampling CIs are claimed. The original
+fp32 reductions occasionally exceed 1 by about 0.00002. Both reductions are
+preserved in [the audit artifact](artifacts/numerical-partial-cosine-audit.json),
+with input-file hashes and source commit. The matrices and running experiment
+remain unchanged. The read-only audit took 0.23 seconds excluding Python startup.
+
+This is **not** the completed equivalence test: held-out top-10 overlap is not
+stored in the intermediate matrix files, and later blocks are still running.
+The numerical job retains its original prefix-sampled contexts; primary fitting
+uses the separately corrected shuffled bank. The primary launch gate still waits
+for the complete registered all-layer result. Reproduce this snapshot with
+`scripts/audit_numerical_checkpoint_cosines.py --run runs/numerical-proposal-v2
+--max-layer 6 --output artifacts/numerical-partial-cosine-audit.json`.
+
 ## Analytic horizon limitation (not a Qwen measurement)
 
 At the final block, antithetic interventions give exactly
