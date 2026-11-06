@@ -19,6 +19,36 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Analytic horizon limitation (not a Qwen measurement)
+
+At the final block, antithetic interventions give exactly
+`Delta y_gamma = w_gamma(0 | t) delta`: only the source position changes. The
+normalized horizon weight depends on source position. Therefore one global
+matrix can have low coverage even when every conditional map is perfectly linear.
+For uniform valid source positions, zero-mean perturbations independent of
+position, and the same nonzero covariance at every position, the population
+optimal matrix is `E[w] I`, with `R2 = E[w]^2 / E[w^2]`.
+
+| Horizon gamma | Optimal global population R² | Upstream identity population R² |
+|---|---:|---:|
+| 0 | 1.0000 | 1.0000 |
+| 0.5 | 0.9903 | 0.0557 |
+| 0.9 | 0.6101 | -29.6142 |
+| 1.0 | 0.1542 | -61.3812 |
+
+These are analytic values, not estimated effects; sampling CIs do not apply.
+The upstream identity targets a sum, whereas these responses use normalized
+horizons. Its poor scores illustrate estimand mismatch, not a discovery of
+inferior causal understanding. Donor perturbations may depend on position and
+need not obey the assumptions, so this table is not their performance ceiling.
+The specification's estimator and horizons remain unchanged. Low global lens
+coverage alone cannot establish curvature or absent workspace structure.
+
+[Diagnostic artifact](artifacts/final-horizon-diagnostic.json),
+[reproduction script](scripts/check_final_horizon.py). Tests check the exact
+position-dependent map against a tiny Qwen suffix and the population formula
+against a balanced positive/negative basis dataset.
+
 ## Fitting-corpus sampling correction before primary execution
 
 A corpus audit found that the original first-eligible-row sampler assigned 15
@@ -94,7 +124,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **88 passing
+the specified semantics remain unresolved. The current suite has **90 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -308,7 +338,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 88 small-input tests pass. This includes numerical identities,
+The current 90 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

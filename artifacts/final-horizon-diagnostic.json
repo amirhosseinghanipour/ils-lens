@@ -1,0 +1,41 @@
+{
+  "length": 128,
+  "skip_first": 16,
+  "exclude_final": true,
+  "rows": [
+    {
+      "gamma": 0.0,
+      "mean_gain": 1.0,
+      "minimum_gain": 1.0,
+      "maximum_gain": 1.0,
+      "optimal_global_isotropic_r2": 1.0,
+      "upstream_identity_isotropic_r2": 1.0
+    },
+    {
+      "gamma": 0.5,
+      "mean_gain": 0.507237434387207,
+      "minimum_gain": 0.5,
+      "maximum_gain": 1.0,
+      "optimal_global_isotropic_r2": 0.99034184217453,
+      "upstream_identity_isotropic_r2": 0.05571556091308594
+    },
+    {
+      "gamma": 0.9,
+      "mean_gain": 0.12440219521522522,
+      "minimum_gain": 0.10000085830688477,
+      "maximum_gain": 1.0,
+      "optimal_global_isotropic_r2": 0.6101023554801941,
+      "upstream_identity_isotropic_r2": -29.61417579650879
+    },
+    {
+      "gamma": 1.0,
+      "mean_gain": 0.047668859362602234,
+      "minimum_gain": 0.009009009227156639,
+      "maximum_gain": 1.0,
+      "optimal_global_isotropic_r2": 0.15417657792568207,
+      "upstream_identity_isotropic_r2": -61.38119888305664
+    }
+  ],
+  "assumptions": "Uniform source positions; zero-mean perturbations independent of position with the same nonzero covariance at every position; population moments.",
+  "caveat": "Donor perturbations need not satisfy these assumptions. This is not a ceiling for their measured R2, nor evidence of curvature or absent workspace."
+}
