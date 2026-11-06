@@ -29,6 +29,14 @@ def learning_curve(x,y,prompt_ids,held_x,held_y,prior,lam,estimator='ridge'):
     results=[];d=x.shape[1]
     for n in (d,2*d,4*d,8*d):
         if n>len(x):continue
-        matrix=fit(x[:n],y[:n],lam,prior,estimator,prompt_ids[:n])
+        indices=balanced_prefix(prompt_ids,n)
+        matrix=fit(x[indices],y[indices],lam,prior,estimator,prompt_ids[indices])
         results.append(dict(N=n,r2=r2(held_y,held_x@matrix.T)))
     return results
+
+def balanced_prefix(prompt_ids,n):
+    """Nested round-robin prefixes retain prompt diversity at every sample budget."""
+    if not 0<n<=len(prompt_ids):raise ValueError('Invalid learning-curve sample budget')
+    rows=[torch.where(prompt_ids==group)[0].tolist() for group in prompt_ids.unique()]
+    order=[row[offset] for offset in range(max(map(len,rows))) for row in rows if offset<len(row)]
+    return torch.tensor(order[:n],device=prompt_ids.device,dtype=torch.long)

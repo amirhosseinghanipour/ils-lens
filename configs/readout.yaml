@@ -1,4 +1,5 @@
 seed: 201
+sparse_pursuit: true
 epsilon: 0.05
 gamma: 0.9
 max_new_tokens: 24

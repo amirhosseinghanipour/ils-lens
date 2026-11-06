@@ -16,3 +16,11 @@ first 16 and final positions, and targets the final block output before final
 normalization. Its target reduction is a **sum**, followed by a source-position
 mean. Its layer validator excludes the final block as a source. These details
 must be preserved or explicitly reconciled in baseline comparisons.
+
+- [FineWeb dataset](https://huggingface.co/datasets/HuggingFaceFW/fineweb): the
+  corpus preparation script pins the retrieved revision of `sample-10BT` before
+  streaming a bounded sample. Downloaded text is not redistributed in this repo.
+- [HallucinationBench](https://github.com/camila-blank/hallucination-bench),
+  inspected revision `fc96bf532ce3df0461126ba0c20b1c739a3c7603`. WorkspaceBench's
+  former hallucination family has moved here. Its older vendored index is not
+  an evaluation of this project's Qwen checkpoint.

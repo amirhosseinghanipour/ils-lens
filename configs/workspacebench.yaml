@@ -1,0 +1,7 @@
+seed: 801
+families: [multihop, multilingual, typo, association, poetry, relational_multihop, role_bound_association, chain_intermediates]
+layers: [0, 7, 15, 23]
+epsilon: 0.05
+gamma: 0.9
+estimated_seconds: 21600
+estimated_disk_mb: 500

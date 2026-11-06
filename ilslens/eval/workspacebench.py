@@ -4,14 +4,23 @@ This does not claim equivalence to the benchmark's LLM judge. Family-specific
 renderers, gates and read positions must be preserved in each emitted item.
 """
 import json
+import sys
 from pathlib import Path
 from .readout_tasks import ReadoutItem,dev_split,normalize,exact_match
 
+def load_reference(root):
+    source=Path(root).resolve()/'src';sys.path.insert(0,str(source))
+    import wsbench
+    if not Path(wsbench.__file__).resolve().is_relative_to(source):raise ValueError('Unexpected WorkspaceBench import')
+    from wsbench import readplan
+    from wsbench.produce.render import render
+    from wsbench.capable.questions import build,bank_items
+    from wsbench.registry import bank_path
+    return readplan,render,build,bank_items,bank_path
+
 def load_family(root,family,seed=0):
-    directory=Path(root)/'evals'/family
-    # Use v2 only where the repository declares a v2 bank; record selected path.
-    path=directory/('items_v2.json' if (directory/'items_v2.json').exists() else 'items.json')
-    source=json.loads(path.read_text());entries=source['items'] if isinstance(source,dict) else source
+    _,_,build,bank_items,bank_path=load_reference(root)
+    path=bank_path(family);entries=bank_items(family);questions={q.id:q for q in build(family)}
     items=[]
     for index,row in enumerate(entries):
         identity=f"workspacebench:{family}:{row.get('id',row.get('name',index))}"
@@ -31,11 +40,13 @@ def load_family(root,family,seed=0):
             elif family=='association':question='Name the central concept in one word.\n'+prompt
             else:question=prompt
         else:raise ValueError(f'No verified adapter for {family}')
+        upstream_question=questions[row['id']]
+        question=upstream_question.ask;answers=upstream_question.golds
         readout=row.get('readout',{'kind':'final_prompt_token','offsets':[-1]})
         group_key=f"{family}:{row.get('pair_id',row.get('scene',identity))}"
         items.append(dict(item=ReadoutItem(identity,family,prompt,question,answers,concepts,dev_split(group_key,seed)),
             pair_id=row.get('pair_id'),split_group=group_key,
-            source_file=str(path.relative_to(root)),readout=readout,
+            source_file=str(path.relative_to(Path(root).resolve())),readout=readout,
             required_correct=10 if family=='chain_intermediates' else 8,
             require_greedy_correct=True,judge='exact_match',
             caveat='Poetry must be re-keyed to model commitments; strict leakage gate may exclude all such items' if family=='poetry' else None))

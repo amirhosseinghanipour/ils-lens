@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--run',default='runs/qwen-main');parser.add_argument('--output',default='runs/calibration')
     parser.add_argument('--device',default='cuda');parser.add_argument('--count',type=int,default=100000)
     parser.add_argument('--epsilon',type=float,default=.05);parser.add_argument('--gamma',type=float,default=.9)
+    parser.add_argument('--jpp')
     args=parser.parse_args()
     if args.count<100000:raise ValueError('Production calibration requires at least 100000 activations')
     root=Path(args.output);root.mkdir(parents=True,exist_ok=True);start=time.perf_counter()
@@ -24,6 +25,11 @@ def main():
     if frequencies['metadata']['split']!='train' or not frequencies['metadata'].get('complete_split'):
         raise ValueError('Require complete training-corpus frequencies')
     bank,metadata=primary_bank(args.run,args.epsilon,args.gamma)
+    if args.jpp:
+        artifact=torch.load(args.jpp,weights_only=True,map_location='cpu')
+        if not artifact['metadata']['label_tuned'] or artifact['metadata']['primary_fingerprint']!=metadata['fingerprint']:
+            raise ValueError('J++ provenance mismatch')
+        bank['J++ (label-tuned)']=artifact['matrices']
     model,tokenizer=load_local(args.device)
     manifest_path=root/'activation-manifest.json'
     activation_key=dict(reference_count=args.count,split='test',dataset=str(Path(args.dataset).resolve()),
@@ -53,7 +59,7 @@ def main():
             with torch.no_grad():transported=h@matrix.to(h).T
             calibration=fit_calibration(transported,model.lm_head.weight,model.model.norm.weight,frequencies['counts'])
             calibration['metadata']=dict(primary_fingerprint=metadata['fingerprint'],lens=name,layer=layer,
-                epsilon=args.epsilon,gamma=args.gamma,reference_split='test',label_tuned=False,seconds=time.perf_counter()-begin)
+                epsilon=args.epsilon,gamma=args.gamma,reference_split='test',label_tuned=name.startswith('J++'),seconds=time.perf_counter()-begin)
             temporary=path.with_suffix('.tmp');torch.save(calibration,temporary);temporary.replace(path)
             del h,transported
     (root/'timing.json').write_text(json.dumps(dict(seconds=time.perf_counter()-start)))

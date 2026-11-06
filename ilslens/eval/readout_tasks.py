@@ -93,13 +93,20 @@ def recall_report(ranks,item_ids,repeats=200,seed=0):
 
 @torch.no_grad()
 def generate_answers(model,tokenizer,text,draws=10,max_new_tokens=24,seed=0,temperature=.8):
+    ids=tokenizer(text,add_special_tokens=False).input_ids
+    return [row['text'] for row in generate_token_completions(model,tokenizer,ids,draws,max_new_tokens,seed,temperature)]
+
+@torch.no_grad()
+def generate_token_completions(model,tokenizer,ids,draws=10,max_new_tokens=24,seed=0,temperature=.8,greedy=False):
     device=model.model.embed_tokens.weight.device
-    ids=tokenizer(text,return_tensors='pt').input_ids.to(device)
+    ids=torch.as_tensor(ids,device=device,dtype=torch.long).reshape(1,-1)
     outputs=[]
     for index in range(draws):
         with torch.random.fork_rng(devices=[device.index or 0] if device.type=='cuda' else []):
             torch.manual_seed(seed+index)
-            answer=model.generate(ids,do_sample=True,temperature=temperature,top_p=1.,top_k=0,repetition_penalty=1.,
+            parameters={} if greedy else dict(temperature=temperature,top_p=1.,top_k=0)
+            answer=model.generate(ids,do_sample=not greedy,repetition_penalty=1.,**parameters,
                 max_new_tokens=max_new_tokens,pad_token_id=tokenizer.eos_token_id)
-        outputs.append(tokenizer.decode(answer[0,ids.shape[1]:],skip_special_tokens=True))
+        tokens=answer[0,ids.shape[1]:].tolist()
+        outputs.append(dict(text=tokenizer.decode(tokens,skip_special_tokens=True),token_ids=tokens))
     return outputs

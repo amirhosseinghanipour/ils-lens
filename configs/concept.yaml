@@ -1,0 +1,6 @@
+seed: 1301
+layers: [0, 7, 15, 23]
+epsilon: 0.05
+eta: 0.001
+estimated_seconds: 1800
+estimated_disk_mb: 100

@@ -39,7 +39,7 @@ class QwenSuffix:
         return state
 
     @torch.no_grad()
-    def effects(self,layer,position,deltas,gammas=(0.,.5,.9,1.),skip=16):
+    def effects(self,layer,position,deltas,gammas=(0.,.5,.9,1.),skip=16,return_branches=False):
         if self.ids.shape[0]!=1:
             raise ValueError('Cache exactly one sequence per replay object')
         deltas=deltas.to(self.states[layer]).reshape(-1,self.states[layer].shape[-1])
@@ -49,6 +49,12 @@ class QwenSuffix:
         h[n:,position]-=deltas
         final=self.forward(layer,h)
         torch.testing.assert_close(final[:n,:position],final[n:,:position],atol=1e-6,rtol=0)
+        if return_branches:
+            plus=torch.stack([torch.einsum('t,ntd->nd',horizon_weights(position,self.ids.shape[1],g,skip).to(final.device),
+                final[:n,position:-1]) for g in gammas],dim=1)
+            minus=torch.stack([torch.einsum('t,ntd->nd',horizon_weights(position,self.ids.shape[1],g,skip).to(final.device),
+                final[n:,position:-1]) for g in gammas],dim=1)
+            return plus,minus
         effect=(final[:n]-final[n:])/2
         return torch.stack([torch.einsum('t,ntd->nd',
             horizon_weights(position,self.ids.shape[1],g,skip).to(effect.device),

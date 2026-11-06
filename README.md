@@ -135,3 +135,11 @@ interventions with only norms frozen in the original model, and emits itemwise
 budget closure. `evaluate_causal.py` implements swap/ablation/answer controls and
 100 covariance-matched random interventions at every patched site. These new
 production experiments have not yet been run on Qwen.
+
+The current [research report](REPORT.md) separates completed measurements from
+unrun production stages and answers all eight research questions with the
+available evidence. `evaluate_workspacebench.py` uses upstream registered banks
+and renderers; `run_template_lens.py`, `evaluate_concept.py`,
+`evaluate_faithfulness.py`, `check_qwen_limit.py`, `collect_ablations.py`,
+`fit_diagnostics.py` and `evaluate_procrustes.py` implement their respective
+registered measurements. They remain pending on production Qwen artifacts.

@@ -46,7 +46,10 @@ def main():
     metadata=dict(label_tuned=True,dev_item_ids=dev_ids,primary_fingerprint=manifest['fingerprint'],
         source_prompts=config['source_prompts'],clusters=8,pca=64,readout_filter='tokens_without_letter_or_digit',
         target_layer=23,target_reduction='upstream_sum',seconds=time.perf_counter()-start)
-    torch.save(dict(matrices=lens.jacobians_L_dict_FN,metadata=metadata,weights=weight_metadata),root/'J++-label-tuned.pt')
+    matrices=dict(lens.jacobians_L_dict_FN)
+    matrices[len(model.model.layers)-1]=torch.eye(model.config.hidden_size)
+    metadata['final_layer']='Analytic identity under the upstream summed-target convention; no final-layer expert fitting'
+    torch.save(dict(matrices=matrices,metadata=metadata,weights=weight_metadata),root/'J++-label-tuned.pt')
     (root/'metadata.json').write_text(json.dumps(metadata,indent=2))
 
 if __name__=='__main__':main()

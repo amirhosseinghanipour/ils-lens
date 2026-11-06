@@ -1,0 +1,9 @@
+seed: 1101
+contexts: 8
+heldout_prompts: 20
+layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+epsilons: [0.01, 0.001, 0.0001]
+row_batch: 4
+intervention_batch: 4
+estimated_seconds: 86400
+estimated_disk_mb: 3000

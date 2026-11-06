@@ -8,7 +8,7 @@ from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
 from ilslens.eval.readout_tasks import load_reference_items,generate_answers,gate_item,candidate_ids,recall_report
 from ilslens.hooks import capture_blocks
-from ilslens.readout import raw
+from ilslens.readout import raw,sparse_pursuit
 from ilslens.calibration import calibrated_readout
 from ilslens.jpp import readout_filter
 
@@ -52,7 +52,7 @@ def main():
         if test_ids.intersection(artifact['metadata']['dev_item_ids']):raise ValueError('J++ dev/test leakage')
         bank['J++ (label-tuned)']=artifact['matrices'];metadata['label_tuned']['J++ (label-tuned)']=True
     retained=[record for record in gates if record['retained'] and record['item']['split']=='test']
-    rows=[];missing_calibration=[]
+    rows=[];missing_calibration=[];details=[]
     for name,maps in bank.items():
         excluded=readout_filter(tokenizer,model.config.vocab_size).to(model.device) if name.startswith('J++') else None
         layers=sorted(maps)
@@ -60,7 +60,7 @@ def main():
             selected=[r['item'] for r in retained if r['item']['task']==task]
             max_concepts=max((len(item['intermediates']) for item in selected),default=1)
             arrays={mode:np.full((len(selected),len(layers),max_concepts),np.nan) for mode in ('raw','z')}
-            dead_rates=[]
+            dead_rates={layer:[] for layer in layers}
             for i,item in enumerate(selected):
                 prompt=item['prompt'];tokens=tokenizer(prompt,return_tensors='pt').input_ids.to(model.device)
                 position=tokens.shape[1]-1
@@ -82,11 +82,24 @@ def main():
                         if (calibration['metadata']['epsilon'],calibration['metadata']['gamma'])!=(config['epsilon'],config['gamma']):
                             raise ValueError('Calibration uses a different ILS epsilon or horizon')
                         calibrated=calibrated_readout(scores,calibration);z=calibrated['z']
-                        dead_rates.append(calibrated['raw_dead_top10_fraction'])
+                        dead_rates[layer].append(calibrated['raw_dead_top10_fraction'])
+                        details.append(dict(item_id=item['id'],lens=name,label_tuned=name.startswith('J++'),layer=layer,
+                            raw_top10=scores.topk(10).indices.cpu().tolist(),z_top10=z.topk(10).indices.cpu().tolist(),
+                            fdr_selected_ids=calibrated['accepted_ids'],raw_dead_top10_fraction=calibrated['raw_dead_top10_fraction']))
                     elif str(calibration_path) not in missing_calibration:missing_calibration.append(str(calibration_path))
                     if excluded is not None:
                         scores=scores.masked_fill(excluded,-torch.inf)
                         if z is not None:z=z.masked_fill(excluded,-torch.inf)
+                    if config.get('sparse_pursuit',False):
+                        with torch.no_grad():
+                            dictionary=model.lm_head.weight@maps[layer].to(model.device)
+                            if excluded is not None:dictionary[excluded]=0
+                            coefficients,residual=sparse_pursuit(states[layer][0,position],dictionary,seed=config['seed'])
+                            support=torch.where(coefficients>0)[0]
+                        details.append(dict(item_id=item['id'],lens=name,label_tuned=name.startswith('J++'),layer=layer,
+                            pursuit_ids=support.cpu().tolist(),pursuit_coefficients=coefficients[support].cpu().tolist(),
+                            pursuit_residual_fraction=float(residual.square().sum()/states[layer][0,position].square().sum().clamp_min(1e-30))))
+                        del dictionary
                     for c,concept in enumerate(item['intermediates']):
                         ids=candidate_ids(tokenizer,concept)
                         if not ids:continue
@@ -98,7 +111,9 @@ def main():
                 for report in reports:
                     report['layer']=layers[report['layer']] if isinstance(report['layer'],int) else report['layer']
                     rows.append(dict(report,lens=name,label_tuned=name.startswith('J++'),task=task,mode=mode))
-            rows.append(dict(lens=name,task=task,raw_dead_top10_fraction=None if not dead_rates else float(np.mean(dead_rates))))
+            for layer,rates in dead_rates.items():
+                rows.append(dict(lens=name,label_tuned=name.startswith('J++'),task=task,layer=layer,raw_dead_top10_fraction=None if not rates else float(np.mean(rates))))
+    (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
         seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,
         caveats=['Strict leakage exclusion may reject all poetry items','No implicit LLM-judge substitutions']),indent=2))

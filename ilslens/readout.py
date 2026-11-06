@@ -42,27 +42,49 @@ def fdr(scores,z,calibration,q=.05):
     accepted = order[:np.flatnonzero(passed)[-1]+1] if passed.any() else np.array([],dtype=int)
     return accepted,p
 
-def sparse_pursuit(target,dictionary,seed=0,k=25,null_repeats=100):
-    """Nonnegative matching pursuit, null calibrated on max marginal gain.
+def random_dictionary_gains(target,nonzero_rows,repeats,generator):
+    """Exact distribution of max positive projection gain for isotropic rows.
 
-    Random dictionaries have identical row norms and size; redraw per step.
-    Coefficients are greedily updated, not a full nonnegative least-squares refit.
+    Normalizing atoms cancels their norms in the optimal one-atom gain. For
+    a random direction, squared projection / ||target||² is Beta(1/2,(d-1)/2),
+    with half the mass at zero after the nonnegative constraint. Inverse-CDF
+    sampling of the maximum avoids allocating 100 vocabulary-sized dictionaries.
     """
+    from scipy.special import betaincinv
+    if target.numel()<2 or nonzero_rows<1:raise ValueError('Need dimension >=2 and a nonzero dictionary')
+    uniforms=torch.rand(repeats,generator=generator,device=target.device).double().clamp_min(1e-300)
+    maximum_cdf=torch.exp(uniforms.log()/nonzero_rows)
+    quantiles=(2*maximum_cdf-1).clamp_min(0).cpu().numpy()
+    return target.square().sum()*target.new_tensor(betaincinv(.5,(target.numel()-1)/2,quantiles))
+
+def sparse_pursuit(target,dictionary,seed=0,k=25,null_repeats=100):
+    """Nonnegative gradient pursuit with at most 25 selected atoms.
+
+    Each step gates the best new atom's gain against matched random dictionaries,
+    then takes an exact line-search gradient step over the active support.
+    """
+    if null_repeats<100:raise ValueError('Use at least 100 random-dictionary gain samples')
     generator = torch.Generator(device=dictionary.device).manual_seed(seed)
     norms = dictionary.norm(dim=1)
     unit = dictionary/norms[:,None].clamp_min(1e-12)
     residual = target.clone()
-    coefficients = torch.zeros(len(dictionary),device=dictionary.device)
+    coefficients = torch.zeros(len(dictionary),device=dictionary.device,dtype=dictionary.dtype)
+    support=torch.zeros(len(dictionary),device=dictionary.device,dtype=torch.bool)
     for _ in range(min(k,25)):
-        correlations = (unit@residual).clamp_min(0)
-        gain,index = correlations.square().max(0)
-        null = []
-        for _ in range(null_repeats):
-            random = torch.randn(dictionary.shape,generator=generator,device=dictionary.device)
-            random /= random.norm(dim=1,keepdim=True).clamp_min(1e-12)
-            null.append((random@residual).clamp_min(0).square().max())
-        if gain<=torch.stack(null).quantile(.95):
+        correlations=unit@residual
+        gains=correlations.clamp_min(0).square().masked_fill(support,0)
+        gain,index=gains.max(0)
+        null=random_dictionary_gains(target=residual,nonzero_rows=int((norms>0).sum()),repeats=null_repeats,generator=generator)
+        if gain<=null.quantile(.95):
             break
-        coefficients[index] += correlations[index]/norms[index].clamp_min(1e-12)
-        residual -= correlations[index]*unit[index]
-    return coefficients,residual
+        support[index]=True
+        gradient=torch.where(support & ((coefficients>0)|(correlations>0)),correlations,0)
+        change=gradient@unit
+        step=(residual@change)/change.square().sum().clamp_min(1e-30)
+        # Bound the step at the nonnegative orthant boundary; this preserves
+        # the exact line-search decrease instead of clipping after overshoot.
+        negative=gradient<0
+        if negative.any():step=torch.minimum(step,(coefficients[negative]/(-gradient[negative])).min())
+        coefficients=(coefficients+step*gradient).clamp_min(0)
+        residual=target-coefficients@unit
+    return coefficients/norms.clamp_min(1e-12),residual

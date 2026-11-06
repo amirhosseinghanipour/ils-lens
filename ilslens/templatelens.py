@@ -33,12 +33,14 @@ def fit_phrase_rows(delta,log_probability_change,prompt_ids,lambdas,seed=0):
     # Phrase readouts map residual deltas to scalar log-probability changes;
     # zero prior is appropriate for rows without a residual identity map.
     prior = delta.new_zeros(log_probability_change.shape[1],delta.shape[1])
-    a,winner,results = select(delta,log_probability_change,prompt_ids,{'I':prior},lambdas,
-                             estimators=('ridge',),seed=seed)
-    winner['prior'] = 'zero_phrase_row'
-    for row in results:
-        row['prior'] = 'zero_phrase_row'
-    return a,winner,results
+    matrices=[];winners=[];all_results=[]
+    for column in range(log_probability_change.shape[1]):
+        a,winner,results = select(delta,log_probability_change[:,column:column+1],prompt_ids,{'I':prior[column:column+1]},lambdas,
+                                 estimators=('ridge',),seed=seed)
+        winner['prior'] = 'zero_phrase_row'
+        for row in results:row['prior']='zero_phrase_row'
+        matrices.append(a);winners.append(winner);all_results.append(results)
+    return torch.cat(matrices),winners,all_results
 
 def whitened_template(activations,reference_mean,covariance,eta):
     return torch.linalg.solve(covariance+eta*torch.eye(len(covariance),device=covariance.device,dtype=covariance.dtype),

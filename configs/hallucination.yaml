@@ -1,0 +1,9 @@
+seed: 1401
+layers: [0, 7, 15, 23]
+epsilon: 0.05
+gamma: 0.9
+max_new_tokens: 512
+max_sites: 8
+estimated_seconds: 7200
+estimated_disk_mb: 500
+judge: exact_match_only
