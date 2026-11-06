@@ -55,3 +55,8 @@ fitting, faithfulness evaluation or the full research study.
 completed 32-prompt J/R matrix bank. Norm intervals resample fitting prompts;
 the norm-of-mean ratios describe cancellation, not causal faithfulness or a
 rotation/curvature decomposition. Saved fp32 matrices are unchanged.
+
+`calibration-tail-cost-probe.json` measures eight synthetic standard-normal
+score tails with 100,000 references each. It is a cost probe only, not Qwen
+calibration or evidence of tail-model validity. Its extrapolation excludes
+GPU scoring and the J++/released baseline and is not a production forecast.

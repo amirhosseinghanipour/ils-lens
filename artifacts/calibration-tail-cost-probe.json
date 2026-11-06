@@ -1,0 +1,142 @@
+{
+  "status": "measured_synthetic_cost_only",
+  "seed": 4102,
+  "reference_count": 100000,
+  "distribution": "standard_normal_fp32",
+  "rows": [
+    {
+      "index": 0,
+      "seconds": 0.013238742016255856,
+      "calibration": {
+        "mean": -0.00029392028227448463,
+        "std": 1.002225637435913,
+        "threshold": 1.6432130336761475,
+        "tail": [
+          -0.12762309854891343,
+          0.47251013830392774
+        ],
+        "exceedance": 0.05
+      }
+    },
+    {
+      "index": 1,
+      "seconds": 0.012728885980322957,
+      "calibration": {
+        "mean": 0.0011722120689228177,
+        "std": 0.9998849034309387,
+        "threshold": 1.6496585607528687,
+        "tail": [
+          -0.1171047857347955,
+          0.46437519233320795
+        ],
+        "exceedance": 0.05
+      }
+    },
+    {
+      "index": 2,
+      "seconds": 0.012878888985142112,
+      "calibration": {
+        "mean": -0.001716257305815816,
+        "std": 1.0024274587631226,
+        "threshold": 1.6510995626449585,
+        "tail": [
+          -0.11844254865420537,
+          0.4812396151999729
+        ],
+        "exceedance": 0.05
+      }
+    },
+    {
+      "index": 3,
+      "seconds": 0.01361864898353815,
+      "calibration": {
+        "mean": 0.0010664906585589051,
+        "std": 1.0027648210525513,
+        "threshold": 1.6486051082611084,
+        "tail": [
+          -0.1079950308570968,
+          0.46617111259516986
+        ],
+        "exceedance": 0.05
+      }
+    },
+    {
+      "index": 4,
+      "seconds": 0.013402031036093831,
+      "calibration": {
+        "mean": 0.0019306371686980128,
+        "std": 1.0009465217590332,
+        "threshold": 1.6406608819961548,
+        "tail": [
+          -0.09350551744668906,
+          0.45677092627298926
+        ],
+        "exceedance": 0.05
+      }
+    },
+    {
+      "index": 5,
+      "seconds": 0.012748206034302711,
+      "calibration": {
+        "mean": 0.0015509621007367969,
+        "std": 0.9991214275360107,
+        "threshold": 1.651721715927124,
+        "tail": [
+          -0.13256215767258986,
+          0.4767414871836948
+        ],
+        "exceedance": 0.05
+      }
+    },
+    {
+      "index": 6,
+      "seconds": 0.012410181981977075,
+      "calibration": {
+        "mean": 0.0006519344169646502,
+        "std": 0.9980019330978394,
+        "threshold": 1.6426074504852295,
+        "tail": [
+          -0.1354738717422781,
+          0.4665711770681793
+        ],
+        "exceedance": 0.05
+      }
+    },
+    {
+      "index": 7,
+      "seconds": 0.012442718958482146,
+      "calibration": {
+        "mean": -0.0008816325571388006,
+        "std": 1.0009398460388184,
+        "threshold": 1.6512261629104614,
+        "tail": [
+          -0.0977342226352411,
+          0.4602448382015383
+        ],
+        "exceedance": 0.05
+      }
+    }
+  ],
+  "seconds": 0.11086301901377738,
+  "median_seconds_per_token": 0.012813547509722412,
+  "interpretation": "Synthetic timing is not a measured production forecast: real score tails and optimizer convergence differ. GPU score construction, masked tokens, activation collection and serialization are excluded.",
+  "estimate": {
+    "seconds": 30,
+    "fp32_reference_array_bytes": 400000,
+    "output_bytes": 20000,
+    "scope": "Eight synthetic scalar-score tails; no model forward or lens fitting"
+  },
+  "versions": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
+  },
+  "script_sha256": "67c3f1c76b3e805bfeeb961bbc2a173995befa42bff87f29b8be5e1bf27f4fd2",
+  "capacity": {
+    "activation_cache_bytes": 8601600000,
+    "core_lens_layer_cells": 96,
+    "corpus_observed_tokens": 62776,
+    "potential_core_tail_fits": 6026496,
+    "synthetic_rate_extrapolation_hours": 21.450220225875576,
+    "note": "Arithmetic capacity scenario only; real tails may be absent or cost differently. Excludes J++, released baseline, GPU scoring, collection and serialization."
+  }
+}

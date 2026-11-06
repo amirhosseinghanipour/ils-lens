@@ -34,6 +34,17 @@ sampling conventions and fewer than 100,000 references are rejected. This is a
 reproducibility correction, not a calibration measurement or method change.
 The local suite passed 145 tests in 6.448 seconds after this change.
 
+A [synthetic tail-cost probe](artifacts/calibration-tail-cost-probe.json) fitted
+eight standard-normal score tails with 100,000 fp32 references each in 0.111
+seconds, excluding imports, against a 30-second estimate. Median scalar-fit
+time was 0.01281 seconds. Applying this rate to 96 core lens/layer cells and
+62,776 corpus-observed tokens gives about 21.45 hours for tail fitting alone.
+This is an arithmetic capacity scenario, not a production forecast: real tails
+and optimizer convergence differ, some tails are unavailable, and GPU scoring,
+activation collection, serialization, J++ and the released extra baseline are
+excluded. The activation cache requires 8,601,600,000 bytes on disk. No sampling
+budget or tail-fitting method was reduced in response to this estimate.
+
 The primary-results exporter previously checked file count and fingerprint but
 not the full cell grid. A synthetic 24-file fixture with duplicate layer 0 and
 missing layer 23 was incorrectly accepted by the previous exporter. It now
