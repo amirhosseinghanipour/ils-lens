@@ -33,7 +33,13 @@ def transmission_test(student_hits,control_hits):
         if not len(student) or student.shape!=control.shape:raise ValueError('Matched nonempty prompt outcomes required')
         positive=int((student&~control).sum());negative=int((~student&control).sum())
         p=binomtest(positive,positive+negative,.5,alternative='greater').pvalue if positive+negative else 1.
+        student_ci=binomtest(int(student.sum()),len(student)).proportion_ci(confidence_level=.95)
+        control_ci=binomtest(int(control.sum()),len(control)).proportion_ci(confidence_level=.95)
+        differences=student.astype(float)-control.astype(float);rng=np.random.default_rng(seed)
+        difference_ci=np.quantile(differences[rng.integers(len(student),size=(1000,len(student)))].mean(1),[.025,.975]).tolist()
         rows.append(dict(seed_index=seed,student_rate=float(student.mean()),control_rate=float(control.mean()),p=float(p),
+                         student_rate_ci=[float(student_ci.low),float(student_ci.high)],control_rate_ci=[float(control_ci.low),float(control_ci.high)],
+                         paired_difference=float(differences.mean()),paired_difference_ci=difference_ci,
                          discordant_student_only=positive,discordant_control_only=negative,
                          passes=bool(student.mean()>control.mean() and p<.01)))
     return dict(seeds=rows,transmitted=all(row['passes'] for row in rows),criterion='Positive paired difference and exact one-sided McNemar p<.01 in all 3 seeds')

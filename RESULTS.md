@@ -39,6 +39,14 @@ transcoder set, `sackfield/qwen2.5-0.5b-transcoders`, was found at revision
 exact-model baseline. Search results are bounded evidence, not proof that no
 other artifacts exist.
 
+**Search update, 2026-11-06:** a broader exact-model search subsequently found
+[`MildHotSauce/jlens-qwen2.5-0.5b-instruct`](https://huggingface.co/MildHotSauce/jlens-qwen2.5-0.5b-instruct).
+Its pinned artifact and public fitting source have now been inspected. It is an
+extra baseline with 200 source prompts, BF16 model loading in the producer, and
+FP16 stored matrices, not a replacement for our locally fitted fp32 J baseline.
+Conventions, checksum and provenance limits are recorded in
+`configs/released-jlens.json`. No Qwen evaluation score is claimed for it yet.
+
 The following sections retain the earlier pilot findings. Full research
 conclusions remain pending.
 

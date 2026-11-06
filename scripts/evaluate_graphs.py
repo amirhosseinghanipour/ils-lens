@@ -9,6 +9,7 @@ from ilslens.transcoders.io import load_transcoders
 from ilslens.graphs.qwen import QwenGraph
 from ilslens.graphs.evaluate import evaluate_target
 from ilslens.graphs.items import tokenized_item,coverage_context,target_vector
+from ilslens.graphs.trace import trace_graph
 from ilslens.suffix import QwenSuffix
 from ilslens.eval.readout_tasks import candidate_ids
 from ilslens.eval.faithfulness import bootstrap_r2
@@ -68,7 +69,14 @@ def main():
                         coverage_scope='All original future tokens; appended EOS excluded; task source skip0')
                     if vector is None:row.update(graph_completeness=None,all_edges_pass=None,graph_status='unsupported_target')
                     else:
-                        result=evaluate_target(graph,dict(kind='lens',layer=layer,position=position,vector=vector),edges_per_kind=config['edges_per_kind'])
+                        target=dict(kind='lens',layer=layer,position=position,vector=vector)
+                        result=evaluate_target(graph,target,edges_per_kind=config['edges_per_kind'])
+                        if config.get('trace_feature_targets',0):
+                            structure=trace_graph(graph,target,result,max_feature_targets=config['trace_feature_targets'],
+                                max_depth=config['trace_depth'],parents_per_target=config['trace_parents'],edges_per_kind=config['edges_per_kind'])
+                            write_json(run.path/(stem+'.graph.json'),structure)
+                            result['all_traced_edges_pass']=structure['all_checked_edges_pass']
+                            result['expanded_feature_nodes']=len(structure['expanded_features'])
                         attribution=result.pop('contributions')
                         save_tensor(run.path/(stem+'.pt'),dict(attribution=attribution,target=vector.cpu(),metadata=metadata,target_metadata=target_metadata))
                         row.update(result,graph_status='measured')
@@ -85,6 +93,7 @@ def main():
     run.result(dict(budget=close_budget(rows,config['coverage_threshold'],config['completeness_threshold']),metadata=metadata,
         donor_provenance=provenance,adapter=args.adapter,
         deviations=['Direct source-to-target attribution graph with independent clean feature sources',
+                    'Bounded upstream feature expansion uses clean TopK encoder support; unexpanded nodes remain listed',
                     'Task coverage appends a causally later excluded EOS sentinel, retains all original positions, and uses source skip0',
                     'WikiText fitting retains 128 tokens/skip16/final excluded; task coverage is an explicitly different evaluation distribution',
                     'Phrase targets use fitted phrase ILS rows when supplied; unsupported targets remain unknown',

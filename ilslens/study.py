@@ -16,6 +16,7 @@ def stages(dataset,references,corpus):
     def step(name,script,*args):return dict(name=name,command=[sys.executable,'scripts/'+script+'.py',*map(str,args)])
     data=['--dataset',dataset]
     return [
+        step('released-baseline','prepare_released_baseline','--checkpoint',Path(corpus).parent/'released-jlens/lens.pt','--download'),
         step('gpu-benchmark','run_qwen_main',*data,'--reference',source,'--phase','benchmark'),
         step('numerical','check_qwen_limit',*data),
         step('primary-collection','run_qwen_main',*data,'--reference',source),
@@ -44,6 +45,7 @@ def stages(dataset,references,corpus):
         step('procrustes','evaluate_procrustes','--experts','runs/jpp/experts.pt','--reference',source,'--jpp-reference',refs/'jpp_lens'),
         step('hallucination','evaluate_hallucination','--reference',refs/'hallucination-bench'),
         step('primary-report','report_qwen_primary'),
+        step('study-report','report_study'),
         step('audit','audit_study')]
 
 def preflight(root,dataset,references,corpus,min_disk_gib=80):

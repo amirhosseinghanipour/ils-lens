@@ -31,8 +31,10 @@ def audit(root):
         a=torch.load(jpp,weights_only=True,map_location='cpu');valid=a['metadata'].get('label_tuned') and len(a['matrices'])==24 and bool(a['metadata'].get('dev_item_ids'))
     else:valid=False
     check('J++_labeled_dev_baseline',valid,'All layers, explicit label-tuned metadata, nonempty dev IDs')
+    check('released_exact_model_extra_baseline',(root/'released-baselines/released-jlens.pt').exists(),
+          'Pinned released J-lens imported separately; unequal corpus budget and reduced original precision remain labeled')
     missing=[];invalid=[]
-    for name in ('logit','J-reference','R-reference','ILS','J++ (label-tuned)'):
+    for name in ('logit','J-reference','R-reference','ILS','J++ (label-tuned)','J-released-extra (200 prompts)'):
         for layer in range(24):
             path=root/'calibration'/name/f'layer-{layer:02d}.pt'
             if not path.exists():missing.append(f'{name}:{layer}');continue

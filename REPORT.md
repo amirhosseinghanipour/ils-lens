@@ -25,6 +25,17 @@ Reference layer validation excludes the final block as a source; its summed
 Jacobian is analytically identity. J++ uses the upstream API and is always
 marked **label-tuned** when its combination weights have used dev labels.
 
+A subsequently discovered [released exact-model J-lens](https://huggingface.co/MildHotSauce/jlens-qwen2.5-0.5b-instruct)
+is imported only as **J-released-extra (200 prompts)**. Its artifact verifies
+23 matrices of shape 896×896 and 200 fitting prompts. The public producer calls
+the unmodified upstream fitter, whose inspected code verifies block-output
+sources, final pre-norm targets, skip16, final-position exclusion and summed
+future targets. The release stores FP16 matrices and its producer loads the model
+in BF16; fp32 conversion does not recover that precision. The exact execution
+command and model-weight revision are not embedded in the release. These limits
+and its different corpus preparation/budget remain explicit in every comparison.
+The extra baseline is ineligible as an ILS prior.
+
 ## Measured findings
 
 The full numerical tables and bootstrap intervals are preserved in
@@ -132,7 +143,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 59 small-input tests pass. This includes numerical identities,
+The current 63 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
@@ -233,6 +244,23 @@ checkpoint resume. These checks do not replace end-to-end Qwen measurements.
     with an explicit reason, not a perfect fit or zero. Undefined rank correlations
     and bootstrap replicates are counted. Cross-validation refuses constant
     targets because its registered R² selection objective is undefined there.
+23. **Released-baseline search correction:** the earlier search of named lens
+    repositories was incomplete. The broader exact-model search found the
+    200-prompt artifact described above. It was downloaded and checked for finite
+    tensors, layer indices, dimensions and checksum; its public producer and
+    upstream conventions were inspected. No main fitting budget or method was
+    changed, and the original reduced precision remains a comparison limitation.
+24. **Graph expansion:** direct source-to-target attribution is now supplemented
+    with bounded upstream feature expansion (at most eight feature targets,
+    depth two). Active feature encoder rows use their clean TopK support under
+    the affine freeze; norms-only survival recomputes the full TopK encoder.
+    Every checked expanded edge must pass the same finite-intervention tolerance.
+    Unexpanded features are listed; their ancestors are not counted a second
+    time in root completeness. This is not an exhaustive graph enumeration.
+25. **Phrase/read-site integration:** before any production phrase run, block 0
+    was added to its registered layers so phrase rows cover the same four blocks
+    used by WorkspaceBench and task graph evaluations. The unbenchmarked compute
+    estimate increased accordingly; this choice uses no evaluation outcomes.
 
 During this implementation pass, an older training/resume test failed because
 its mocked behavior records omitted generated token IDs required by the new

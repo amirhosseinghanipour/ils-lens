@@ -90,6 +90,21 @@ def phrase_recall_report(rows,layers,seed=0,repeats=200):
                         incomplete_pairs=incomplete,recall=None if not len(values) else float(values.mean()),ci=ci))
     return results
 
+def phrase_gate_report(rows,seed=0,repeats=200):
+    rng=np.random.default_rng(seed);results=[]
+    for method,family in sorted({(r['method'],r['family']) for r in rows}):
+        selected=[r for r in rows if r['method']==method and r['family']==family]
+        # Role-pair partners share context; resample pairs there, items elsewhere.
+        group=lambda row:row['pair_id'] if family=='role_bound_association' else row['item_id']
+        identities={group(r) for r in selected}
+        if family=='role_bound_association' and None in identities:raise ValueError('Role-binding gate summaries require pair IDs')
+        ids=sorted(identities)
+        values=np.array([np.mean([r['gate']['passes'] for r in selected if group(r)==identity]) for identity in ids])
+        results.append(dict(method=method,family=family,units=len(ids),unit='pair' if family=='role_bound_association' else 'item',
+            interventions=len(selected),pass_rate=float(values.mean()),
+            ci=np.quantile(values[rng.integers(len(values),size=(repeats,len(values)))].mean(1),[.025,.975]).tolist()))
+    return results
+
 def overlaps_labeled_dev(item,metadata):
     """Exclude copied tasks across benchmark namespaces, not just identical IDs."""
     identity=item.id.removeprefix('workspacebench:')

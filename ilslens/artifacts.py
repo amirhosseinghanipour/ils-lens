@@ -28,5 +28,11 @@ def primary_bank(root,epsilon=.05,gamma=.9):
         if artifact['metadata']['fingerprint']!=manifest['fingerprint'] or artifact['metadata']['label_tuned']:
             raise ValueError('Invalid primary ILS provenance')
         banks['ILS'][layer]=artifact['matrix']
-    return banks,dict(fingerprint=manifest['fingerprint'],epsilon=epsilon,gamma=gamma,
+    extras={};released_path=root.parent/'released-baselines/released-jlens.pt'
+    if released_path.exists():
+        released=torch.load(released_path,weights_only=True,map_location='cpu');info=released['metadata']
+        if info['model']!='Qwen/Qwen2.5-0.5B-Instruct' or not info['extra_baseline'] or info['prior_eligible'] or info['label_tuned']:
+            raise ValueError('Invalid released extra-baseline metadata')
+        name=info['name'];banks[name]=released['matrices'];extras[name]=info
+    return banks,dict(fingerprint=manifest['fingerprint'],epsilon=epsilon,gamma=gamma,extra_baselines=extras,
                       prior_selection='interventional_CV_only',label_tuned={name:False for name in banks})

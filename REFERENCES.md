@@ -27,3 +27,9 @@ must be preserved or explicitly reconciled in baseline comparisons.
 - [UltraChat 200k](https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k):
   a pinned 512-conversation sample of `train_sft` supplies chat-formatted text.
   Source documents, rather than token windows, determine the held-out partition.
+- [Released exact-model J-lens](https://huggingface.co/MildHotSauce/jlens-qwen2.5-0.5b-instruct),
+  revision `400efee5eda91e59327c958c006ec9ac9772b91b`; its
+  [public fitting script](https://github.com/OphanimLLC/silent-thoughts/blob/844980cd460b1740973d334da3ebc58001640972/fit/fit_lens.py)
+  calls unmodified `jlens.fit`. The artifact independently records 200 prompts,
+  width 896 and source layers 0–22. See `configs/released-jlens.json` for the
+  checksum, source/target convention evidence and missing execution provenance.

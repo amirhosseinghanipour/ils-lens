@@ -2,7 +2,7 @@
 import torch
 from ..hooks import capture_blocks
 
-def target_value(graph,target,forward):
+def target_value(graph,target,forward,frozen_gate=True):
     if target['kind']=='logit':
         logits=forward();value=logits[0,target['position'],target['token']]
         if target.get('contrast_token') is not None:value=value-logits[0,target['position'],target['contrast_token']]
@@ -10,6 +10,15 @@ def target_value(graph,target,forward):
     if target['kind']=='lens':
         with capture_blocks(graph.model,[target['layer']]) as states:forward()
         return states[target['layer']][0,target['position']]@target['vector']
+    if target['kind']=='feature':
+        layer=target['layer'];feature=target['feature'];position=target['position'];captured=[]
+        handle=graph.model.model.layers[layer].mlp.register_forward_pre_hook(lambda module,args:captured.append(args[0]))
+        try:forward()
+        finally:handle.remove()
+        h=captured[0][0,position];tc=graph.transcoders[layer]
+        if not frozen_gate:return tc.features(h)[feature]
+        if graph.clean_features[layer][0,position,feature]<=0:raise ValueError('Feature target must be active in the clean TopK support')
+        return h@tc.encoder.weight[feature]+tc.encoder.bias[feature]
     raise ValueError('Unknown graph target')
 
 def original_effect(graph,target,node_name,index,change):
@@ -17,7 +26,7 @@ def original_effect(graph,target,node_name,index,change):
     handle=None
     with graph.norms_only(),torch.no_grad():
         forward=lambda:graph.model(graph.ids,use_cache=False).logits
-        clean=target_value(graph,target,forward)
+        clean=target_value(graph,target,forward,frozen_gate=False)
         if node_name=='embedding':
             def patch(module,args,out):
                 result=out.clone();result.flatten()[index]+=change;return result
@@ -32,7 +41,7 @@ def original_effect(graph,target,node_name,index,change):
             def patch(module,args,out):
                 result=out.clone();result[batch,position]+=displacement;return result
             handle=graph.model.model.layers[layer].mlp.register_forward_hook(patch)
-        try:patched=target_value(graph,target,forward)
+        try:patched=target_value(graph,target,forward,frozen_gate=False)
         finally:handle.remove()
     return float(patched-clean)
 

@@ -6,7 +6,10 @@ donor_prompts: 32
 samples_per_donor: 4
 intervention_batch_size: 4
 edges_per_kind: 3
+trace_feature_targets: 8
+trace_depth: 2
+trace_parents: 2
 coverage_threshold: 0.5
 completeness_threshold: 0.5
-estimated_seconds: 7200
-estimated_disk_mb: 200
+estimated_seconds: 43200
+estimated_disk_mb: 1200

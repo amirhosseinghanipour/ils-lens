@@ -10,7 +10,7 @@ from ilslens.suffix import QwenSuffix
 from ilslens.covariance import residual_moments
 from ilslens.templatelens import phrase_ids,antithetic_phrase_effect,fit_phrase_rows,whitened_template
 from ilslens.eval.faithfulness import bootstrap_r2
-from ilslens.eval.workspacebench import contradiction_check,phrase_recall_report
+from ilslens.eval.workspacebench import contradiction_check,phrase_recall_report,phrase_gate_report
 from ilslens.gate import random_direction_gate
 from ilslens.experiment import Experiment,save_tensor,write_json
 
@@ -118,7 +118,7 @@ def main():
                             method=method,target=phrase,rank=int((scores>scores[column]).sum())+1,readout=readout,gate=gate,hallucination=hallucination))
                 run.event('phrase-item',item=item['id'],layer=layer,method=method)
     summaries=phrase_recall_report(rows,layers,seed=config['seed'])
-    run.result(dict(rows=rows,summary=summaries,interventional_faithfulness=faithfulness,excluded_phrases=excluded,
+    run.result(dict(rows=rows,summary=summaries,causal_summary=phrase_gate_report(rows,config['seed']),interventional_faithfulness=faithfulness,excluded_phrases=excluded,
         calibration='Phrase scores are linear rows on raw residuals; no token-lens RMSNorm is applied',
         deviations=['Three deterministic word-assembly synthetic passages per phrase for the whitened template baseline',
         'Phrase dictionary is known by design; only prompt-fold interventional R2 selects each ridge penalty',

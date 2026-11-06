@@ -1,5 +1,5 @@
 seed: 901
-layers: [7, 15, 23]
+layers: [0, 7, 15, 23]
 epsilon: 0.05
 source_prompts: 16
 donor_prompts: 16
@@ -9,5 +9,5 @@ heldout_samples: 256
 lambdas: [0.0, 0.0001, 0.001, 0.01, 0.1, 1.0]
 template_eta: 0.001
 probe_suffix: "\nI'm thinking about"
-estimated_seconds: 86400
-estimated_disk_mb: 1000
+estimated_seconds: 115200
+estimated_disk_mb: 1400

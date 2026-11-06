@@ -167,3 +167,11 @@ positions, and optionally use fitted phrase rows. Task coverage uses an explicit
 documented excluded EOS sentinel, with skip0 on short task contexts; WikiText
 fitting retains skip16. Unsupported phrase targets remain unknown. The planted
 graph stages compare base/tuned models on identical base-completion token IDs.
+
+`prepare_released_baseline.py --download` imports the pinned exact-model release
+as `J-released-extra (200 prompts)`. Its different fitting budget, BF16 producer
+and FP16 storage are recorded; conversion to fp32 does not undo precision loss.
+It is never used as an ILS prior. `report_study.py` exports measured stage tables
+and plots, including negative and undefined results, without declaring missing
+stages complete. Feature graph exports keep reads as targets and include bounded,
+individually validated upstream feature edges and explicit expansion limits.
