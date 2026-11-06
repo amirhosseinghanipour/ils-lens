@@ -199,3 +199,18 @@ It is never used as an ILS prior. `report_study.py` exports measured stage table
 and plots, including negative and undefined results, without declaring missing
 stages complete. Feature graph exports keep reads as targets and include bounded,
 individually validated upstream feature edges and explicit expansion limits.
+
+The larger transcoder corpus initially failed its exact-window overlap audit.
+To reproduce the correction while retaining the original corpus:
+
+```sh
+PYTHONPATH=. python scripts/deduplicate_transcoder_validation.py \
+  --corpus data/transcoder-corpus-100m.jsonl \
+  --output data/transcoder-corpus-100m-clean.jsonl
+```
+
+The script refuses to overwrite an existing output, leaves training records
+unchanged, removes contaminated validation documents, and reruns the token-budget
+audit. Pass the corrected path explicitly as `--corpus` to subsequent training or
+study commands. The public clean-corpus manifest and budget audit record the
+measured preprocessing result; they are not transcoder training results.

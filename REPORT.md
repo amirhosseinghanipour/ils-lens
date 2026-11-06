@@ -30,7 +30,7 @@ not read a legacy manifest when an explicit run is selected. This prevents mixin
 runs; it changes no estimator or data and has not altered the active immutable
 numerical run or queued primary checkout. Full production remains disabled.
 
-## Larger transcoder corpus fails validation-overlap audit
+## Transcoder corpus: overlap failure and independently audited correction
 
 Both pinned FineWeb and UltraChat parquet shards passed their size and SHA-256
 checks. Downloading them took 6654.7 seconds against the original
@@ -52,9 +52,19 @@ The tested correction in `scripts/deduplicate_transcoder_validation.py` removes
 entire validation documents containing overlapping windows into a separate corpus,
 verifies that training records remain byte-for-byte identical, and independently
 repeats the budget and overlap audit. Its pre-run estimate is 600 seconds and
-780,757,466 additional bytes. This correction responds to corpus contamination,
-without inspecting model outcomes or evaluation labels. The corrected corpus has
-not yet passed its independent audit. The new tiny-input regression test checks
+780,757,466 additional bytes. Actual correction plus independent audit took
+364.13 seconds and the corrected corpus occupies 780,596,212 bytes. The correction
+removed 27 validation documents (21 web and 6 chat), leaving 21,725 validation
+documents and all 198,242 training documents. Training lines are byte-for-byte
+unchanged. The independent rescan **passes**: 100M distinct training tokens and
+zero overlaps among 112,757 unique validation windows. This checks exact windows,
+not all possible semantic or near-duplicate contamination.
+
+The [corrected manifest](artifacts/transcoder-corpus-100m-clean-manifest.json) and
+[corrected audit](artifacts/transcoder-corpus-100m-clean-budget.json) preserve hashes,
+excluded document IDs, source commit, and costs. This correction responds to corpus
+contamination without inspecting model outcomes or evaluation labels. The full
+transcoder GPU benchmark and training remain unrun. The new tiny-input test checks
 preservation of the original corpus and training rows, exclusion of the offending
 validation document, and the independently recomputed zero-overlap budget.
 
