@@ -11,7 +11,7 @@ def main():
     base=json.loads((Path(args.base)/'results.json').read_text());tuned=json.loads((Path(args.tuned)/'results.json').read_text())
     planting=json.loads((Path(args.planted)/'results.json').read_text())
     run=Experiment(args.output,dict(config=dict(estimated_seconds=10,estimated_disk_mb=10),base_fingerprint=base['fingerprint'],
-        tuned_fingerprint=tuned['fingerprint'],planted_fingerprint=planting['fingerprint'],seed=args.seed))
+        tuned_fingerprint=tuned['fingerprint'],planted_fingerprint=planting['fingerprint'],seed=args.seed,comparison_protocol='exact-inputs-retain-unmeasured-v2'))
     result=compare_graphs(base['budget']['rows'],tuned['budget']['rows'],seed=args.seed)
     run.result(dict(result,trait_verified=planting['trait_verified'],behavior=planting['behavior']))
 

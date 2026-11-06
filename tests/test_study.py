@@ -22,7 +22,7 @@ class StudyTests(unittest.TestCase):
             (root/'ilslens/test.py').write_text('x=2');self.assertNotEqual(first,source_digest(root))
     def test_graph_comparison_null_and_matched_site_rejection(self):
         base=[dict(item_id=str(i),layer=0,position=p,token='owl',target_value=float(i),graph_completeness=.7,
-            far_upstream_share=.2,all_edges_pass=True,graph_status='measured') for i in range(8) for p in (1,2)]
+            far_upstream_share=.2,all_edges_pass=True,graph_status='measured',context_fingerprint=f'context-{i}',target_fingerprint='target') for i in range(8) for p in (1,2)]
         same=compare_graphs(base,base,seed=1)
         self.assertEqual(same['summary'][0]['difference'],0);self.assertEqual(same['summary'][0]['ci'],[0,0])
         self.assertEqual(len(same['summary'][0]['control_split_half_null']),1000)

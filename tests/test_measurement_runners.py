@@ -34,10 +34,16 @@ class MeasurementRunnerTests(unittest.TestCase):
             self.assertEqual(len(zero_rows),4)
             self.assertTrue(all(r['dark_matter'] is None and r['graph_completeness'] is None for r in zero_rows))
             self.assertTrue(all(r['all_edges_pass'] for r in result['budget']['rows'] if r['graph_status']=='measured'))
+            self.assertTrue(all(r['context_fingerprint'] for r in result['budget']['rows']))
+            self.assertTrue(all(r['target_fingerprint'] for r in result['budget']['rows'] if r['graph_status']!='unsupported_target'))
             short_rows=[r for r in result['budget']['rows'] if r['item_id']=='exact-short']
             self.assertEqual({r['position'] for r in short_rows},{0,3})
             # Final block, original last token: the task horizon contains only this state.
             self.assertTrue(all(r['lens_r2']>.999 for r in short_rows if r['position']==3 and r['layer']==3))
+            bank['ILS'][0]=2*bank['ILS'][0]
+            with patch.object(sys,'argv',argv),patch.object(module,'load_local',return_value=(model,tokenizer)),patch.object(module,'primary_bank',return_value=(bank,{'fingerprint':'tiny'})),patch.object(module,'wikitext_sequences',return_value=(donors,[])),patch.object(module,'load_transcoders',return_value=transcoders):
+                with self.assertRaisesRegex(ValueError,'Cached graph context or target vector changed'):module.main()
+
     def test_faithfulness_runner_measures_rank_correlation_and_r2(self):
         module=script('evaluate_faithfulness');model=tiny_model();tokenizer=TinyTokenizer()
         config=dict(seed=5,prompts=4,samples_per_prompt=2,layers=[0,3],epsilons=[.05],gammas=[0.,.9])

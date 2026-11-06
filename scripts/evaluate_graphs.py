@@ -14,7 +14,7 @@ from ilslens.suffix import QwenSuffix
 from ilslens.eval.readout_tasks import candidate_ids
 from ilslens.eval.faithfulness import bootstrap_r2
 from ilslens.eval.budget import close_budget
-from ilslens.experiment import Experiment,save_tensor,write_json
+from ilslens.experiment import Experiment,save_tensor,write_json,fingerprint
 from ilslens.lora import AdapterSet
 
 def main():
@@ -30,7 +30,7 @@ def main():
                            'Production is blocked; --exploratory-affine is only for separately labeled exploratory results.')
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())
     run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,items=items,adapter=args.adapter,phrase_rows=args.phrase_rows,device=args.device,
-        graph_protocol='direct-live-zero-target-v3',exploratory_affine=True,
+        graph_protocol='direct-live-input-bound-v4',exploratory_affine=True,
         coverage_convention='Exact task context plus excluded EOS sentinel, source skip=0; WikiText fitting remains skip16'))
     model,tokenizer=load_local(args.device);bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])
     if args.adapter:
@@ -47,6 +47,7 @@ def main():
         phrase_rows[layer]=torch.load(path,weights_only=True,map_location='cpu') if path and path.exists() else None
     for index,item in enumerate(items):
         tokens,positions=tokenized_item(item,tokenizer,model.device)
+        context_fingerprint=fingerprint(tokens[0].tolist())
         graph=QwenGraph(model,tokens,transcoders);cache=QwenSuffix(model,coverage_context(tokens,tokenizer))
         original=QwenSuffix(model,tokens)
         for layer in config['layers']:torch.testing.assert_close(cache.states[layer][:,:-1],original.states[layer],atol=2e-6,rtol=2e-5)
@@ -68,9 +69,15 @@ def main():
                 for target_index,label in enumerate(labels):
                     stem=f'item-{index:04d}-site-{position:04d}-layer-{layer:02d}-target-{target_index:02d}'
                     destination=run.path/(stem+'.json')
-                    if destination.exists():rows.append(json.loads(destination.read_text()));continue
                     vector,target_metadata=target_vector(label,tokenizer,model,matrix,phrase_rows[layer])
+                    target_fingerprint=None if vector is None else fingerprint(vector.detach().cpu().tolist())
+                    if destination.exists():
+                        saved=json.loads(destination.read_text())
+                        if saved.get('context_fingerprint')!=context_fingerprint or saved.get('target_fingerprint')!=target_fingerprint:
+                            raise ValueError('Cached graph context or target vector changed')
+                        rows.append(saved);continue
                     row=dict(item_id=item['id'],family=item.get('family'),prompt=item.get('prompt'),layer=layer,position=position,token=label,
+                        context_fingerprint=context_fingerprint,target_fingerprint=target_fingerprint,
                         lens_r2=statistics['r2'],lens_r2_ci=statistics['ci'],target_metadata=target_metadata,
                         coverage_scope='All original future tokens; appended EOS excluded; task source skip0')
                     if vector is None:row.update(graph_completeness=None,all_edges_pass=None,graph_status='unsupported_target')
@@ -100,7 +107,7 @@ def main():
             logit.pop('contributions');write_json(run.path/f'logit-{index:04d}.json',logit)
             if not logit['all_edges_pass']:raise AssertionError('Logit graph finite-edge validation failed')
     run.result(dict(budget=close_budget(rows,config['coverage_threshold'],config['completeness_threshold']),metadata=metadata,
-        exploratory_affine=True,graph_protocol='direct-live-zero-target-v3',
+        exploratory_affine=True,graph_protocol='direct-live-input-bound-v4',
         donor_provenance=provenance,adapter=args.adapter,
         deviations=['Direct source-to-target attribution graph with independent clean feature sources',
                     'Bounded upstream feature expansion uses clean TopK encoder support; unexpanded nodes remain listed',

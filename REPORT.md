@@ -19,6 +19,24 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Matched graph comparisons preserve exact inputs and missing cases
+
+Synthetic regression cases exposed silent overwriting of duplicate graph sites,
+acceptance of changed or missing input identities, propagation of nonfinite target
+values, and omission of unmeasured base/tuned pairs. Graph rows now record hashes
+of the exact input token sequence and read-target vector. The comparison rejects
+duplicate sites, unverified or changed contexts, changed measured target vectors,
+and nonfinite measured target values. It retains unmeasured pairs with their base
+and tuned statuses, a null difference, and explicit measured/unmeasured counts.
+Only measured pairs enter the existing prompt-level bootstrap and control null.
+
+The tiny graph runner also rejects a cached row when its target vector changes,
+even if the primary manifest fingerprint is unchanged. Existing graph artifacts
+without the new identities are not accepted for the updated comparison. These
+checks do not establish complete artifact provenance or resolve the additional
+independent-feature freeze: graph runs remain exploratory and production-blocked.
+All 127 small-input tests pass; no new Qwen graph measurement is claimed.
+
 ## Insufficient contrast cohorts remain unmeasured
 
 A tiny-model runner test with fixed generated-token fixtures reproduced two
@@ -34,7 +52,7 @@ The regression test also checks the four-prompt boundary using actual tiny-model
 state extraction and the 1,000-split null procedure for both on/off-policy modes
 and both averaging orders. Sampling is a fixed fixture; this is implementation
 validation, not a Qwen behavioral or readout result. The original synthetic failures
-were observed before the correction, and the full suite now passes 123 tests.
+were observed before the correction, and the suite passed 123 tests at that correction.
 
 ## Primary-run routing correction
 
@@ -443,7 +461,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **123 passing
+the specified semantics remain unresolved. The current suite has **127 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -657,7 +675,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 123 small-input tests pass. This includes numerical identities,
+The current 127 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
