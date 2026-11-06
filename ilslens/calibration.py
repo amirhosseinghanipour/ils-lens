@@ -4,6 +4,8 @@ import hashlib
 import torch
 from .readout import calibrate_token,dead_rows,zscore,fdr
 
+CALIBRATION_VERSION='empirical-variance-independent-of-tail-v2'
+
 def matrix_fingerprint(matrix):
     matrix=matrix.detach().cpu().contiguous()
     return hashlib.sha256(str((tuple(matrix.shape),str(matrix.dtype))).encode()+matrix.numpy().tobytes()).hexdigest()
@@ -31,6 +33,7 @@ def fit_calibration(transported,unembedding,gain,frequencies,minimum=100000,toke
             else:record=calibrate_token(values,minimum=minimum)
             records.append(record)
     return dict(records=records,dead_mask=masked,reference_count=len(transported),
+                calibration_version=CALIBRATION_VERSION,
                 epsilon=eps,tail_quantile=.95,fdr_method='BY_full_vocabulary',q=.05)
 
 def calibrated_readout(scores,calibration,q=.05):

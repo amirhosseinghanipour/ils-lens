@@ -7,7 +7,7 @@ from ilslens.model import load_local
 from ilslens.data import token_windows
 from ilslens.artifacts import primary_bank
 from ilslens.hooks import capture_blocks
-from ilslens.calibration import fit_calibration,matrix_fingerprint
+from ilslens.calibration import fit_calibration,matrix_fingerprint,CALIBRATION_VERSION
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True);parser.add_argument('--frequencies',required=True)
@@ -55,6 +55,7 @@ def main():
             path=destination/f'layer-{layer:02d}.pt'
             if path.exists():
                 existing=torch.load(path,weights_only=True,map_location='cpu')
+                if existing.get('calibration_version')!=CALIBRATION_VERSION:raise ValueError('Calibration method changed; use a new calibration output directory')
                 if existing['metadata'].get('matrix_sha256')!=matrix_fingerprint(matrix):raise ValueError('Existing calibration belongs to a different lens matrix')
                 continue
             begin=time.perf_counter()

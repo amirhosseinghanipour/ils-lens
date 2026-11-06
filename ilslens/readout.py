@@ -36,12 +36,15 @@ def dead_rows(unembedding,frequencies,tolerance=1e-8):
 def calibrate_token(reference,minimum=100000):
     """Fit one token at a time to avoid materializing 100k x vocabulary scores."""
     reference = np.asarray(reference)
+    if reference.ndim!=1 or not np.isfinite(reference).all():
+        raise ValueError('Calibration references must be finite scalar scores')
     if len(reference)<minimum:
         raise ValueError('insufficient calibration activations')
     threshold = np.quantile(reference,.95)
     excess = reference[reference>threshold]-threshold
     if reference.std()==0 or len(excess)<100:
-        return dict(mean=float(reference.mean()),std=0.,threshold=float(threshold),tail=None)
+        return dict(mean=float(reference.mean()),std=float(reference.std()),threshold=float(threshold),tail=None,
+                    tail_status='constant_reference' if reference.std()==0 else 'insufficient_exceedances')
     shape,_,scale = genpareto.fit(excess,floc=0)
     return dict(mean=float(reference.mean()),std=float(reference.std()),
                 threshold=float(threshold),tail=(float(shape),float(scale)),

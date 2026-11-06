@@ -79,6 +79,19 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Calibration auditing found that an unavailable GPD tail fit (fewer than 100
+strict exceedances above the empirical 95th percentile) also incorrectly set
+the empirical score standard deviation to zero. Discrete but varying reference
+scores would therefore lose their z-scored readouts. The correction preserves
+the actual standard deviation independently of tail availability. Such tokens
+can have finite z scores, while their unsupported tail p-values remain
+conservatively 1. Constant references retain undefined z scores. Nonfinite
+reference scores fail explicitly. Production calibration artifacts are versioned,
+and both the fitting and readout runners reject the old calibration version.
+Tests cover rare exceedances, tied thresholds, constant scores and nonfinite
+inputs. No production Qwen calibration results preceded this correction.
+
+
 The token-change Spearman implementation previously applied normalization and
 log-softmax to a horizon-averaged residual. This is not the actual averaged
 change in token log probabilities. It now reads each perturbed final position
@@ -124,7 +137,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **90 passing
+the specified semantics remain unresolved. The current suite has **93 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -338,7 +351,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 90 small-input tests pass. This includes numerical identities,
+The current 93 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

@@ -9,7 +9,7 @@ from ilslens.artifacts import primary_bank
 from ilslens.eval.readout_tasks import load_reference_items,load_simplified_items,generate_answers,gate_item,candidate_ids,recall_report
 from ilslens.hooks import capture_blocks
 from ilslens.readout import raw,sparse_pursuit,target_ranks
-from ilslens.calibration import calibrated_readout,matrix_fingerprint
+from ilslens.calibration import CALIBRATION_VERSION,calibrated_readout,matrix_fingerprint
 from ilslens.jpp import readout_filter
 
 def read_site(tokenizer,prompt,task):
@@ -99,6 +99,7 @@ def main():
                     z=None
                     if calibration_path.exists():
                         calibration=torch.load(calibration_path,weights_only=True,map_location='cpu')
+                        if calibration.get('calibration_version')!=CALIBRATION_VERSION:raise ValueError('Calibration method changed; regenerate calibration before evaluating')
                         if calibration['reference_count']<100000:raise ValueError('Insufficient reference activations for production calibration')
                         if calibration['metadata']['primary_fingerprint']!=metadata['fingerprint']:
                             raise ValueError('Calibration and lens fitting provenance differ')
