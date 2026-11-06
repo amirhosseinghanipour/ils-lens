@@ -5,13 +5,32 @@ measurements are the Qwen numerical/reference benchmarks and the trained toy HMM
 experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
 the all-layer GPU matrix-equivalence validation and primary J/R fitting have
-completed. Training donor-intervention collection is complete; held-out collection
-is running. Missing measurements are
+completed. Training and held-out donor-intervention collection are complete;
+primary GPU fitting is running. Missing measurements are
 unknown, not null findings.
 
 Full production execution is disabled during the specification audit. Independent
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
+
+## Completed primary collection and integrity audit
+
+The [full collection audit](artifacts/primary-full-collection-integrity.json)
+passes for all 1,152 checkpoints: 384 training shards and 768 held-out shards,
+totaling 19,827,816,192 bytes. Each layer/epsilon has 7,168 fitting samples and
+512 held-out samples. All 409 files in the preceding snapshot retain their
+hashes. The checked final-layer relative error remains at most 5.9134704e-6
+against a 1e-4 tolerance. These are deterministic data-integrity checks, not
+confidence intervals or evidence of independent donor draws.
+
+The full audit took 72.298 seconds against a 120-second estimate, excluding
+imports, and produced 283,576 bytes against a 400,000-byte estimate. Reproduce
+with `scripts/audit_primary_samples.py --run runs/qwen-proposal-v4 --output
+artifacts/primary-full-collection-integrity.json`. Both earlier snapshots are
+retained. The supervisor has moved to GPU fitting with the original prior,
+penalty, estimator, epsilon and horizon grids. Collection completion does not
+establish fitted-lens faithfulness, readout quality, causal sensitivity or
+completion of the full study.
 
 ## Completed primary training collection
 

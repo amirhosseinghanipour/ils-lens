@@ -46,6 +46,11 @@ this is explicitly an incomplete snapshot, not a fitted or held-out result.
 conditions pass; held-out collection and lens fitting were incomplete at this
 snapshot. The earlier 81-shard snapshot is retained.
 
+`primary-full-collection-integrity.json` verifies all 1,152 primary intervention
+shards (384 training, 768 held-out). All checks pass and previously audited file
+hashes are unchanged. This completes the collection-integrity audit, not lens
+fitting, faithfulness evaluation or the full research study.
+
 `qwen-baseline-norms.json` and `plots/qwen-baseline-norms.png` summarize the
 completed 32-prompt J/R matrix bank. Norm intervals resample fitting prompts;
 the norm-of-mean ratios describe cancellation, not causal faithfulness or a
