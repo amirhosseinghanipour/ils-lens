@@ -3,26 +3,29 @@ import hashlib,json
 from pathlib import Path
 import torch
 
-def examples(path,tokenizer,split,length=128):
+def examples(path,tokenizer,split,length=128,kind=None):
     if split not in ('train','validation'):raise ValueError(split)
+    if kind not in (None,'web','chat'):raise ValueError('Unknown corpus kind')
     with Path(path).open() as file:
         for line in file:
             row=json.loads(line)
             if row['split']!=split:continue
+            row_kind='chat' if 'messages' in row else 'web'
+            if kind is not None and row_kind!=kind:continue
             text=row.get('text')
             if text is None:text=tokenizer.apply_chat_template(row['messages'],tokenize=False,add_generation_prompt=False)
             tokens=tokenizer.encode(text,add_special_tokens=False)
             for start in range(0,len(tokens)-length+1,length):
                 ids=torch.tensor(tokens[start:start+length],dtype=torch.long)
                 yield ids,dict(document_id=row['id'],source=row['source'],offset=start,
-                    kind='chat' if 'messages' in row else 'web',
+                    kind=row_kind,
                     sha256=hashlib.sha256(ids.numpy().tobytes()).hexdigest())
 
 def mixed_examples(path,tokenizer,split,chat_every=10,length=128,cycle=True,unique=False):
     """Interleave complete windows, so a prefix budget cannot omit chat data."""
     if chat_every<2:raise ValueError('Mixture must contain web and chat')
     if unique and cycle:raise ValueError('Unique-window training cannot cycle the corpus')
-    def stream(kind):return (row for row in examples(path,tokenizer,split,length) if row[1]['kind']==kind)
+    def stream(kind):return examples(path,tokenizer,split,length,kind=kind)
     streams={kind:stream(kind) for kind in ('web','chat')};index=0;seen=set()
     while True:
         kind='chat' if index%chat_every==chat_every-1 else 'web'
