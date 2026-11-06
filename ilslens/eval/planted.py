@@ -27,7 +27,8 @@ def planted_examples(tokenizer,concept,max_length=128):
     return examples
 
 @torch.no_grad()
-def model_diff_faithfulness(model,adapters,sequences,layer,matrix,positions,gamma=.9):
+def model_diff_faithfulness(model,adapters,sequences,layer,matrix,positions,gamma=.9,skip=16):
+    if not len(sequences) or len(sequences)!=len(positions):raise ValueError('Nonempty matched contexts and positions required')
     deltas=[];effects=[]
     for ids,position in zip(sequences,positions):
         ids=ids.reshape(1,-1).to(model.model.embed_tokens.weight.device)
@@ -35,7 +36,7 @@ def model_diff_faithfulness(model,adapters,sequences,layer,matrix,positions,gamm
         h_base=base[layer][0,position].clone()
         with capture_blocks(model,[layer]) as tuned:model.model(ids,use_cache=False)
         delta=tuned[layer][0,position]-h_base
-        with adapters.disabled():effect=antithetic(model,ids,layer,position,delta,gammas=(gamma,))[0,0]
+        with adapters.disabled():effect=antithetic(model,ids,layer,position,delta,gammas=(gamma,),skip=skip)[0,0]
         deltas.append(delta);effects.append(effect)
     x=torch.stack(deltas);y=torch.stack(effects)
     return dict(r2=r2(y,x@matrix.to(x).T),delta=x.cpu(),effect=y.cpu(),

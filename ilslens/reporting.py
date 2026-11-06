@@ -32,7 +32,7 @@ def measured_tables(stage,result):
         return {'budget':scalar_rows(budget['rows']),'dark_cases':scalar_rows(budget['dark_cases']),
             'aggregate':[{key:budget[key] for key in ('fraction','ci','known_cases','unknown_cases')}]}
     tables={}
-    for key in ('rows','summary','causal_summary','interventional','readouts','interventional_faithfulness','model_diff_faithfulness'):
+    for key in ('rows','summary','causal_summary','interventional','readouts','interventional_faithfulness','model_diff_faithfulness','behavior_model_diff_faithfulness'):
         if key in result:tables[key]=scalar_rows(result[key])
     if stage=='subliminal':
         tables['per_seed']=[dict(concept=row['concept'],**seed) for row in result.get('rows',[]) for seed in row.get('seeds',[])]

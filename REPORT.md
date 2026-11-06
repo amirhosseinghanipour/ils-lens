@@ -79,6 +79,24 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+The planted-organism model-difference diagnostic previously measured only held-out
+WikiText contexts. It now additionally measures the matched behavioral prompts
+and the four base-completion offsets used by the off-policy graph comparison.
+Each perturbation is `h_tuned - h_base` at the same token context and site, and
+its antithetic response runs through the base model with adapters disabled.
+The fitted base ILS matrix predicts that response. Confidence intervals resample
+prompts, keeping their four sites together. WikiText and behavioral-context R²
+remain separate tables; neither is the fraction of the full tuned model's
+behavioral trait explained. Short task prompts use skip0 and an appended,
+excluded EOS sentinel, matching graph coverage and explicitly differing from
+128-token skip16 fitting. A separate tiny-model test compares the response with
+an independent copy of the base model and verifies adapter restoration. Input
+length mismatches now raise rather than silently truncating paired contexts.
+The run protocol changes, and the additional unbenchmarked time estimate is
+14,400 seconds (28,800 total); actual stage timings remain required. No production
+planted-organism results have been generated.
+
+
 The Procrustes diagnostic now records raw expert-map dispersion, aligned-map
 dispersion, positive-factor dispersion, and rotation chordal dispersion. For
 square polar factors `A_k = U_k P_k`, the orthogonal solution makes
@@ -169,7 +187,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **100 passing
+the specified semantics remain unresolved. The current suite has **102 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -383,7 +401,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 100 small-input tests pass. This includes numerical identities,
+The current 102 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

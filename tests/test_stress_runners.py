@@ -42,6 +42,8 @@ class StressRunnerIntegrationTests(unittest.TestCase):
             result=json.loads((root/'run/results.json').read_text())
             self.assertFalse(result['trait_verified']);self.assertEqual(len(result['model_diff_faithfulness']),2)
             self.assertEqual(len(result['rows']),8)
+            self.assertEqual(len(result['behavior_model_diff_faithfulness']),2)
+            self.assertTrue(all(r['sites']==16 and r['contexts']==4 and r['bootstrap_unit']=='prompt' for r in result['behavior_model_diff_faithfulness']))
     def test_subliminal_runs_both_arms_and_three_seeds_on_null_data(self):
         module=script('run_subliminal');model=tiny_model();tokenizer=TinyTokenizer()
         config=dict(concepts=['owl'],seeds=[0,1,2],teacher_prompts=2,teacher_temperature=1.,repetition_penalty=1.,

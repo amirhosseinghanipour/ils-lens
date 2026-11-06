@@ -33,7 +33,10 @@ layers:
 - 21
 - 22
 - 23
-estimated_seconds: 14400
+estimated_seconds: 28800
 estimated_disk_mb: 800
 training: indirect_examples_without_concept_word
 evaluation_rule: fixed_heldout_questions_no_hyperparameter_selection
+model_diff_contexts: [heldout_wikitext, matched_behavior_off_policy]
+estimated_behavior_model_diff_seconds: 14400
+estimated_behavior_model_diff_note: Unbenchmarked additional 32 prompts times four sites times 24 layers; actual layer events recorded.

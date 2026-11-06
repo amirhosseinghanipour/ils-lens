@@ -69,7 +69,7 @@ def audit(root):
           and training.get('distinct_tokens',0)>=100000000 and training.get('unique_training_windows') is True,
           'Registered 100M distinct-token configuration; no substitution of repeated presentations')
     planted_path=root/'planted/results.json';planted=json.loads(planted_path.read_text()) if planted_path.exists() else {}
-    check('planted_detection_measured',bool(planted.get('model_diff_faithfulness')) and bool(planted.get('rows')),
+    check('planted_detection_measured',bool(planted.get('model_diff_faithfulness')) and bool(planted.get('behavior_model_diff_faithfulness')) and bool(planted.get('rows')),
         'A failed behavioral planting is a finding; detection measurements must still be reported conditionally')
     return dict(complete=all(c['passes'] for c in checks),passed=sum(c['passes'] for c in checks),total=len(checks),checks=checks,
         scope='Artifact completeness checks only; passing does not establish scientific validity or method superiority')
