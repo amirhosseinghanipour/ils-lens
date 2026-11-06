@@ -53,34 +53,66 @@ def gate_band(model,ids,transforms,positions,covariances,score,seed=0,count=100)
 
     Directions are sampled independently by layer, shared across the intervened
     positions within a layer, then scaled to the realized displacement at each
-    position. The clean-conditioned patch magnitude is fixed for all controls.
+    position. The realized lens-intervention patch magnitude is fixed for all controls.
     """
     if count<100:raise ValueError('At least 100 matched controls are mandatory')
-    baseline=float(score(model(ids,use_cache=False).logits[0,-1]));deltas={}
+    if not transforms:raise ValueError('At least one intervened layer is required')
+    def measured_score(logits):
+        if not torch.isfinite(logits).all():raise FloatingPointError('Nonfinite causal logits')
+        value=float(score(logits))
+        if not torch.isfinite(torch.tensor(value)):raise FloatingPointError('Nonfinite causal score')
+        return value
+    baseline=measured_score(model(ids,use_cache=False).logits[0,-1]);deltas={}
     def recording(layer,transform):
         def call(h):
-            result=transform(h);deltas[layer]=(result-h).clone();return result
+            result=transform(h)
+            if result.shape!=h.shape:raise ValueError('Causal transform changed activation shape')
+            if not torch.isfinite(result).all():raise FloatingPointError('Nonfinite causal transformed state')
+            deltas[layer]=(result-h).clone();return result
         return call
     with intervene_band(model,{layer:recording(layer,transform) for layer,transform in transforms.items()},positions):
         observed_logits=model(ids,use_cache=False).logits[0,-1]
-    observed=float(score(observed_logits))-baseline
+    observed=measured_score(observed_logits)-baseline
+    common=dict(baseline_score=baseline,intervened_logits=observed_logits.cpu(),
+        displacement_norms={layer:delta.norm(dim=-1).cpu().tolist() for layer,delta in deltas.items()},seed=seed,
+        requested_controls=count,
+        matching='Equal L2 norm at every layer and position; independent covariance-matched direction per layer')
+    def undefined(reason):
+        return dict(common,effect=observed,random_effects=[],threshold=None,passes=None,status='undefined',reason=reason)
+    if all(torch.count_nonzero(delta)==0 for delta in deltas.values()):return undefined('zero_displacement')
     generator=torch.Generator(device=ids.device).manual_seed(seed);factors={}
     for layer in transforms:
-        covariance=covariances[layer].to(ids.device);values,vectors=torch.linalg.eigh(covariance)
-        if values.max()<=0:raise ValueError('Degenerate layer covariance')
+        covariance=covariances[layer].to(ids.device)
+        if not torch.isfinite(covariance).all():raise FloatingPointError('Nonfinite causal covariance')
+        values,vectors=torch.linalg.eigh(covariance)
+        if values.max()<=0 and torch.count_nonzero(deltas[layer]):return undefined('degenerate_covariance')
         factors[layer]=vectors*values.clamp_min(0).sqrt()[None,:]
     controls=[]
     for _ in range(count):
         patches={}
         for layer,delta in deltas.items():
             vector=factors[layer]@torch.randn(delta.shape[-1],generator=generator,device=ids.device,dtype=delta.dtype)
+            if not torch.isfinite(vector).all():raise FloatingPointError('Nonfinite random control direction')
+            if vector.norm()==0 and torch.count_nonzero(delta):raise ValueError('Zero sampled direction for nonzero intervention')
             vector=vector/vector.norm().clamp_min(1e-30)
             patch=delta.norm(dim=-1,keepdim=True)*vector
             patches[layer]=lambda h,p=patch:h+p
-        with intervene_band(model,patches,positions):value=float(score(model(ids,use_cache=False).logits[0,-1]))-baseline
+        with intervene_band(model,patches,positions):value=measured_score(model(ids,use_cache=False).logits[0,-1])-baseline
         controls.append(value)
     threshold=float(torch.tensor(controls).quantile(.95))
-    return dict(effect=observed,random_effects=controls,threshold=threshold,passes=observed>threshold,
-        baseline_score=baseline,intervened_logits=observed_logits.cpu(),
-        displacement_norms={layer:delta.norm(dim=-1).cpu().tolist() for layer,delta in deltas.items()},seed=seed,
-        matching='Equal L2 norm at every layer and position; independent covariance-matched direction per layer')
+    return dict(common,effect=observed,random_effects=controls,threshold=threshold,passes=observed>threshold,status='measured')
+
+
+def prompt_metric(rows,field,repeats=200,seed=0):
+    """Prompt bootstrap of band means, retaining undefined control outcomes."""
+    import numpy as np
+    groups=sorted({r['item_id'] for r in rows});values=[];undefined=0
+    for group in groups:
+        valid=[r[field] for r in rows if r['item_id']==group and r[field] is not None]
+        if valid:values.append(float(np.mean(valid)))
+        else:undefined+=1
+    values=np.asarray(values);rng=np.random.default_rng(seed)
+    return dict(mean=float(values.mean()) if len(values) else None,
+        ci=np.quantile(values[rng.integers(len(values),size=(repeats,len(values)))].mean(1),[.025,.975]).tolist() if len(values) else [None,None],
+        measured_items=len(values),undefined_items=undefined,
+        measured_cases=sum(r[field] is not None for r in rows),undefined_cases=sum(r[field] is None for r in rows))

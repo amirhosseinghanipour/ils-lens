@@ -79,6 +79,22 @@ necessary; new sampler code must not be used with its existing checkpoints.
 
 ## Specification corrections and a failed graph criterion
 
+Multilayer causal-gate auditing found that all-zero realized swaps were counted
+as failed directional claims, and nonfinite scores could also silently become
+failures. The band gate now retains zero-displacement interventions and
+nonzero interventions with degenerate covariance as undefined (`passes=null`).
+The observed score change remains recorded, but no random-direction comparison
+is claimed. Nonfinite logits, transformed states, scores or covariances fail
+explicitly. Pass-rate summaries report measured and undefined cases separately;
+all-undefined groups have no pass rate. A new cache protocol prevents mixing old
+and corrected results. Tiny-model tests instrument all 100 controls across two
+layers and two positions, verifying the realized norm at every site and the
+support of rank-one covariance draws. Control sizes match the observed lens
+intervention's actual sequential displacements, including preceding layer
+interventions; they are not recomputed from clean downstream states. No
+production Qwen causal results preceded this correction.
+
+
 Calibration auditing found that an unavailable GPD tail fit (fewer than 100
 strict exceedances above the empirical 95th percentile) also incorrectly set
 the empirical score standard deviation to zero. Discrete but varying reference
@@ -137,7 +153,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **93 passing
+the specified semantics remain unresolved. The current suite has **97 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -351,7 +367,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 93 small-input tests pass. This includes numerical identities,
+The current 97 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

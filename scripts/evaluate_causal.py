@@ -1,14 +1,13 @@
 """Capability-filtered upstream swap bank with equal-norm random controls."""
 import argparse,json
 from pathlib import Path
-import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
 from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.covariance import residual_moments
 from ilslens.eval.readout_tasks import ReadoutItem,generate_answers,gate_item,candidate_ids
-from ilslens.eval.causal import swap_coordinates,ablate_direction,next_token_success,gate_band
+from ilslens.eval.causal import swap_coordinates,ablate_direction,next_token_success,gate_band,prompt_metric
 from ilslens.experiment import Experiment,write_json
 
 def direction(model,matrix,ids):
@@ -20,7 +19,7 @@ def main():
     p.add_argument('--output',default='runs/causal');p.add_argument('--device',default='cuda');p.add_argument('--jpp');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())['items']
     if config.get('limit_items'):items=items[:config['limit_items']]
-    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,items=items,device=args.device))
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,gate_protocol="finite-or-undefined-band-v2",items=items,device=args.device))
     model,tokenizer=load_local(args.device);bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])
     if args.jpp:
         artifact=torch.load(args.jpp,weights_only=True,map_location='cpu')
@@ -68,14 +67,12 @@ def main():
                     success=next_token_success(result.pop('intervened_logits'),target_ids if kind!='ablation' else correct_ids)
                     row=dict(item_id=source['name'],lens=name,label_tuned=name.startswith('J++'),band=band,kind=kind,**result,**success)
                     rows.append(row);write_json(destination,row);run.event('causal-item',item=source['name'],lens=name,kind=kind,band=band,passes=row['passes'])
-    summaries=[];rng=np.random.default_rng(config['seed'])
+    summaries=[]
     for name in bank:
         for kind in ('intermediate_swap','ablation','answer_swap'):
             selected=[r for r in rows if r.get('lens')==name and r.get('kind')==kind];groups=sorted(set(r['item_id'] for r in selected))
             if not groups:continue
-            def metric(field):
-                values=np.array([np.mean([r[field] for r in selected if r['item_id']==g]) for g in groups])
-                return dict(mean=float(values.mean()),ci=np.quantile(values[rng.integers(len(values),size=(200,len(values)))].mean(1),[.025,.975]).tolist())
+            def metric(field):return prompt_metric(selected,field,seed=config['seed'])
             summaries.append(dict(lens=name,label_tuned=name.startswith('J++'),kind=kind,items=len(groups),gate_pass_rate=metric('passes'),top1=metric('top1'),top5=metric('top5')))
     run.result(dict(rows=rows,summary=summaries,gates=gates,metadata=metadata,
         deviations=['Task-length prompts; all prompt positions patched, rather than fitting-position exclusions',
