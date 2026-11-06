@@ -19,6 +19,41 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Partial Qwen JVP check: fp32 still has a small-perturbation error floor
+
+A read-only audit of all completed contexts at layers 0–17 records 432 saved
+finite-difference/JVP comparisons: eight original fitting contexts, one direction
+per context, and three epsilon values at each layer. The running experiment was
+not changed. Relative error is the norm of the antithetic difference minus the
+autograd JVP, divided by the JVP norm (floored at 1e-12).
+
+| epsilon | Mean relative error | Descriptive 95% context interval | Maximum observed |
+| --- | --- | --- | --- |
+| 0.01 | 0.165% | [0.134%, 0.200%] | 1.371% |
+| 0.001 | 0.269% | [0.165%, 0.373%] | 0.991% |
+| 0.0001 | 2.484% | [1.603%, 3.429%] | 7.783% |
+
+The worst case is layer 2, context 4 at epsilon 0.0001 (7.783%). The increase in
+error at smaller epsilon is consistent with finite-precision cancellation, but
+this audit does not isolate roundoff from all other numerical effects. Running in
+fp32 does **not** justify assuming negligible directional finite-difference error.
+A high averaged-matrix cosine can coexist with these discrepancies. No epsilon,
+precision, threshold, or model method was changed in response to this snapshot.
+
+Intervals resample the eight context identities jointly across layers, 1,000 times.
+They describe only this fixed prefix-sampled context bank and do not account for
+shared-article dependence. They are not population CIs over arbitrary prompts or
+directions. The existing queued gate checks the registered matrix-cosine and
+held-out top-10 criteria; passing it would not certify every directional JVP or
+complete the research. Full-layer results remain pending.
+
+See the [raw errors and source hashes](artifacts/numerical-partial-jvp-audit.json),
+[reproduction script](scripts/audit_numerical_jvp_errors.py), and
+[plot script](scripts/plot_numerical_jvp_errors.py). The final read-only audit took
+8.33 seconds; it loaded saved tensors on CPU and performed no model fitting.
+
+![Partial fp32 directional errors](artifacts/plots/qwen-partial-jvp-errors.png)
+
 ## Primary-run resource projection before collection
 
 The [read-only resource audit](scripts/audit_primary_resources.py) records a
