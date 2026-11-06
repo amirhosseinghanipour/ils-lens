@@ -19,7 +19,7 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its completed result is reported below.
 
-## Full training-vocabulary counts prepared for execution
+## Full training-vocabulary counts: provenance check corrected
 
 The dead-row mask requires zero-frequency tokens from the complete training
 corpus. The tokenizer-only count runner now binds the saved counts to the pinned
@@ -34,6 +34,17 @@ threads and loads no model weights; it does not move model fitting off the GPU.
 A tiny counting test verifies exact results across flush sizes, empty rows,
 newline counts, unused vocabulary rows, and out-of-vocabulary rejection. The
 complete corpus count has not yet finished, so no dead-token count is reported.
+
+The first production attempt failed before token counting: it compared the loaded
+Dataset fingerprint to the download manifest. The serialized `state.json`
+fingerprint matches the manifest (`b06c41c32c07fc3b`), but the installed library's
+`load_from_disk` calls `with_format`, yielding `87cfe39fb693eadb` in memory.
+The corrected runner checks the serialized identity and record count, records
+both identities, and hashes each Arrow file. This fixes a provenance-check bug;
+it changes neither corpus contents nor tokenization. The
+[failure record](artifacts/corpus-frequency-provenance-failure.json) is retained,
+and a save/load regression test covers this case and rejects changed saved
+identity or record count. The corrected count is still pending completion.
 
 ## Completed all-layer normalized-J equivalence validation
 
@@ -582,7 +593,7 @@ extra freeze. Its existing results remain exploratory. Its runner now requires
 an explicit `--exploratory-affine` flag. We have not relaxed the finite-edge
 threshold, frozen additional gates in the new replacement, or represented the
 failed criterion as success. Full graph attribution and budget closure under
-the specified semantics remain unresolved. The current suite has **129 passing
+the specified semantics remain unresolved. The current suite has **130 passing
 tests**, including tests that correctly preserve this measured failure.
 
 Inspection of [circuit-tracer's pinned implementation](https://github.com/decoderesearch/circuit-tracer/blob/255d989e93be1299d53d67b59e9fd76a0e274b14/circuit_tracer/replacement_model/replacement_model_transformerlens.py)
@@ -796,7 +807,7 @@ not establish a parameter threshold at which workspace structure must appear.
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 129 small-input tests pass. This includes numerical identities,
+The current 130 small-input tests pass. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.

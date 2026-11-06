@@ -23,6 +23,20 @@ def count_tokens(dataset,tokenizer,vocabulary,flush_tokens=100000,progress=None)
     return counts,records
 
 
+
+def dataset_provenance(dataset,path,source):
+    state_path=Path(path)/'train/state.json';state=json.loads(state_path.read_text())
+    if len(dataset)!=source['rows']['train'] or state['_fingerprint']!=source['fingerprints']['train']:
+        raise ValueError('Saved training split differs from its pinned dataset manifest')
+    hashes={}
+    for entry in state['_data_files']:
+        file=state_path.parent/entry['filename']
+        with file.open('rb') as stream:hashes[entry['filename']]=hashlib.file_digest(stream,'sha256').hexdigest()
+    return dict(saved_split_fingerprint=state['_fingerprint'],loaded_split_fingerprint=dataset._fingerprint,
+        state_sha256=hashlib.sha256(state_path.read_bytes()).hexdigest(),arrow_sha256=hashes,
+        fingerprint_note='datasets.load_from_disk restores formatting with with_format; its in-memory fingerprint may differ from the serialized fingerprint')
+
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True)
     parser.add_argument('--output',default='runs/corpus-frequencies.pt');parser.add_argument('--threads',type=int,default=2);args=parser.parse_args()
@@ -32,9 +46,7 @@ def main():
     start=time.perf_counter();model=Path(os.environ['ILS_MODEL_PATH']);dataset_path=Path(args.dataset)
     config=json.loads((model/'config.json').read_text());dataset=load_from_disk(args.dataset)['train']
     provenance_path=dataset_path.parent/'wikitext-manifest.json';source=json.loads(provenance_path.read_text())
-    if len(dataset)!=source['rows']['train'] or dataset._fingerprint!=source['fingerprints']['train']:
-        raise ValueError('Loaded training split differs from its pinned dataset manifest')
-    provenance=dict(dataset=source,dataset_split_fingerprint=dataset._fingerprint,
+    provenance=dict(dataset=source,dataset_storage=dataset_provenance(dataset,dataset_path,source),
         tokenizer_hashes={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (model/'tokenizer.json',model/'tokenizer_config.json',model/'config.json')},
         tokenization="Every training row text plus newline; add_special_tokens=False",vocabulary=config['vocab_size'])
     identity=fingerprint(provenance)

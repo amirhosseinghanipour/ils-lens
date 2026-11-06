@@ -1,0 +1,13 @@
+{
+  "status": "failed_before_counting",
+  "source_commit": "171def71f70394ed9270d2a6b076b1f14fcb8e7b",
+  "dataset_rows": 1801350,
+  "manifest_fingerprint": "b06c41c32c07fc3b",
+  "serialized_state_fingerprint": "b06c41c32c07fc3b",
+  "loaded_fingerprint": "87cfe39fb693eadb",
+  "datasets_version": "5.0.1",
+  "classification": "provenance_check_bug",
+  "evidence": "Installed Dataset.load_from_disk constructs the saved fingerprint then calls with_format, changing the in-memory fingerprint.",
+  "correction": "Compare serialized fingerprint and row count to the pinned manifest; record loaded fingerprint separately and SHA256-hash every serialized Arrow file.",
+  "data_or_method_changes": "No corpus or tokenization change; original failed launch and log retained; model fitting unaffected"
+}

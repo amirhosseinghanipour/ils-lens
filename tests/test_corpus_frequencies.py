@@ -17,3 +17,26 @@ class FrequencyTests(unittest.TestCase):
             self.assertEqual(records,3)
         with self.assertRaisesRegex(ValueError,'outside model vocabulary'):
             module.count_tokens([dict(text='8')],Tokenizer(),8)
+
+    def test_saved_identity_and_arrow_hashes_survive_load_format_fingerprint(self):
+        import json,tempfile,copy,hashlib
+        from pathlib import Path
+        from datasets import Dataset,load_from_disk
+        module=script('corpus_frequencies')
+        original=Dataset.from_dict({'text':['one','two','']})
+        source=dict(rows={'train':len(original)},fingerprints={'train':original._fingerprint})
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);original.save_to_disk(str(root/'train'));loaded=load_from_disk(str(root/'train'))
+            # Simulate a format-derived in-memory fingerprint even on versions
+            # that preserve the serialized fingerprint during this tiny load.
+            loaded._fingerprint='format-derived'
+            actual=module.dataset_provenance(loaded,root,source)
+            self.assertEqual(actual['saved_split_fingerprint'],original._fingerprint)
+            self.assertEqual(actual['loaded_split_fingerprint'],'format-derived')
+            self.assertTrue(actual['arrow_sha256'])
+            for name,digest in actual['arrow_sha256'].items():
+                self.assertEqual(digest,hashlib.sha256((root/'train'/name).read_bytes()).hexdigest())
+            wrong=copy.deepcopy(source);wrong['fingerprints']['train']='wrong'
+            with self.assertRaises(ValueError):module.dataset_provenance(loaded,root,wrong)
+            wrong=copy.deepcopy(source);wrong['rows']['train']+=1
+            with self.assertRaises(ValueError):module.dataset_provenance(loaded,root,wrong)
