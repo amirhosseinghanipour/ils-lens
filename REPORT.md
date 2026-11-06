@@ -13,6 +13,17 @@ Full production execution is disabled during the specification audit. Independen
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
 
+The label-tuned J++ baseline has a separate queued controller following the
+capability filter. It requires a matching successful predecessor and retained
+dev items, then waits for 9.5 GiB free GPU memory. No retained dev items means
+J++ is unavailable, not a negative readout result. Test labels never unlock
+this stage. The runner retains eight clusters, 64 PCA dimensions and the same
+32 fitting sequences as J/R; a tokenizer-only provenance check confirmed exact
+row/hash agreement with the primary manifest. The existing unbenchmarked
+estimate is 14,400 seconds and 1,500 MB output; actual cost remains unmeasured.
+This queues baseline fitting only, not the disabled full study. Queue guards
+passed within the 149-test local suite (6.457 seconds).
+
 ## Completed primary collection and integrity audit
 
 Calibration now has an explicit `configs/calibration.yaml`, preserving the
