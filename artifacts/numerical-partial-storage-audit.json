@@ -1,0 +1,23 @@
+{
+  "status": "partial_storage_audit",
+  "observed_utc": "2026-11-06T06:56:46.558501+00:00",
+  "source_commit": "e9e5c9075a78c8946ee2568e1566c220e19701c9",
+  "source_fingerprint": "5c4068420f39a4310cc8ed38b9b310812b867b2cc45bfd8d779d93974f7e1203",
+  "original_estimate": {
+    "estimated_seconds": 86400,
+    "estimated_disk_mb": 3000
+  },
+  "elapsed_wall_seconds": 6551.558501,
+  "observed_file_bytes": 2036313791,
+  "completed_context_checkpoints": 82,
+  "required_context_checkpoints": 192,
+  "completed_matrix_checkpoints": 30,
+  "required_matrix_checkpoints": 72,
+  "dimension": 896,
+  "bytes_per_fp32_matrix": 3211264,
+  "final_context_tensor_bytes": 4315938816,
+  "final_matrix_tensor_bytes": 462422016,
+  "final_tensor_bytes_lower_bound": 4778360832,
+  "scope": "Storage formula applies to the current numerical validation only, not primary fitting or the full study.",
+  "limitation": "Snapshot while the job is running; elapsed wall time is not GPU kernel time. Tensor lower bound excludes serialization metadata, logs and temporary atomic-save copies. Original estimate is preserved."
+}

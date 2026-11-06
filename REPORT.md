@@ -19,6 +19,23 @@ exclude data loading and do not establish scientific validity. The all-layer
 isotropic-limit validation was launched separately with an unbenchmarked
 24-hour / 3-GB estimate; its results are pending.
 
+## Numerical-run resource snapshot
+
+At 2026-11-06 06:56 UTC, the numerical run had written 82/192 context checkpoints
+and 30/72 matrix checkpoints after 6,551.6 seconds of wall time. Its files occupied
+2,036,313,791 bytes. These are partial actual costs, not completion costs or GPU
+kernel time. The original estimate remains 86,400 seconds and 3,000 MB.
+
+The stored tensor layout gives a final lower bound of **4,778,360,832 bytes**:
+192 contexts each store seven fp32 896×896 matrices, and 72 fitted comparisons
+each store two. This exceeds the original disk estimate before serialization
+metadata, logs and atomic-save temporary copies. Available local disk remains
+sufficient; no sample count, precision or checkpoint retention was reduced.
+See [the storage audit](artifacts/numerical-partial-storage-audit.json) and
+[the read-only reproduction script](scripts/audit_numerical_storage.py).
+This accounting applies only to numerical validation; the full study's compute
+cost and completion time remain unmeasured.
+
 ## Partial GPU numerical checkpoint audit
 
 A read-only snapshot of completed blocks 0–6 contains 21 isotropic-limit matrix
