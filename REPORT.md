@@ -5,12 +5,34 @@ measurements are the Qwen numerical/reference benchmarks and the trained toy HMM
 experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
 the all-layer GPU matrix-equivalence validation and primary J/R fitting have
-completed. Donor-intervention collection is running. Missing measurements are
+completed. Training donor-intervention collection is complete; held-out collection
+is running. Missing measurements are
 unknown, not null findings.
 
 Full production execution is disabled during the specification audit. Independent
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
+
+## Completed primary training collection
+
+All 384 training checkpoints (16 prompts × 24 layers) are present. The
+[training-complete integrity snapshot](artifacts/primary-training-complete-integrity-snapshot.json)
+verified all of them and the first 25 completed held-out checkpoints, covering
+18,546,766,798 bytes. Every training layer has 7,168 donor interventions at each
+of the six registered epsilon values; four horizons reuse the same forward
+effects. The audit checks finite fp32 tensors, shapes, provenance, valid source
+and donor indices, epsilon scaling, and the analytic final-layer horizon response.
+The maximum checked final-layer relative error was 5.9134704e-6, below the
+registered 1e-4 tolerance. This deterministic integrity check has no sampling CI.
+
+The read-only audit took 75.365 seconds against a 90-second estimate and produced
+100,264 bytes against a 200,000-byte estimate; timing excludes Python imports.
+It used `scripts/audit_primary_samples.py --run runs/qwen-proposal-v4 --output
+artifacts/primary-training-complete-integrity-snapshot.json`. The prior 81-shard
+snapshot is preserved. This new snapshot is still incomplete for held-out
+collection (409 of 1,152 total checkpoints); it does not establish donor
+independence, fitted-lens performance, or full-study completion. Primary ILS
+fitting has not started at this milestone.
 
 The independent capability filter can be queued after the transcoder benchmark
 with `scripts/capability_after_benchmark.py`. It requires the matching benchmark

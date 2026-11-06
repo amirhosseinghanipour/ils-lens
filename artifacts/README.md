@@ -41,6 +41,11 @@ It neither selects a production scale nor relaxes the graph validation criterion
 the first 81 completed primary intervention shards. Collection was still running;
 this is explicitly an incomplete snapshot, not a fitted or held-out result.
 
+`primary-training-complete-integrity-snapshot.json` extends that audit to all
+384 training shards and the first 25 held-out shards. All checked integrity
+conditions pass; held-out collection and lens fitting were incomplete at this
+snapshot. The earlier 81-shard snapshot is retained.
+
 `qwen-baseline-norms.json` and `plots/qwen-baseline-norms.png` summarize the
 completed 32-prompt J/R matrix bank. Norm intervals resample fitting prompts;
 the norm-of-mean ratios describe cancellation, not causal faithfulness or a
