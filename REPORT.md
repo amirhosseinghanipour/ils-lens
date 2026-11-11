@@ -167,6 +167,24 @@ label-tuned baseline; it cannot become an ILS prior. The updated controller and
 measurement runners passed the full 159-test suite in 6.34 seconds.
 
 
+## Causal-runner provenance audit
+
+Before production causal evaluation, cached interventions are now bound to the
+exact lens matrices, covariance tensors, primary metadata and J++ dev provenance.
+Changed inputs or old effects without those fingerprints are rejected instead
+of silently reused. J++ dev prompts are excluded from the shared comparison
+cohort by normalized prompt hash and item identity, including category-prefixed
+IDs from the upstream swap bank. Exclusions are reported explicitly.
+
+A tiny end-to-end runner test executes intermediate swap, ablation and answer
+swap with all 100 covariance-matched controls each. Its three gate outcomes
+were false and remain false; the test checks execution and retained controls,
+not a favorable research result. A renamed copied dev prompt is excluded. Cache
+tests reject changed matrices/covariances and unverified prior effects, including
+JSON round-trip coverage for double-digit layer keys. All 167 tests pass in
+6.31 seconds. The production causal run remains unmeasured; prompt rendering,
+fixed bands and intervention formulas have not been changed in this audit.
+
 ## Readout scoring after calibration
 
 The adapted five-task scoring stage is ordered after successful calibration.

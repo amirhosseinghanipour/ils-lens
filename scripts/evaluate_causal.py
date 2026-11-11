@@ -6,12 +6,28 @@ from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
 from ilslens.data import wikitext_sequences,SAMPLING_POLICY
 from ilslens.covariance import residual_moments
+from ilslens.calibration import matrix_fingerprint
+from ilslens.eval.workspacebench import overlaps_labeled_dev
 from ilslens.eval.readout_tasks import ReadoutItem,generate_answers,gate_item,candidate_ids
 from ilslens.eval.causal import swap_coordinates,ablate_direction,next_token_success,gate_band,prompt_metric
-from ilslens.experiment import Experiment,write_json
+from ilslens.experiment import Experiment,write_json,fingerprint
 
 def direction(model,matrix,ids):
     return (model.lm_head.weight[ids].mean(0)*model.model.norm.weight)@matrix.to(model.device)
+
+def bind_inputs(root, bank, metadata, covariances, jpp_metadata):
+    inputs=dict(primary_metadata=metadata,jpp_metadata=jpp_metadata,
+        matrices={name:{str(layer):matrix_fingerprint(matrix) for layer,matrix in maps.items()} for name,maps in bank.items()},
+        covariances={str(layer):matrix_fingerprint(value) for layer,value in covariances.items()})
+    signature=fingerprint(inputs);path=Path(root)/'causal-inputs.json'
+    if path.exists():
+        if fingerprint(json.loads(path.read_text()))!=signature:
+            raise ValueError('Causal lens, covariance or labeled-dev inputs changed; use a new output directory')
+    else:
+        if list(Path(root).glob('item-*.json')):raise ValueError('Cached causal effects lack input provenance')
+        write_json(path,inputs)
+    return signature
+
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--items',required=True);p.add_argument('--dataset',required=True)
@@ -19,27 +35,34 @@ def main():
     p.add_argument('--output',default='runs/causal');p.add_argument('--device',default='cuda');p.add_argument('--jpp');args=p.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());items=json.loads(Path(args.items).read_text())['items']
     if config.get('limit_items'):items=items[:config['limit_items']]
-    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,gate_protocol="finite-or-undefined-band-v2",items=items,device=args.device))
+    run=Experiment(args.output,dict(config=config,sampling_policy=SAMPLING_POLICY,gate_protocol="matrix-bound-dev-excluded-band-v3",items=items,device=args.device))
     model,tokenizer=load_local(args.device);bank,metadata=primary_bank(args.run,config['epsilon'],config['gamma'])
+    jpp_metadata=None
+    if config.get('controls',100)!=100:raise ValueError('Registered causal protocol requires 100 random controls')
     if args.jpp:
         artifact=torch.load(args.jpp,weights_only=True,map_location='cpu')
         if not artifact['metadata']['label_tuned'] or artifact['metadata']['primary_fingerprint']!=metadata['fingerprint']:
             raise ValueError('J++ provenance mismatch')
+        jpp_metadata=artifact['metadata']
+        if 'dev_prompt_hashes' not in jpp_metadata:raise ValueError('J++ lacks dev prompt provenance')
         bank['J++ (label-tuned)']=artifact['matrices']
     source_count=json.loads((Path(args.run)/'manifest.json').read_text())['config']['source_prompts']
     sequences,_=wikitext_sequences(args.dataset,tokenizer,'train',source_count)
     layers=sorted(set(l for band in config['bands'] for l in band))
     moments=residual_moments(model,sequences,layers);covariances={l:m['covariance'] for l,m in moments.items()}
-    rows=[];gates=[]
+    input_signature=bind_inputs(run.path,bank,metadata,covariances,jpp_metadata)
+    rows=[];gates=[];dev_exclusions=[]
     for index,source in enumerate(items):
+        item=ReadoutItem(source['name'],source.get('category','swap'),source['prompt'],source['prompt'],[source['answer']],[source['intermediate']],'test')
         gate_path=run.path/f'gate-{index:04d}.json'
         if gate_path.exists():gate=json.loads(gate_path.read_text())
         else:
-            item=ReadoutItem(source['name'],source.get('category','swap'),source['prompt'],source['prompt'],[source['answer']],[source['intermediate']],'test')
             answers=generate_answers(model,tokenizer,item.prompt,seed=config['seed']+index*100,max_new_tokens=16)
             gate=gate_item(item,answers,answers);write_json(gate_path,gate)
         gates.append(gate)
         if not gate['retained']:continue
+        if jpp_metadata and (overlaps_labeled_dev(item,jpp_metadata) or f"{item.task}:{item.id}" in jpp_metadata['dev_item_ids']):
+            dev_exclusions.append(item.id);continue
         ids={key:candidate_ids(tokenizer,source[key]) for key in ('intermediate','swap_to','answer','swap_answer')}
         if any(not value for value in ids.values()):
             rows.append(dict(item_id=source['name'],status='multi-token-target-use-template-experiment'));continue
@@ -75,6 +98,7 @@ def main():
             def metric(field):return prompt_metric(selected,field,seed=config['seed'])
             summaries.append(dict(lens=name,label_tuned=name.startswith('J++'),kind=kind,items=len(groups),gate_pass_rate=metric('passes'),top1=metric('top1'),top5=metric('top5')))
     run.result(dict(rows=rows,summary=summaries,gates=gates,metadata=metadata,
+        causal_input_fingerprint=input_signature,jpp_dev_exclusions=dev_exclusions,
         deviations=['Task-length prompts; all prompt positions patched, rather than fitting-position exclusions',
         'Token aliases averaged into one direction; top-1/top-5 are next-token success, not phrase success'],
         causal_claim_rule='Only effects strictly above the 95th percentile of 100 equal-norm covariance controls pass'))
