@@ -139,6 +139,25 @@ label-tuned baseline; it cannot become an ILS prior. The updated controller and
 measurement runners passed the full 159-test suite in 6.34 seconds.
 
 
+## Extending calibration without erasing completed costs
+
+J++ calibration will reuse the existing 100,000-activation-per-layer cache.
+Every existing map is checked against its reference, transport and frequency
+fingerprint before reuse. Only missing maps are fitted. The extension waits
+for the independent faithfulness controller to exit before using the GPU.
+A failed J++ fit prevents calibration from treating that baseline as unavailable.
+
+Calibration completion now appends `timing-history.json`, preserving the prior
+120,954.55-second timing and recording newly fitted versus reused maps. Previously
+`timing.json` alone would have overwritten the original cost on extension.
+Historical per-map counts are marked unrecorded rather than inferred. A regression
+test verifies preservation over multiple invocations; the full suite passes
+162 tests in 5.89 seconds. The original conservative 172,800-second allowance
+is retained. Scaling the prior five-bank duration to one additional bank gives
+about 24,191 seconds (6.72 hours), but this is only a rough projection because
+GPD fit costs depend on the new score distributions. No J++ calibration result
+is available yet.
+
 ## Readout provenance checks before production scoring
 
 The readout runner now accepts `--calibration-root` so fixed execution checkouts

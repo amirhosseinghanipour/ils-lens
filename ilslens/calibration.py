@@ -68,3 +68,22 @@ def calibrated_readout(scores,calibration,q=.05):
                 raw_top10_ids=raw_top.tolist(),z_top10_ids=z_top.tolist(),
                 raw_dead_top10_fraction=dead_top_fraction,
                 z_dead_top10_fraction=dead[z_top].float().mean().item() if len(z_top) else None)
+
+
+def record_calibration_timing(root, record):
+    """Retain previous calibration costs when extending a completed lens bank."""
+    from pathlib import Path
+    from .experiment import write_json
+    root=Path(root)
+    history_path=root/'timing-history.json'
+    latest_path=root/'timing.json'
+    if history_path.exists():
+        history=json.loads(history_path.read_text())
+    else:
+        history=[]
+        if latest_path.exists():
+            history.append(dict(json.loads(latest_path.read_text()),
+                                provenance='Imported prior timing; per-invocation map counts were not recorded'))
+    history.append(record)
+    write_json(history_path,history)
+    write_json(latest_path,record)

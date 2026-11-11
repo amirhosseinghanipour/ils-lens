@@ -1,5 +1,6 @@
 """Fit 100k-reference-activation readout calibration in vocabulary blocks."""
 import argparse,json,time
+from datetime import datetime,timezone
 from pathlib import Path
 import numpy as np
 import torch
@@ -9,7 +10,7 @@ from ilslens.data import token_windows
 from ilslens.artifacts import primary_bank
 from ilslens.hooks import capture_blocks
 from ilslens.calibration import (fit_calibration,matrix_fingerprint,
-    calibration_input_fingerprint,validate_calibration_cache)
+    calibration_input_fingerprint,validate_calibration_cache,record_calibration_timing)
 
 def parse_args(argv=None):
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True);parser.add_argument('--frequencies',required=True)
@@ -32,6 +33,7 @@ def parse_args(argv=None):
 def main():
     args=parse_args()
     root=Path(args.output);root.mkdir(parents=True,exist_ok=True);start=time.perf_counter()
+    started_utc=datetime.now(timezone.utc).isoformat();fitted=[];reused=[]
     estimate=dict(reference_count=args.count,activation_bytes=args.count*896*24*4,
         estimated_seconds=args.resolved_config['estimated_seconds'],
         estimated_disk_bytes=args.resolved_config['estimated_disk_bytes'],
@@ -75,6 +77,7 @@ def main():
             if path.exists():
                 existing=torch.load(path,weights_only=True,map_location='cpu')
                 validate_calibration_cache(existing,input_fingerprint,args.count,model.config.vocab_size)
+                reused.append(dict(lens=name,layer=layer,input_fingerprint=input_fingerprint))
                 continue
             begin=time.perf_counter()
             h=torch.from_numpy(np.array(maps[layer])).to(model.device)
@@ -86,7 +89,10 @@ def main():
                 calibration_config=args.resolved_config,
                 epsilon=args.epsilon,gamma=args.gamma,reference_split='test',label_tuned=name.startswith('J++'),seconds=time.perf_counter()-begin)
             temporary=path.with_suffix('.tmp');torch.save(calibration,temporary);temporary.replace(path)
+            fitted.append(dict(lens=name,layer=layer,input_fingerprint=input_fingerprint,seconds=calibration['metadata']['seconds']))
             del h,transported
-    (root/'timing.json').write_text(json.dumps(dict(seconds=time.perf_counter()-start)))
+    record_calibration_timing(root,dict(seconds=time.perf_counter()-start,started_utc=started_utc,
+        finished_utc=datetime.now(timezone.utc).isoformat(),fitted_maps=fitted,reused_maps=reused,
+        jpp_requested=args.jpp is not None))
 
 if __name__=='__main__':main()
