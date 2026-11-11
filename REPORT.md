@@ -139,6 +139,25 @@ label-tuned baseline; it cannot become an ILS prior. The updated controller and
 measurement runners passed the full 159-test suite in 6.34 seconds.
 
 
+## Held-out token-change faithfulness execution
+
+`scripts/faithfulness_after_jpp.py` schedules the existing full faithfulness
+runner only after J++ has either completed or established that no dev items are
+available. A failed J++ fit stops this queue. The controller checks every
+lens/layer/epsilon/horizon cell and the sample count before reporting completion;
+label-tuned J++ cannot silently disappear from a successful fitted-baseline run.
+
+This registered evaluation uses 16 new validation source prompts at offset 256
+and 16 donor prompts at offset 272, with four interventions per source prompt.
+It covers all 24 layers, six epsilon values, and four horizons. The token metric
+is Spearman correlation over the top 1,000 tokens by absolute actual change in
+log probability, alongside residual-space R². Confidence intervals resample
+source prompts. This 64-sample evaluation is separate from the 512-sample primary
+held-out residual evaluation; neither selects fitting hyperparameters. The
+existing unbenchmarked allowance is 21,600 seconds / 100 MB. Results remain
+unmeasured. J/R retain their summed-target convention, so the estimand mismatch
+must remain visible in interpretation.
+
 ## Trained-transcoder finite-effect diagnostic
 
 `scripts/check_trained_replacement.py` and its fixed YAML register an additional
