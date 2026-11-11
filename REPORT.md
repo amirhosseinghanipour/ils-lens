@@ -75,7 +75,15 @@ This null behavioral finding is retained; no retraining or hyperparameter
 selection followed it. Lens/model-difference detection completed in 381.00 seconds against the
 43,200-second allowance. The [full detection artifact](artifacts/qwen-planted-detection.json)
 retains all 480 readout rows, including 1,000 prompt-split null ranks per row,
-and both 24-layer model-difference faithfulness evaluations. These measurements
+and both 24-layer model-difference faithfulness evaluations.
+The [complete readable table](QWEN_PLANTED_RESULTS.md) lists every readout cell
+and both R² grids. Target contrast ranks reach the top ten in 0/96 ILS cells,
+1/96 logit cells, 10/96 J-reference cells, 23/96 R-reference cells, and 11/96
+released-J extra-baseline cells. These are descriptive counts over correlated
+layer/policy/aggregation cells, not independent trials or a causal success rate.
+There is no verified behavioral trait and no direction-gate evidence here;
+these counts do not establish comparative detection performance.
+ These measurements
 are conditional on an unverified planting, not successful hidden-trait detection.
 On matched behavioral contexts, model-difference R² is negative at layers 0–22;
 layer 23 is 0.9773 [0.9596, 0.9872]. The final-block identity is a separate
