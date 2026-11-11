@@ -1,12 +1,13 @@
 # ILS-lens research report — incomplete Qwen study
 
-Updated 2026-11-06. **The requested research criteria are not yet met.** Completed
+Updated 2026-11-11. **The requested research criteria are not yet met.** Completed
 measurements are the Qwen numerical/reference benchmarks and the trained toy HMM
 experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
 the all-layer GPU matrix-equivalence validation and primary J/R fitting have
 completed. Training and held-out donor-intervention collection are complete;
-all 576 primary GPU fits are now saved. Calibration is running. Missing measurements are
+all 576 primary GPU fits are now saved. Calibration and 100M-token transcoder
+training/evaluation have completed. Missing measurements are
 unknown, not null findings.
 
 Full production execution is disabled during the specification audit. Independent
@@ -14,6 +15,30 @@ numerical validation and primary fitting run separately on the GPU. The current 
 not an exact implementation of the entire proposal.
 
 ## Registered unattended training
+
+The unattended run completed all 120 available calibration maps (five lens banks
+times 24 layers), with 100,000 reference activations per layer, in 120,954.55
+seconds (33.60 hours). J++ remains unavailable because no labeled dev items
+survived capability filtering.
+
+All 24 transcoders completed 100,000,000 distinct training tokens: 90M FineWeb
+and 10M UltraChat. Training plus evaluation took 108,504.98 seconds (30.14 hours).
+The [saved results](artifacts/qwen-transcoders-100m-results.json) contain every
+layer's variance-explained interval and feature activity rates. On 128 held-out
+windows from 33 documents, clean/replaced/ablated CE was 3.4661/8.4782/13.2383.
+Recovered CE was 0.4871, with a document-bootstrap 95% CI [0.4655, 0.5049].
+This is partial reconstruction, not causal graph validation. Layerwise variance
+explained ranges from 0.0222 to 0.9960; the weak layers remain in the results.
+
+The planted LoRA completed its predeclared 200 training steps and saved
+`adapter.pt`, then behavioral generation failed before producing results.
+The local Transformers 5.17.0 tokenizer returned a `BatchEncoding` by default
+from tokenized chat rendering; the consumer expected a list of integer IDs.
+An added regression test reproduced the error. Chat rendering now explicitly
+sets `return_dict=False`; this corrects the API contract without changing prompt
+text, training, sampling, or evaluation thresholds. The local tokenizer check
+passes and the full suite passes 154 tests. Behavioral evaluation is being
+resumed from the saved adapter; no planting-success claim is available yet.
 
 At the owner's request, the existing calibration run is followed by the full
 registered transcoder run and the planted-organism `train-behavior` phase.

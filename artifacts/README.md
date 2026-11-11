@@ -64,3 +64,7 @@ GPU scoring and the J++/released baseline and is not a production forecast.
 `phrase-dictionary-token-audit.json` records exact local-tokenizer IDs for the
 ten fixed phrase entries, all within 2–5 continuation tokens. It validates
 dictionary syntax only, not phrase readout capability or causal faithfulness.
+
+`qwen-transcoders-100m-results.json` contains completed all-layer training and
+held-out evaluation at 100M distinct tokens, including per-layer bootstrap CIs
+and CE recovery. It does not establish graph or lens causal faithfulness.

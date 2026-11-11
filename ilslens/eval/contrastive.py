@@ -4,7 +4,7 @@ from ..hooks import capture_blocks
 
 def render_condition(tokenizer,system,user):
     messages=([{'role':'system','content':system}] if system else [])+[{'role':'user','content':user}]
-    return tokenizer.apply_chat_template(messages,tokenize=True,add_generation_prompt=True)
+    return tokenizer.apply_chat_template(messages,tokenize=True,add_generation_prompt=True,return_dict=False)
 
 @torch.no_grad()
 def completion_states(model,prefix_ids,completion_ids,layers,offsets):

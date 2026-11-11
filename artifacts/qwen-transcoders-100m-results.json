@@ -1,0 +1,455 @@
+{
+  "transcoders": [
+    {
+      "layer": 0,
+      "variance_explained": 0.6679765396663997,
+      "variance_explained_ci": [
+        0.6479301016452498,
+        0.686304899640649
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9987444877624512,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 1,
+      "variance_explained": 0.022222083745644494,
+      "variance_explained_ci": [
+        -0.01754889195622439,
+        0.054529545240468914
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9973493814468384,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 2,
+      "variance_explained": 0.9960256491131054,
+      "variance_explained_ci": [
+        0.995719377701022,
+        0.9962637827018188
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9910714626312256,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 3,
+      "variance_explained": 0.9959787179402272,
+      "variance_explained_ci": [
+        0.995765848566547,
+        0.9961506434357956
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.984933078289032,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 4,
+      "variance_explained": 0.11011266638217121,
+      "variance_explained_ci": [
+        0.0871851775043724,
+        0.1271803562960884
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9701451063156128,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 5,
+      "variance_explained": 0.18273013714336273,
+      "variance_explained_ci": [
+        0.15990358444327113,
+        0.19824912326615848
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9979074001312256,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 6,
+      "variance_explained": 0.23109668115668103,
+      "variance_explained_ci": [
+        0.2158039878944168,
+        0.2406418924355986
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.988839328289032,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 7,
+      "variance_explained": 0.2790090537237726,
+      "variance_explained_ci": [
+        0.2644189658572765,
+        0.2892094392936098
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9893973469734192,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 8,
+      "variance_explained": 0.22478908280169352,
+      "variance_explained_ci": [
+        0.21449766981020735,
+        0.23208016739805637
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.993722140789032,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 9,
+      "variance_explained": 0.2413781918578316,
+      "variance_explained_ci": [
+        0.22715394190936197,
+        0.25183743747817633
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9979074001312256,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 10,
+      "variance_explained": 0.10638326222768324,
+      "variance_explained_ci": [
+        0.09068390870268547,
+        0.11636482840979892
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9990234971046448,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 11,
+      "variance_explained": 0.2965398413322887,
+      "variance_explained_ci": [
+        0.2874711006470366,
+        0.3037586319213202
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9962332844734192,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 12,
+      "variance_explained": 0.07986292238517156,
+      "variance_explained_ci": [
+        0.054849994883480246,
+        0.1015460162899762
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9973493814468384,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 13,
+      "variance_explained": 0.12361310124649316,
+      "variance_explained_ci": [
+        0.0905807857807724,
+        0.14691593715106274
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9944196939468384,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 14,
+      "variance_explained": 0.02306624238209709,
+      "variance_explained_ci": [
+        0.0023158252142515133,
+        0.038695919557953526
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9919085502624512,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 15,
+      "variance_explained": 0.2080912135619214,
+      "variance_explained_ci": [
+        0.1927010455547972,
+        0.2173004661869805
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9870257377624512,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 16,
+      "variance_explained": 0.41721305637490413,
+      "variance_explained_ci": [
+        0.3982383455862747,
+        0.43164329851522837
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.928292453289032,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 17,
+      "variance_explained": 0.19485805860880845,
+      "variance_explained_ci": [
+        0.17041941251264459,
+        0.21008093280215528
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9561942219734192,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 18,
+      "variance_explained": 0.17077367789672326,
+      "variance_explained_ci": [
+        0.14703817940071087,
+        0.18638975642494762
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9714007377624512,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 19,
+      "variance_explained": 0.35128845334777936,
+      "variance_explained_ci": [
+        0.330336845509877,
+        0.36782139879799325
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.941964328289032,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 20,
+      "variance_explained": 0.3404599445759475,
+      "variance_explained_ci": [
+        0.2942687763102802,
+        0.37294019554530733
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9412667751312256,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 21,
+      "variance_explained": 0.9887343342028831,
+      "variance_explained_ci": [
+        0.9869819217188813,
+        0.9902984001141921
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.967354953289032,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 22,
+      "variance_explained": 0.4265354567629167,
+      "variance_explained_ci": [
+        0.38718935683934147,
+        0.4562892492177257
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9705636501312256,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    },
+    {
+      "layer": 23,
+      "variance_explained": 0.8172562555462166,
+      "variance_explained_ci": [
+        0.783631982446422,
+        0.8441450560777425
+      ],
+      "variance_uncertainty": {
+        "status": "measured",
+        "valid_bootstrap_resamples": 200,
+        "undefined_bootstrap_resamples": 0
+      },
+      "dead_fraction": 0.0,
+      "dead_definition": "Never activated on any training window, tracked before optimizer updates",
+      "heldout_inactive_fraction": 0.9718192219734192,
+      "heldout_inactive_definition": "Inactive on held-out evaluation windows"
+    }
+  ],
+  "ce": {
+    "clean": 3.466144178994,
+    "replaced": 8.478203918784857,
+    "ablated": 13.238277964293957,
+    "recovered": 0.4871069256818396,
+    "ci": [
+      0.465514431066472,
+      0.5049217119295959
+    ],
+    "uncertainty": {
+      "status": "measured",
+      "valid_bootstrap_resamples": 200,
+      "undefined_bootstrap_resamples": 0
+    }
+  },
+  "evaluation_windows": 128,
+  "evaluation_documents": 33,
+  "bootstrap_unit": "source_document",
+  "training": {
+    "fingerprint": "bfced3f90ea5fbd635e09b78c068958c2e8b8aad470fce2b88fdd1809c1b3803",
+    "layer": 23,
+    "model_type": "qwen2",
+    "hidden_size": 896,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "width": 7168,
+    "top_k": 32,
+    "token_presentations": 100000000,
+    "distinct_token_windows": 781250,
+    "distinct_tokens": 100000000,
+    "unique_training_windows": true,
+    "training_dead_fraction": 0.0,
+    "distinct_documents": 137597,
+    "source_token_presentations": {
+      "FineWeb/sample-10BT": 90000000,
+      "UltraChat/train_sft": 10000000
+    },
+    "seed": 501
+  },
+  "deviation": null,
+  "window_policy": "No repeated training windows",
+  "fingerprint": "bfced3f90ea5fbd635e09b78c068958c2e8b8aad470fce2b88fdd1809c1b3803",
+  "seconds_this_invocation": 108504.98053478805,
+  "disk_bytes": 5336385985
+}
