@@ -122,6 +122,23 @@ The original J++ controller terminated as unavailable because zero dev items
 passed capability filtering. No J++ expert bank or J++ calibration exists yet.
 The new chat-format capability evaluation preserves the original failed run.
 
+## Trained-transcoder finite-effect diagnostic
+
+`scripts/check_trained_replacement.py` and its fixed YAML register an additional
+numerical diagnostic on four prompts and all 24 source layers. Each intervention
+fully ablates the largest active feature at the last input position; the target
+is the clean model's highest logit. Only attention patterns and RMS denominators
+are frozen. The comparison is a local derivative versus a propagated finite
+effect, not a direct edge or a semantic causal claim. There is no scale search,
+threshold relaxation, or random-direction gate claim. Trained results are not
+yet available; the unbenchmarked allowance is 3,600 seconds / 5 MB.
+
+The runner was exercised first on a fixed four-layer, d=16 random Qwen fixture:
+clean replacement maximum error was zero; the finite relative errors were
+0.30186, 0.25208, 1.23722, and 6.91e-7. Thus three upstream checks failed and
+the final-layer check passed. This independently exercised the new runner but
+is not a trained-Qwen finding. The production graph blocker remains in force.
+
 ## Completed primary collection and integrity audit
 
 A tokenizer-only phrase preflight failed on the original `123456` and `987654`

@@ -1,0 +1,9 @@
+seed: 702
+estimated_seconds: 3600
+estimated_disk_mb: 5
+estimate_basis: Unbenchmarked allowance for 96 full-feature ablations, 24 layers on four fixed prompts.
+prompts:
+- The capital of France is
+- What is two plus three? Give only the number.
+- Name an animal you admire.
+- Complete the sentence with one word. The sky is
