@@ -68,3 +68,12 @@ dictionary syntax only, not phrase readout capability or causal faithfulness.
 `qwen-transcoders-100m-results.json` contains completed all-layer training and
 held-out evaluation at 100M distinct tokens, including per-layer bootstrap CIs
 and CE recovery. It does not establish graph or lens causal faithfulness.
+
+`qwen-primary/results.json` and the six `plots/qwen-primary-epsilon-*.png`
+figures contain all 576 selected fits and 2,304 method/cell R² measurements,
+including held-out prompt-bootstrap intervals. J/R versus ILS target-reduction
+differences are explicit; these are not a claim of causal readout superiority.
+
+`qwen-capability-original-audit.json` verifies the original raw-continuation
+filter's stored scores. Expected-answer mentions are diagnostics, not a relaxed
+scoring criterion or evidence that any item passed capability filtering.

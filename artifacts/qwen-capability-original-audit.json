@@ -1,0 +1,119 @@
+{
+  "rows": [
+    {
+      "task": "association",
+      "items": 102,
+      "draws": 1020,
+      "exact_matches": 0,
+      "expected_answer_mentions": 7,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 13,
+      "retained": 0
+    },
+    {
+      "task": "association:simplified",
+      "items": 8,
+      "draws": 80,
+      "exact_matches": 0,
+      "expected_answer_mentions": 14,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 5,
+      "retained": 0
+    },
+    {
+      "task": "multihop",
+      "items": 93,
+      "draws": 930,
+      "exact_matches": 0,
+      "expected_answer_mentions": 133,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 1,
+      "output_leak_items": 51,
+      "retained": 0
+    },
+    {
+      "task": "multihop:simplified",
+      "items": 10,
+      "draws": 100,
+      "exact_matches": 0,
+      "expected_answer_mentions": 8,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 5,
+      "retained": 0
+    },
+    {
+      "task": "multilingual",
+      "items": 107,
+      "draws": 1070,
+      "exact_matches": 0,
+      "expected_answer_mentions": 130,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 3,
+      "output_leak_items": 32,
+      "retained": 0
+    },
+    {
+      "task": "multilingual:simplified",
+      "items": 8,
+      "draws": 80,
+      "exact_matches": 0,
+      "expected_answer_mentions": 27,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 0,
+      "retained": 0
+    },
+    {
+      "task": "poetry",
+      "items": 98,
+      "draws": 980,
+      "exact_matches": 0,
+      "expected_answer_mentions": 75,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 36,
+      "retained": 0
+    },
+    {
+      "task": "poetry:simplified",
+      "items": 2,
+      "draws": 20,
+      "exact_matches": 0,
+      "expected_answer_mentions": 11,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 2,
+      "retained": 0
+    },
+    {
+      "task": "typo",
+      "items": 96,
+      "draws": 960,
+      "exact_matches": 0,
+      "expected_answer_mentions": 630,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 73,
+      "retained": 0
+    },
+    {
+      "task": "typo:simplified",
+      "items": 8,
+      "draws": 80,
+      "exact_matches": 0,
+      "expected_answer_mentions": 52,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 8,
+      "retained": 0
+    }
+  ],
+  "items": 532,
+  "retained": 0,
+  "interpretation": "Expected-answer mentions are formatting/content diagnostics, NOT correctness, capability, or a relaxed gate. Original exact-match and leakage criteria remain unchanged.",
+  "inference": "Zero retained items is the outcome of this raw-continuation protocol; it does not identify the cause or prove absence of latent knowledge.",
+  "source_sha256": "98cbb52a1a130a9ef75576a4aefa18449ee01e12afd59c7c96ea135befcb65a5"
+}

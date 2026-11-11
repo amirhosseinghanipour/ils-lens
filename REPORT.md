@@ -14,6 +14,40 @@ Full production execution is disabled during the specification audit. Independen
 numerical validation and primary fitting run separately on the GPU. The current implementation is
 not an exact implementation of the entire proposal.
 
+## Complete primary donor-intervention results
+
+All 576 layer/epsilon/horizon fits passed the complete-grid metadata checks.
+The [full table](QWEN_PRIMARY_RESULTS.md) and
+[machine-readable results](artifacts/qwen-primary/results.json) retain all four
+methods and their 200-resample held-out-prompt bootstrap intervals. Six figures
+cover the epsilon sweep; the preselected readout setting is shown in
+[the epsilon 0.05 figure](artifacts/plots/qwen-primary-epsilon-0.05.png).
+
+At epsilon 0.05 and gamma 0.9, ILS R² is negative with wholly negative intervals
+at layers 0–18. Layer 19 is -0.0009 [-0.0482, 0.0271]; layers 20–23 are positive:
+0.0798 [0.0453, 0.1028], 0.1055 [0.0549, 0.1357], 0.3480 [0.2936, 0.4127], and
+0.6656 [0.5473, 0.8090], respectively. These results indicate poor early-layer
+coverage under the registered donor estimand. They do not establish semantic
+workspace structure: causal direction gates and readout tasks remain necessary,
+and final-layer identity/horizon structure is a separate confound.
+
+Across the 144 registered layer/epsilon cells at each horizon, ILS has a positive
+point estimate in 114 cells for gamma 0, 88 for gamma 0.5, 42 for gamma 0.9,
+and 32 for gamma 1. These are descriptive counts over a fixed correlated grid,
+not independent trials or a population success-rate estimate. No setting was
+selected from these held-out results. J/R retain the upstream summed-target
+convention while ILS predicts normalized horizons, so the much lower J/R R²
+values in these tables do not by themselves establish a fair method advantage.
+
+The [original capability audit](artifacts/qwen-capability-original-audit.json)
+recomputed all saved exact-match counts and found agreement: zero of 5,320
+capability generations is an exact answer, and no item is retained. However,
+1,187 generations mention an expected answer somewhere in their text. These
+mentions are not scored as correct; they diagnose a raw-continuation/output
+format limitation and cannot prove capability. Original records, thresholds and
+leakage exclusions are unchanged. Any chat-formatted adaptation must be reported
+as a separate protocol rather than overwriting this failed filtering run.
+
 ## Registered unattended training
 
 The unattended run completed all 120 available calibration maps (five lens banks
