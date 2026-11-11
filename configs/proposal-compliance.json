@@ -2,7 +2,6 @@
   "production_enabled": false,
   "blocking_method_gaps": [
     "Live-feature replacement is implemented, but finite gradient-edge equality fails when TopK support changes; graph attribution semantics remain unresolved.",
-    "A verified 100M distinct-token corpus with zero audited validation-window overlap is available; benchmark the registered 100M transcoder configuration before training.",
     "Complete per-item/site/layer budget closure, including unsupported phrase targets.",
     "Finish the requirement-by-requirement audit before allowing production execution."
   ]

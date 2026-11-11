@@ -81,3 +81,8 @@ scoring criterion or evidence that any item passed capability filtering.
 `qwen-planted-behavior.json` records the resumed behavioral test of the fixed
 200-step adapter. Its confidence interval includes zero, so the trait is not
 verified under the registered rule. Lens/graph detection is not represented.
+
+`qwen-planted-detection.json` retains all 480 absolute/contrastive readout rows
+and their prompt-split nulls, plus two 24-layer model-difference R² evaluations.
+The behavioral planting was not verified; these are conditional measurements,
+not evidence of successful hidden-trait detection. Planted graphs remain missing.

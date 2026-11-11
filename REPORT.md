@@ -1,8 +1,8 @@
 # ILS-lens research report — incomplete Qwen study
 
 Updated 2026-11-11. **The requested research criteria are not yet met.** Completed
-measurements are the Qwen numerical/reference benchmarks and the trained toy HMM
-experiments below. Production Qwen experiment runners are implemented but their
+measurements include the Qwen numerical/reference benchmarks, primary ILS grid,
+calibration, transcoders, planted detection, and trained toy HMM experiments below. Production Qwen experiment runners are implemented but their
 presence is not a result. Long CPU runs were stopped at the owner's request;
 the all-layer GPU matrix-equivalence validation and primary J/R fitting have
 completed. Training and held-out donor-intervention collection are complete;
@@ -60,8 +60,9 @@ rules are unchanged. Leakage now checks the complete rendered context, including
 the added system text. Generation, ordinary read sites and J++ dev fitting
 share rendering; poetry retains its content-newline site inside the chat.
 The actual tokenizer matches native chat token IDs exactly, and 159 local tests
-pass. Adapted capability evaluation is queued after the active planted-detection
-process; no adapted readout result is available yet.
+pass. Adapted capability evaluation started on the GPU on November 11 at 21:42 UTC
+from fixed commit `95577a7`, after planted detection completed. Its registered
+unbenchmarked estimate is 3,600 seconds / 100 MB; no adapted result is available yet.
 
 ## Registered unattended training
 
@@ -71,8 +72,16 @@ Owl mentions were 2/320 in the base arm and 9/320 in the tuned arm. The paired
 prompt-level difference is 0.021875, with a 95% bootstrap CI [0, 0.04375] over
 32 prompts. The predeclared rule does not verify a positive trait effect.
 This null behavioral finding is retained; no retraining or hyperparameter
-selection followed it. Planned lens/model-difference detection is still required
-and must be interpreted conditionally on the unverified planting.
+selection followed it. Lens/model-difference detection completed in 381.00 seconds against the
+43,200-second allowance. The [full detection artifact](artifacts/qwen-planted-detection.json)
+retains all 480 readout rows, including 1,000 prompt-split null ranks per row,
+and both 24-layer model-difference faithfulness evaluations. These measurements
+are conditional on an unverified planting, not successful hidden-trait detection.
+On matched behavioral contexts, model-difference R² is negative at layers 0–22;
+layer 23 is 0.9773 [0.9596, 0.9872]. The final-block identity is a separate
+structural explanation for the last-layer result. This R² measures base-model
+responses to tuned-minus-base residual perturbations; it is not the fraction of
+total behavioral trait variance explained. Planted attribution graphs remain unrun.
 
 The pinned upstream J++ `ExpertJacobians.save` explicitly rounds expert and
 pooled matrices to fp16. A round-trip probe reproduced loss of 9.536743e-7
@@ -97,60 +106,21 @@ Recovered CE was 0.4871, with a document-bootstrap 95% CI [0.4655, 0.5049].
 This is partial reconstruction, not causal graph validation. Layerwise variance
 explained ranges from 0.0222 to 0.9960; the weak layers remain in the results.
 
-The planted LoRA completed its predeclared 200 training steps and saved
-`adapter.pt`, then behavioral generation failed before producing results.
-The local Transformers 5.17.0 tokenizer returned a `BatchEncoding` by default
-from tokenized chat rendering; the consumer expected a list of integer IDs.
-An added regression test reproduced the error. Chat rendering now explicitly
-sets `return_dict=False`; this corrects the API contract without changing prompt
-text, training, sampling, or evaluation thresholds. The local tokenizer check
-passes and the full suite passes 154 tests. Behavioral evaluation is being
-resumed from the saved adapter; no planting-success claim is available yet.
+The planted LoRA completed its predeclared 200 training steps before its first
+behavior evaluation failed: Transformers 5.17.0 returned `BatchEncoding` where
+the consumer expected integer IDs. Explicit `return_dict=False` corrected that
+API mismatch; the saved adapter was reused unchanged for the completed evaluations.
 
-At the owner's request, the existing calibration run is followed by the full
-registered transcoder run and the planted-organism `train-behavior` phase.
-Training uses all 24 layers, width 8d, TopK32, fp32, 100 million distinct
-FineWeb/chat tokens, and the audited corpus with no validation-window overlap.
-The short GPU benchmark measured 0.131848 seconds per 128-token all-layer update,
-projecting 103,007 seconds (28.6 hours) for updates alone. Tokenization, corpus
-audit, checkpoint writing and evaluation are excluded from that projection.
-The original conservative allowance remains in the training config; no training
-budget was reduced. Checkpoints retain optimizer state and corpus position every
-8,192 updates (1,048,576 tokens), roughly 18 minutes at the benchmark rate.
+The all-layer transcoder benchmark projected 103,007 seconds (28.6 hours) for
+100M-token updates alone, excluding input processing and evaluation. Actual
+training/evaluation was 30.14 hours. The original unattended controller stopped
+at the tokenizer error after successfully completing transcoder training.
+Calibration and training are complete; their earlier queue descriptions below
+are historical execution records, not current job status.
 
-The separate controller waits for successful calibration and sufficient GPU
-memory, then runs the two stages sequentially from a fixed checkout. Errors stop
-the queue and retain logs/checkpoints; no automatic retries or hyperparameter
-changes occur. The planted stage uses the predeclared 200-step LoRA configuration
-and 32 held-out behavioral questions. Its lens and graph detection stages are
-not included in this queue. These jobs run independently of the paused chat goal.
-
-The completed capability filter retained zero of 532 candidate items. This is
-the observed filter outcome, not yet an established model-capability conclusion:
-generation and scoring require inspection. Consequently no labeled dev set was
-available for J++, and that baseline was not fitted. Calibration continues for
-the other five lens banks. Readout comparisons and the full study remain incomplete.
-
-The label-tuned J++ baseline has a separate queued controller following the
-capability filter. It requires a matching successful predecessor and retained
-dev items, then waits for 9.5 GiB free GPU memory. No retained dev items means
-J++ is unavailable, not a negative readout result. Test labels never unlock
-this stage. The runner retains eight clusters, 64 PCA dimensions and the same
-32 fitting sequences as J/R; a tokenizer-only provenance check confirmed exact
-row/hash agreement with the primary manifest. The existing unbenchmarked
-estimate is 14,400 seconds and 1,500 MB output; actual cost remains unmeasured.
-This queues baseline fitting only, not the disabled full study. Queue guards
-passed within the 149-test local suite (6.457 seconds).
-
-Full calibration is queued after that J++ stage. Successful J++ fitting includes
-the explicitly label-tuned maps; a completed capability filter with no retained
-dev items allows calibration of the other lenses while recording J++ as missing.
-A failed J++ run does not unlock calibration. The fixed configuration retains
-100,000 test-split activations and has a provisional 172,800-second / 20-GB
-allowance, replacing the older unbenchmarked 86,400-second placeholder in light
-of the synthetic cost probe below. These are planning figures, not actual costs
-or a reduction in method or sample budget. The queue checks passed within the
-151-test local suite (6.023 seconds); production calibration remains unmeasured.
+The original J++ controller terminated as unavailable because zero dev items
+passed capability filtering. No J++ expert bank or J++ calibration exists yet.
+The new chat-format capability evaluation preserves the original failed run.
 
 ## Completed primary collection and integrity audit
 
@@ -1219,11 +1189,11 @@ production Qwen results yet.
 
 | Question | Supported answer |
 |---|---|
-| 1. Does ILS beat J/R, especially early? | Unknown for Qwen. Toy R² intervals overlap; no improvement claim. |
+| 1. Does ILS beat J/R, especially early? | Qwen early-layer ILS coverage is poor at the registered readout setting. Native J/R summed targets differ from normalized ILS horizons, so their raw R² comparison does not establish superiority. Toy intervals overlap. |
 | 2. Does unsupervised ILS match label-tuned J++ readout? | Not in the observed toy top-1 measurements, subject to the stated estimand/band confounds. Unknown for Qwen. |
 | 3. Do lens interventions beat the random gate? | Occasionally for toy ILS/J/R; no broad selectivity result. J++ (label-tuned) passed none of its 24 toy tests. Qwen unknown. |
 | 4. Does the concept lens separate horizons? | Qwen readouts not measured. Algebraically, the specified residual vanishes at eta=0 when the short-horizon map and covariance are full rank. Regularized residual content alone cannot establish a distinct concept space. |
-| 5. Which tool detects the planted trait, and how much is outside the workspace? | No Qwen organism has been trained yet. Adapter training/resume and control restoration pass tiny tests. Model-diff R² will measure the base model's response to those perturbations, not total behavioral trait variance. |
+| 5. Which tool detects the planted trait, and how much is outside the workspace? | The organism was trained, but the behavioral effect CI includes zero. Absolute/contrastive/model-diff readouts were measured; graphs remain unrun. No verified-trait detection claim is supported. Model-diff R² is not total behavioral variance explained. |
 | 6. Is early expert disagreement rotation or curvature? | Unknown. Fixed-expert Procrustes diagnostics and epsilon sweeps are implemented. Source-position-dependent horizon normalization is an additional confound. |
 | 7. What fraction is dark matter? | 0/32 in the limited toy budget diagnostic; unknown for Qwen. |
 | 8. Does this model have workspace-like structure compared with larger models? | No defensible conclusion yet. Published larger-model readout numbers cannot establish this model's causal workspace. |
@@ -1255,18 +1225,22 @@ not establish a parameter threshold at which workspace structure must appear.
 | Inventory and Qwen smoke | fp32 forward/backward completed; about 3.65 GiB peak RSS | Complete |
 | Qwen finite-difference pilot | 14.51 seconds CPU, one synthetic sequence | Complete, numerical pilot only |
 | Upstream J/R benchmark | J 223.35 s; R 221.39 s per prompt on CPU | Complete benchmark |
-| Main Qwen collection | Cached-suffix estimate ~2.94 CPU-days, plus baseline fitting | Stopped; 9 baseline prompt shards saved, no intervention collection |
+| Main Qwen GPU collection and baselines | 18,977.65 seconds actual, including 1,339.57 seconds baseline fitting | Complete; 1,152 intervention shards |
+| Primary ILS fits | 576 saved configurations; full held-out tables published | Complete |
+| Calibration | 172,800 s estimate / 120,954.55 s actual | 120 maps complete; J++ unavailable |
+| All-layer transcoders | 103,007 s update-only projection / 108,504.98 s training and evaluation | Complete, 100M tokens |
+| Planted detection | 43,200 s allowance / 381.00 s actual | Readouts/model-diff complete; graphs missing |
 | Toy upstream J/R/J++ | 13.11 seconds | Complete |
 | Toy matched causal controls | 19.35 seconds | Complete |
 | Toy transcoders/graphs/budget | 3.35 seconds | Complete |
 | Toy isotropic-limit | 1.02 seconds | Complete |
 | HMM Bayesian observability diagnostic | 10 seconds estimated / 0.87 seconds actual, CPU | Complete; no model fitting |
-| New production stages | Config estimates are unbenchmarked GPU budgets, not actual costs | Not run |
+| Remaining evaluations | Config estimates remain provisional until measured | Incomplete |
 
 Every new production runner writes its estimate before expensive work, records
 its protocol and checkpoint provenance, and records elapsed time and artifact
 size. GPU runners reject busy devices and never silently fall back to CPU.
-The current 131 small-input tests pass. This includes numerical identities,
+The last complete local suite passed 159 tests. This includes numerical identities,
 reference conventions, LRP forward preservation, LoRA base-weight preservation,
 transcoder substitution, graph finite interventions, paired statistics and
 checkpoint resume. These checks do not replace end-to-end Qwen measurements.
