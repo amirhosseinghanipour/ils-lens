@@ -10,6 +10,7 @@ from ilslens.jpp import (load_jpp,fit_experts,fit_labeled_weights,readout_filter
     save_fp32_experts,require_fp32_experts)
 from ilslens.hooks import capture_blocks
 from ilslens.eval.readout_tasks import candidate_ids,normalize
+from ilslens.eval.prompting import read_site
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--dataset',required=True);parser.add_argument('--reference',required=True)
@@ -40,21 +41,26 @@ def main():
         save_fp32_experts(experts,expert_path)
         expert_provenance_path.write_text(json.dumps(expert_provenance,indent=2)+'\n')
     gates=json.loads(Path(args.gates).read_text())
-    selected=[r['item'] for r in gates if r['retained'] and r['item']['split']=='dev']
+    selected=[r for r in gates if r['retained'] and r['item']['split']=='dev']
     state_lists={layer:[] for layer in experts.layers};candidate_lists=[];tasks=[];dev_ids=[];dev_prompt_hashes=[]
-    for item in selected:
+    for record in selected:
+        item=record['item'];gate_config=record.get('config',{})
         candidates={concept:candidate_ids(tokenizer,concept) for concept in item['intermediates']}
         candidates={concept:ids for concept,ids in candidates.items() if ids}
         if not candidates:continue
-        tokens=tokenizer(item['prompt'],return_tensors='pt').input_ids.to(model.device)
+        tokens,position=read_site(tokenizer,item['prompt'],item['task'],
+            prompt_format=gate_config.get('prompt_format','raw'),system_prompt=gate_config.get('system_prompt'))
+        tokens=tokens.to(model.device)
         with torch.no_grad(),capture_blocks(model,experts.layers) as states:model.model(tokens,use_cache=False)
-        for layer in experts.layers:state_lists[layer].append(states[layer][0,-1].clone())
+        for layer in experts.layers:state_lists[layer].append(states[layer][0,position].clone())
         candidate_lists.append(candidates);tasks.append(item['task']);dev_ids.append(item['id'])
         dev_prompt_hashes.append(hashlib.sha256(normalize(item['prompt']).encode()).hexdigest())
     if not candidate_lists:raise ValueError('No capability-filtered labeled dev items; J++ cannot be fitted')
     lens,weight_metadata=fit_labeled_weights(experts,adapter,{layer:torch.stack(values) for layer,values in state_lists.items()},
         candidate_lists=candidate_lists,eval_slugs=tasks,excluded_mask=readout_filter(tokenizer,model.config.vocab_size))
     metadata=dict(label_tuned=True,dev_item_ids=dev_ids,dev_prompt_hashes=dev_prompt_hashes,primary_fingerprint=manifest['fingerprint'],
+        dev_gate_sha256=hashlib.sha256(Path(args.gates).read_bytes()).hexdigest(),
+        dev_read_site='shared-raw-or-chat-content-poetry-newline-v1',
         source_prompts=baseline_count(config),clusters=8,pca=64,readout_filter='tokens_without_letter_or_digit',
         target_layer=23,target_reduction='upstream_sum',seconds=time.perf_counter()-start)
     matrices=dict(lens.jacobians_L_dict_FN)

@@ -62,11 +62,11 @@ def load_simplified_items(path,families,seed=0):
         result.append(ReadoutItem(identity,task+':simplified',prompt,question,row['answers'],row['intermediates'],dev_split(identity,seed)))
     return result
 
-def gate_item(item,capability_answers,natural_completions,draws=10,required=8):
+def gate_item(item,capability_answers,natural_completions,draws=10,required=8,rendered_prompt=None):
     if len(capability_answers)!=draws or len(natural_completions)!=draws:
         raise ValueError('Capability gate requires exactly ten returned samples in both modes')
     correct=[exact_match(answer,item.answers) for answer in capability_answers]
-    prompt_leaks=[c for c in item.intermediates if contains_concept(item.prompt,c)]
+    prompt_leaks=[c for c in item.intermediates if contains_concept(item.prompt if rendered_prompt is None else rendered_prompt,c)]
     output_leaks=[i for i,text in enumerate(natural_completions) if any(contains_concept(text,c) for c in item.intermediates)]
     return dict(item=asdict(item),correct=sum(correct),draws=draws,
         prompt_leaks=prompt_leaks,output_leaks=output_leaks,
@@ -105,7 +105,9 @@ def recall_report(ranks,item_ids,repeats=200,seed=0):
     return rows
 
 @torch.no_grad()
-def generate_answers(model,tokenizer,text,draws=10,max_new_tokens=24,seed=0,temperature=.8):
+def generate_answers(model,tokenizer,text,draws=10,max_new_tokens=24,seed=0,temperature=.8,prompt_format='raw',system_prompt=None):
+    from .prompting import render_read_prompt
+    text=render_read_prompt(tokenizer,text,prompt_format,system_prompt)
     ids=tokenizer(text,add_special_tokens=False).input_ids
     return [row['text'] for row in generate_token_completions(model,tokenizer,ids,draws,max_new_tokens,seed,temperature)]
 

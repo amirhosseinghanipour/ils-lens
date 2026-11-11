@@ -20,7 +20,9 @@ def require_benchmark_success(launch,status):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--benchmark-control',required=True)
     p.add_argument('--source',required=True);p.add_argument('--control',required=True)
-    p.add_argument('--output',required=True);a=p.parse_args()
+    p.add_argument('--output',required=True);p.add_argument('--config',default='configs/readout.yaml')
+    p.add_argument('--after-process',type=int,help='Also wait for this existing independent GPU process to exit')
+    a=p.parse_args()
     predecessor=Path(a.benchmark_control);launch=json.loads((predecessor/'launch.json').read_text())
     control=Path(a.control);control.mkdir(parents=True,exist_ok=True)
     lock=(control/'process.lock').open('w');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -32,13 +34,16 @@ def main():
         record('waiting_for_benchmark')
         while process_alive(launch['pid']):time.sleep(15)
         require_benchmark_success(launch,json.loads((predecessor/'status.json').read_text()))
+        if a.after_process is not None:
+            record('waiting_for_process',after_process=a.after_process)
+            while process_alive(a.after_process):time.sleep(15)
         while True:
             try:resolve_device('cuda',min_free_gib=9.5);break
             except RuntimeError as error:
                 if not str(error).startswith('GPU busy:'):raise
                 record('waiting_for_gpu',reason=str(error));time.sleep(15)
         command=[sys.executable,'-u','scripts/evaluate_readouts.py','--source',a.source,
-            '--output',a.output,'--device','cuda','--gate-only']
+            '--output',a.output,'--config',a.config,'--device','cuda','--gate-only']
         record('running_capability_filter',command=command)
         with (control/'capability.log').open('ab') as log:
             subprocess.run(command,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,check=True)

@@ -11,16 +11,7 @@ from ilslens.hooks import capture_blocks
 from ilslens.readout import raw,sparse_pursuit,target_ranks
 from ilslens.calibration import CALIBRATION_VERSION,calibrated_readout,matrix_fingerprint
 from ilslens.jpp import readout_filter
-
-def read_site(tokenizer,prompt,task):
-    tokens=tokenizer(prompt,return_tensors='pt').input_ids
-    position=tokens.shape[1]-1
-    if task.split(':')[0]=='poetry':
-        newline=prompt.rfind('\n');encoded=tokenizer(prompt,return_offsets_mapping=True)
-        candidates=[j for j,(a,b) in enumerate(encoded['offset_mapping']) if a<=newline<b]
-        if not candidates:raise ValueError('Cannot identify poetry newline token')
-        position=candidates[-1]
-    return tokens,position
+from ilslens.eval.prompting import read_site,render_read_prompt
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source',required=True)
@@ -28,6 +19,7 @@ def main():
     parser.add_argument('--output',default='runs/readouts');parser.add_argument('--device',default='cuda')
     parser.add_argument('--gate-only',action='store_true');parser.add_argument('--jpp');args=parser.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());root=Path(args.output);root.mkdir(parents=True,exist_ok=True)
+    prompting=dict(prompt_format=config.get('prompt_format','raw'),system_prompt=config.get('system_prompt'))
     if (config['draws'],config['required_correct'],config['temperature'],config['dev_fraction'])!=(10,8,.8,.2):
         raise ValueError('This registered protocol requires 10 draws, 8 correct, temperature .8 and 20% dev')
     (root/'estimate.json').write_text(json.dumps(config,indent=2));start=time.perf_counter()
@@ -46,9 +38,9 @@ def main():
             record=json.loads(path.read_text())
             if record['item']!=asdict(item) or record.get('config')!=config:raise ValueError('Gate cache settings changed')
         else:
-            answers=generate_answers(model,tokenizer,item.capability_prompt,seed=config['seed']+index*100,max_new_tokens=config['max_new_tokens'])
-            completions=answers if item.capability_prompt==item.prompt else generate_answers(model,tokenizer,item.prompt,seed=config['seed']+index*100+20,max_new_tokens=config['max_new_tokens'])
-            record=dict(gate_item(item,answers,completions),config=config)
+            answers=generate_answers(model,tokenizer,item.capability_prompt,seed=config['seed']+index*100,max_new_tokens=config['max_new_tokens'],**prompting)
+            completions=answers if item.capability_prompt==item.prompt else generate_answers(model,tokenizer,item.prompt,seed=config['seed']+index*100+20,max_new_tokens=config['max_new_tokens'],**prompting)
+            record=dict(gate_item(item,answers,completions,rendered_prompt=render_read_prompt(tokenizer,item.prompt,**prompting)),config=config)
             path.write_text(json.dumps(record,indent=2))
         return record
     for index,item in enumerate(items):gates.append(evaluate_gate(index,item))
@@ -73,7 +65,7 @@ def main():
     retained=[record for record in gates if record['retained'] and record['item']['split']=='test']
     exported=[]
     for record in retained:
-        item=record['item'];tokens,position=read_site(tokenizer,item['prompt'],item['task'])
+        item=record['item'];tokens,position=read_site(tokenizer,item['prompt'],item['task'],**prompting)
         exported.append(dict(id=item['id'],family=item['task'],prompt=item['prompt'],input_ids=tokens[0].tolist(),positions=[position],
             targets=item['intermediates'],answers=item['answers'],actual_output=record['natural_completions'][0],split='test'))
     (root/'evaluation-items.json').write_text(json.dumps(exported,indent=2))
@@ -90,7 +82,7 @@ def main():
             arrays={mode:np.full((len(selected),len(layers),max_concepts),np.nan) for mode in ('raw','z')}
             dead_rates={layer:[] for layer in layers};z_dead_rates={layer:[] for layer in layers}
             for i,item in enumerate(selected):
-                tokens,position=read_site(tokenizer,item['prompt'],task);tokens=tokens.to(model.device)
+                tokens,position=read_site(tokenizer,item['prompt'],task,**prompting);tokens=tokens.to(model.device)
                 with torch.no_grad(),capture_blocks(model,layers) as states:model.model(tokens,use_cache=False)
                 for l,layer in enumerate(layers):
                     with torch.no_grad():scores=raw(states[layer][0,position],maps[layer].to(model.device),model.lm_head.weight,model.model.norm.weight)
@@ -145,7 +137,7 @@ def main():
                     z_dead_top10_fraction=None if not z_dead_rates[layer] else float(np.mean(z_dead_rates[layer]))))
     (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
-        seconds=time.perf_counter()-start,complete_calibration=not missing_calibration,retained_test_items=len(retained),ranking='score-descending-id-ascending-v2',sparse_pursuit_protocol='actual-marginal-gain-v2',
+        seconds=time.perf_counter()-start,prompt_protocol=prompting,complete_calibration=not missing_calibration,retained_test_items=len(retained),ranking='score-descending-id-ascending-v2',sparse_pursuit_protocol='actual-marginal-gain-v2',
         simplified_families=fallback_families,simplified_bank=config.get('simplified_bank'),
         caveats=['Strict leakage exclusion may reject all poetry items','No implicit LLM-judge substitutions']),indent=2))
 

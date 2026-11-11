@@ -48,6 +48,21 @@ format limitation and cannot prove capability. Original records, thresholds and
 leakage exclusions are unchanged. Any chat-formatted adaptation must be reported
 as a separate protocol rather than overwriting this failed filtering run.
 
+`configs/readout-chat.yaml` registers one post-failure adaptation for the
+instruct checkpoint: the same user texts are wrapped in its native chat
+template with a fixed instruction to provide only a short answer/continuation.
+This was motivated by the original filtering failure, so it is explicitly a
+post hoc protocol adaptation, not an untouched preregistered benchmark. There
+is no search over wrappers or selection based on lens scores. Original outputs
+remain in `runs/readouts`; adapted outputs use `runs/readouts-chat`.
+Items, splits, temperature 0.8, ten draws, eight-correct threshold and leakage
+rules are unchanged. Leakage now checks the complete rendered context, including
+the added system text. Generation, ordinary read sites and J++ dev fitting
+share rendering; poetry retains its content-newline site inside the chat.
+The actual tokenizer matches native chat token IDs exactly, and 159 local tests
+pass. Adapted capability evaluation is queued after the active planted-detection
+process; no adapted readout result is available yet.
+
 ## Registered unattended training
 
 The resumed [planted behavioral evaluation](artifacts/qwen-planted-behavior.json)

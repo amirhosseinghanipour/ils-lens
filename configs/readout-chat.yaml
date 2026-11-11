@@ -1,0 +1,25 @@
+seed: 201
+sparse_pursuit: true
+epsilon: 0.05
+gamma: 0.9
+max_new_tokens: 24
+limit_per_task: null
+calibration_root: runs/calibration
+jpp_path: null
+estimated_seconds: 3600
+estimated_disk_mb: 100
+judge: exact_match
+draws: 10
+required_correct: 8
+temperature: 0.8
+repetition_penalty: 1.0
+dev_fraction: 0.2
+simplified_bank: configs/readout-simple.json
+minimum_reference_test_items: 5
+prompt_format: chat
+system_prompt: Give only the short answer or continuation. Do not repeat the prompt,
+  explain your answer, or provide chain-of-thought.
+protocol: chat-adaptation-v1
+protocol_note: Single explicit formatting adaptation after the original raw-continuation
+  filter retained zero items. Same fixed items, split, sampling, correctness and leakage
+  rules. Not selected using lens readout scores.
