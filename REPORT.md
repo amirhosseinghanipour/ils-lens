@@ -121,6 +121,15 @@ are historical execution records, not current job status.
 The original J++ controller terminated as unavailable because zero dev items
 passed capability filtering. No J++ expert bank or J++ calibration exists yet.
 The new chat-format capability evaluation preserves the original failed run.
+A separate J++ controller for the chat adaptation requires successful completion
+of that filter and at least one retained **dev** item; absent dev items leave
+J++ unavailable. It additionally waits for the independent trained-transcoder
+diagnostic process to exit, preventing overlapping GPU use. Its fitting budget
+remains 32 WikiText sequences, eight clusters and 64 PCA dimensions, with the
+unchanged unbenchmarked 14,400-second / 1,500-MB allowance. This remains a
+label-tuned baseline; it cannot become an ILS prior. The updated controller and
+measurement runners passed the full 159-test suite in 6.34 seconds.
+
 
 ## Trained-transcoder finite-effect diagnostic
 

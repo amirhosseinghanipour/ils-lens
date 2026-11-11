@@ -21,6 +21,7 @@ def main():
     p=argparse.ArgumentParser()
     for name in ('capability-control','gates','dataset','reference','jpp','run','control','output'):
         p.add_argument('--'+name,required=True)
+    p.add_argument('--after-process',type=int,help='Also wait for an independent GPU job before fitting')
     a=p.parse_args()
     predecessor=Path(a.capability_control);launch=json.loads((predecessor/'launch.json').read_text())
     control=Path(a.control);control.mkdir(parents=True,exist_ok=True)
@@ -37,6 +38,9 @@ def main():
         if not dev:
             record('unavailable_no_retained_dev_items',reason='No capability-filtered labeled dev items; no J++ measurement')
             return
+        if a.after_process is not None:
+            record('waiting_for_process',after_process=a.after_process)
+            while process_alive(a.after_process):time.sleep(15)
         while True:
             try:resolve_device('cuda',min_free_gib=9.5);break
             except RuntimeError as error:
