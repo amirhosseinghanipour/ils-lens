@@ -86,3 +86,9 @@ verified under the registered rule. Lens/graph detection is not represented.
 and their prompt-split nulls, plus two 24-layer model-difference R² evaluations.
 The behavioral planting was not verified; these are conditional measurements,
 not evidence of successful hidden-trait detection. Planted graphs remain missing.
+
+`qwen-capability-chat-audit.json` records the separate fixed chat-format adaptation:
+13 retained items (four dev, nine test), with unchanged capability/leakage rules.
+`qwen-trained-replacement-diagnostic.json` retains all 96 trained-transcoder finite
+checks, including 22 failures and exact clean reconstruction on four prompts.
+These are numerical checks, not semantic causal claims or population estimates.

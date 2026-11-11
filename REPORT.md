@@ -62,7 +62,35 @@ share rendering; poetry retains its content-newline site inside the chat.
 The actual tokenizer matches native chat token IDs exactly, and 159 local tests
 pass. Adapted capability evaluation started on the GPU on November 11 at 21:42 UTC
 from fixed commit `95577a7`, after planted detection completed. Its registered
-unbenchmarked estimate is 3,600 seconds / 100 MB; no adapted result is available yet.
+unbenchmarked estimate was 3,600 seconds / 100 MB; filtering completed in
+928.44 seconds including controller startup. Readout scoring is still unrun.
+
+## Completed chat-format capability filter
+
+The [audited chat-adaptation result](artifacts/qwen-capability-chat-audit.json)
+retains 13/524 items: four dev and nine test. Of the 496 reference items, one
+multihop and six multilingual items survive; six simplified multihop items also
+survive. Association, typo and poetry retain no items. The 28 auxiliary items
+were selected by the existing fallback rule: multilingual has five retained
+reference test items, so its eight simplified items were not evaluated. This
+explains the smaller total than the original 532-item run; no bank was edited.
+The original raw-continuation failure remains a separate result.
+
+| Family | Evaluated items | Retained |
+|---|---:|---:|
+| Multihop reference | 93 | 1 |
+| Multihop simplified | 10 | 6 |
+| Multilingual reference | 107 | 6 |
+| Association reference / simplified | 102 / 8 | 0 / 0 |
+| Typo reference / simplified | 96 / 8 | 0 / 0 |
+| Poetry reference / simplified | 98 / 2 | 0 / 0 |
+
+J++ fitting has started on the four retained dev items, using the unchanged
+32-sequence unlabeled fitting budget. The nine test items remain excluded from
+weight optimization. These cohort counts do not establish readout or causal
+performance. The audit recomputes correctness, verifies saved retention against
+recorded leakage flags, and reports actual protocol and dev/test counts; its
+previous fixed zero-retention summary was corrected before auditing this run.
 
 ## Registered unattended training
 
@@ -201,14 +229,32 @@ fully ablates the largest active feature at the last input position; the target
 is the clean model's highest logit. Only attention patterns and RMS denominators
 are frozen. The comparison is a local derivative versus a propagated finite
 effect, not a direct edge or a semantic causal claim. There is no scale search,
-threshold relaxation, or random-direction gate claim. Trained results are not
-yet available; the unbenchmarked allowance is 3,600 seconds / 5 MB.
+threshold relaxation, or random-direction gate claim. The trained diagnostic completed in 4.44 seconds against the unbenchmarked
+3,600-second / 5-MB allowance. This actual duration excludes queue waiting and
+pre-run transcoder hashing.
 
 The runner was exercised first on a fixed four-layer, d=16 random Qwen fixture:
 clean replacement maximum error was zero; the finite relative errors were
 0.30186, 0.25208, 1.23722, and 6.91e-7. Thus three upstream checks failed and
 the final-layer check passed. This independently exercised the new runner but
 is not a trained-Qwen finding. The production graph blocker remains in force.
+
+The [trained diagnostic artifact](artifacts/qwen-trained-replacement-diagnostic.json)
+retains all 96 checks and the 24 transcoder hashes. Clean replacement logits
+matched exactly on all four prompts, but 22/96 finite checks failed the 1e-3
+criterion (6, 6, 5, and 5 failures by prompt). Eighteen failures have changed
+endpoint feature supports. Four have no endpoint support change and absolute
+prediction discrepancies below 2e-5, consistent with fp32 subtraction limits;
+unchanged endpoints do not prove unchanged support along the entire path.
+All four source-layer-2 ablations produce enormous frozen-model logit effects
+(absolute values about 5e11 to 6e13) with hundreds of support changes. These
+failures are retained, not clipped or repaired by reducing the intervention.
+
+This is a fixed numerical diagnostic, not a population estimate or semantic
+causal test. No confidence interval or random-direction pass is implied.
+It establishes that fully propagated finite effects need not equal local
+derivatives even with these trained transcoders. It does not resolve the
+separate direct-edge semantics question or validate the requested graph stack.
 
 ## Completed primary collection and integrity audit
 

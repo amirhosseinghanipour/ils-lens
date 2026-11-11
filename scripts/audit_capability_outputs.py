@@ -13,16 +13,23 @@ def audit(records):
             answers=record['capability_answers'];aliases=record['item']['answers']
             observed=sum(exact_match(answer,aliases) for answer in answers)
             if observed!=record['correct']:raise ValueError('Saved correctness differs from exact-match recomputation')
+            expected_retained=observed>=record['threshold'] and not record['prompt_leaks'] and not record['output_leaks']
+            if record['retained']!=expected_retained:raise ValueError('Saved retention differs from correctness and recorded leakage gates')
             strict+=observed;draws+=len(answers)
             mentions+=sum(any(contains_concept(answer,alias) for alias in aliases) for answer in answers)
         rows.append(dict(task=task,items=len(selected),draws=draws,exact_matches=strict,
-            expected_answer_mentions=mentions,items_passing_correctness=sum(r['correct']>=8 for r in selected),
+            expected_answer_mentions=mentions,items_passing_correctness=sum(r['correct']>=r['threshold'] for r in selected),
             prompt_leak_items=sum(bool(r['prompt_leaks']) for r in selected),
             output_leak_items=sum(bool(r['output_leaks']) for r in selected),
             retained=sum(r['retained'] for r in selected)))
-    return dict(rows=rows,items=len(records),retained=sum(r['retained'] for r in records),
+    retained=sum(r['retained'] for r in records)
+    protocols=sorted({r.get('config',{}).get('protocol','original-raw') for r in records})
+    split_counts={split:dict(items=sum(r['item']['split']==split for r in records),
+        retained=sum(r['retained'] and r['item']['split']==split for r in records)) for split in ('dev','test')}
+    return dict(rows=rows,items=len(records),retained=retained,protocols=protocols,splits=split_counts,
         interpretation='Expected-answer mentions are formatting/content diagnostics, NOT correctness, capability, or a relaxed gate. Original exact-match and leakage criteria remain unchanged.',
-        inference='Zero retained items is the outcome of this raw-continuation protocol; it does not identify the cause or prove absence of latent knowledge.')
+        inference=('No items satisfy this protocol; this does not identify the cause or prove absence of latent knowledge.'
+                   if retained==0 else 'Retained items satisfy this protocol’s capability and leakage gates; no lens readout or causal performance is established.'))
 
 
 def main():

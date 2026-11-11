@@ -1,0 +1,121 @@
+{
+  "rows": [
+    {
+      "task": "association",
+      "items": 102,
+      "draws": 1020,
+      "exact_matches": 0,
+      "expected_answer_mentions": 2,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 4,
+      "retained": 0
+    },
+    {
+      "task": "association:simplified",
+      "items": 8,
+      "draws": 80,
+      "exact_matches": 1,
+      "expected_answer_mentions": 8,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 2,
+      "retained": 0
+    },
+    {
+      "task": "multihop",
+      "items": 93,
+      "draws": 930,
+      "exact_matches": 28,
+      "expected_answer_mentions": 92,
+      "items_passing_correctness": 1,
+      "prompt_leak_items": 1,
+      "output_leak_items": 50,
+      "retained": 1
+    },
+    {
+      "task": "multihop:simplified",
+      "items": 10,
+      "draws": 100,
+      "exact_matches": 72,
+      "expected_answer_mentions": 72,
+      "items_passing_correctness": 6,
+      "prompt_leak_items": 0,
+      "output_leak_items": 0,
+      "retained": 6
+    },
+    {
+      "task": "multilingual",
+      "items": 107,
+      "draws": 1070,
+      "exact_matches": 126,
+      "expected_answer_mentions": 187,
+      "items_passing_correctness": 6,
+      "prompt_leak_items": 4,
+      "output_leak_items": 24,
+      "retained": 6
+    },
+    {
+      "task": "poetry",
+      "items": 98,
+      "draws": 980,
+      "exact_matches": 0,
+      "expected_answer_mentions": 153,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 38,
+      "retained": 0
+    },
+    {
+      "task": "poetry:simplified",
+      "items": 2,
+      "draws": 20,
+      "exact_matches": 0,
+      "expected_answer_mentions": 4,
+      "items_passing_correctness": 0,
+      "prompt_leak_items": 0,
+      "output_leak_items": 1,
+      "retained": 0
+    },
+    {
+      "task": "typo",
+      "items": 96,
+      "draws": 960,
+      "exact_matches": 191,
+      "expected_answer_mentions": 473,
+      "items_passing_correctness": 8,
+      "prompt_leak_items": 1,
+      "output_leak_items": 93,
+      "retained": 0
+    },
+    {
+      "task": "typo:simplified",
+      "items": 8,
+      "draws": 80,
+      "exact_matches": 23,
+      "expected_answer_mentions": 40,
+      "items_passing_correctness": 2,
+      "prompt_leak_items": 0,
+      "output_leak_items": 8,
+      "retained": 0
+    }
+  ],
+  "items": 524,
+  "retained": 13,
+  "protocols": [
+    "chat-adaptation-v1"
+  ],
+  "splits": {
+    "dev": {
+      "items": 89,
+      "retained": 4
+    },
+    "test": {
+      "items": 435,
+      "retained": 9
+    }
+  },
+  "interpretation": "Expected-answer mentions are formatting/content diagnostics, NOT correctness, capability, or a relaxed gate. Original exact-match and leakage criteria remain unchanged.",
+  "inference": "Retained items satisfy this protocol\u2019s capability and leakage gates; no lens readout or causal performance is established.",
+  "source_sha256": "cfefee11f2836c6024d76461f5ecc35cc75a4fd571fbe5d5e19a99104bcb3801"
+}
