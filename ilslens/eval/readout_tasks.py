@@ -131,3 +131,18 @@ def generate_token_completions(model,tokenizer,ids,draws=10,max_new_tokens=24,se
         tokens=answer[0,ids.shape[1]:].tolist()
         outputs.append(dict(text=tokenizer.decode(tokens,skip_special_tokens=True),token_ids=tokens))
     return outputs
+
+
+def validate_labeled_dev(gates, metadata, gate_sha256):
+    """Reject renamed duplicate prompts and mismatched capability protocols."""
+    if metadata.get('dev_gate_sha256') != gate_sha256:
+        raise ValueError('J++ dev gates differ from this capability evaluation')
+    if 'dev_prompt_hashes' not in metadata or 'dev_item_ids' not in metadata:
+        raise ValueError('J++ dev provenance lacks prompt hashes or item IDs')
+    dev_ids=set(metadata['dev_item_ids']);dev_hashes=set(metadata['dev_prompt_hashes'])
+    for record in gates:
+        item=record['item']
+        if item['split']!='test':continue
+        digest=hashlib.sha256(normalize(item['prompt']).encode()).hexdigest()
+        if item['id'] in dev_ids or digest in dev_hashes:
+            raise ValueError('J++ dev/test leakage by item ID or normalized prompt')

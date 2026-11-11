@@ -18,7 +18,7 @@ class ReadoutRunnerTests(unittest.TestCase):
                 max_new_tokens=8,epsilon=.05,gamma=.9,calibration_root=str(root/'calibration'),sparse_pursuit=False,
                 simplified_bank='unused',minimum_reference_test_items=5)
             (root/'config.yaml').write_text(yaml.safe_dump(config))
-            argv=['evaluate_readouts','--source','unused','--config',str(root/'config.yaml'),'--output',str(root/'run'),'--device','cpu']
+            argv=['evaluate_readouts','--source','unused','--config',str(root/'config.yaml'),'--output',str(root/'run'),'--device','cpu','--calibration-root',str(root/'relocated-calibration')]
             with patch.object(sys,'argv',argv),patch.object(module,'load_local',return_value=(model,tokenizer)),\
                  patch.object(module,'load_reference_items',return_value=[item]),patch.object(module,'load_simplified_items',return_value=[supplemental]),\
                  patch.object(module,'generate_answers',return_value=['cat']*10),\
@@ -27,6 +27,9 @@ class ReadoutRunnerTests(unittest.TestCase):
             result=json.loads((root/'run/results.json').read_text());export=json.loads((root/'run/evaluation-items.json').read_text())
             self.assertEqual(result['retained_test_items'],2);self.assertFalse(result['complete_calibration'])
             self.assertEqual(result['simplified_families'],['multihop'])
+            self.assertEqual(result['calibration_root'],str(root/'relocated-calibration'))
+            self.assertTrue(all(str(root/'relocated-calibration') in path for path in result['missing_calibration']))
+            self.assertEqual(json.loads((root/'run/gate-reference-0000.json').read_text())['config'],config)
             self.assertEqual(len(result['missing_calibration']),2);self.assertEqual(export[0]['input_ids'],tokenizer.encode(item.prompt))
             self.assertEqual(export[0]['positions'],[len(tokenizer.encode(item.prompt))-1])
             self.assertTrue(all(row['recall'] is None for row in result['rows'] if row.get('mode')=='z'))

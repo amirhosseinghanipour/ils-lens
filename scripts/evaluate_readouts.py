@@ -1,12 +1,12 @@
 """Capability-filtered five-task readouts. Defaults to guarded GPU execution."""
-import argparse,json,time
+import argparse,hashlib,json,time
 from pathlib import Path
 from dataclasses import asdict
 import numpy as np
 import torch,yaml
 from ilslens.model import load_local
 from ilslens.artifacts import primary_bank
-from ilslens.eval.readout_tasks import load_reference_items,load_simplified_items,generate_answers,gate_item,candidate_ids,recall_report
+from ilslens.eval.readout_tasks import load_reference_items,load_simplified_items,generate_answers,gate_item,candidate_ids,recall_report,validate_labeled_dev
 from ilslens.hooks import capture_blocks
 from ilslens.readout import raw,sparse_pursuit,target_ranks
 from ilslens.calibration import CALIBRATION_VERSION,calibrated_readout,matrix_fingerprint
@@ -17,8 +17,11 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source',required=True)
     parser.add_argument('--run',default='runs/qwen-main');parser.add_argument('--config',default='configs/readout.yaml')
     parser.add_argument('--output',default='runs/readouts');parser.add_argument('--device',default='cuda')
-    parser.add_argument('--gate-only',action='store_true');parser.add_argument('--jpp');args=parser.parse_args()
+    parser.add_argument('--gate-only',action='store_true');parser.add_argument('--jpp')
+    parser.add_argument('--calibration-root',help='Override artifact location without changing capability-gate settings')
+    args=parser.parse_args()
     config=yaml.safe_load(Path(args.config).read_text());root=Path(args.output);root.mkdir(parents=True,exist_ok=True)
+    calibration_root=Path(args.calibration_root or config['calibration_root'])
     prompting=dict(prompt_format=config.get('prompt_format','raw'),system_prompt=config.get('system_prompt'))
     if (config['draws'],config['required_correct'],config['temperature'],config['dev_fraction'])!=(10,8,.8,.2):
         raise ValueError('This registered protocol requires 10 draws, 8 correct, temperature .8 and 20% dev')
@@ -59,8 +62,7 @@ def main():
         artifact=torch.load(args.jpp or config['jpp_path'],weights_only=True,map_location='cpu')
         if artifact['metadata'].get('label_tuned') is not True:raise ValueError('J++ must be labeled label-tuned')
         if artifact['metadata']['primary_fingerprint']!=metadata['fingerprint']:raise ValueError('J++ fitting provenance differs')
-        test_ids={record['item']['id'] for record in gates if record['item']['split']=='test'}
-        if test_ids.intersection(artifact['metadata']['dev_item_ids']):raise ValueError('J++ dev/test leakage')
+        validate_labeled_dev(gates,artifact['metadata'],hashlib.sha256((root/'gates.json').read_bytes()).hexdigest())
         bank['J++ (label-tuned)']=artifact['matrices'];metadata['label_tuned']['J++ (label-tuned)']=True
     retained=[record for record in gates if record['retained'] and record['item']['split']=='test']
     exported=[]
@@ -74,7 +76,7 @@ def main():
         excluded=readout_filter(tokenizer,model.config.vocab_size).to(model.device) if name.startswith('J++') else None
         layers=sorted(maps)
         for layer in layers:
-            path=Path(config['calibration_root'])/name/f'layer-{layer:02d}.pt'
+            path=calibration_root/name/f'layer-{layer:02d}.pt'
             if not path.exists():missing_calibration.append(str(path))
         for task in sorted(set(item.task for item in items)):
             selected=[r['item'] for r in retained if r['item']['task']==task]
@@ -87,7 +89,7 @@ def main():
                 for l,layer in enumerate(layers):
                     with torch.no_grad():scores=raw(states[layer][0,position],maps[layer].to(model.device),model.lm_head.weight,model.model.norm.weight)
                     if excluded is not None:scores=scores.masked_fill(excluded,-torch.inf)
-                    calibration_path=Path(config['calibration_root'])/name/f'layer-{layer:02d}.pt'
+                    calibration_path=calibration_root/name/f'layer-{layer:02d}.pt'
                     z=None
                     if calibration_path.exists():
                         calibration=torch.load(calibration_path,weights_only=True,map_location='cpu')
@@ -137,7 +139,7 @@ def main():
                     z_dead_top10_fraction=None if not z_dead_rates[layer] else float(np.mean(z_dead_rates[layer]))))
     (root/'details.json').write_text(json.dumps(details,indent=2))
     (root/'results.json').write_text(json.dumps(dict(rows=rows,metadata=metadata,missing_calibration=missing_calibration,
-        seconds=time.perf_counter()-start,prompt_protocol=prompting,complete_calibration=not missing_calibration,retained_test_items=len(retained),ranking='score-descending-id-ascending-v2',sparse_pursuit_protocol='actual-marginal-gain-v2',
+        seconds=time.perf_counter()-start,calibration_root=str(calibration_root),prompt_protocol=prompting,complete_calibration=not missing_calibration,retained_test_items=len(retained),ranking='score-descending-id-ascending-v2',sparse_pursuit_protocol='actual-marginal-gain-v2',
         simplified_families=fallback_families,simplified_bank=config.get('simplified_bank'),
         caveats=['Strict leakage exclusion may reject all poetry items','No implicit LLM-judge substitutions']),indent=2))
 

@@ -139,6 +139,22 @@ label-tuned baseline; it cannot become an ILS prior. The updated controller and
 measurement runners passed the full 159-test suite in 6.34 seconds.
 
 
+## Readout provenance checks before production scoring
+
+The readout runner now accepts `--calibration-root` so fixed execution checkouts
+can use the completed calibration artifacts without altering capability-gate
+configuration or invalidating the saved generation records. The resolved path
+is recorded in results. A regression test verifies both artifact routing and
+unchanged gate settings.
+
+J++ comparisons now require the exact capability-gate file hash recorded during
+labeled fitting, plus disjoint test item IDs and normalized prompt hashes. The
+previous five-task guard checked IDs alone and could miss a renamed duplicate
+prompt. A regression reproduces that case and verifies rejection, along with
+changed gate files and missing provenance. These safeguards precede production
+readout scoring; no item or threshold was changed after observing lens scores.
+The full local suite passes 161 tests in 5.88 seconds.
+
 ## Held-out token-change faithfulness execution
 
 `scripts/faithfulness_after_jpp.py` schedules the existing full faithfulness
