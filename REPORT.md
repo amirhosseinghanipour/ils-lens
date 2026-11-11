@@ -167,6 +167,19 @@ label-tuned baseline; it cannot become an ILS prior. The updated controller and
 measurement runners passed the full 159-test suite in 6.34 seconds.
 
 
+## Readout scoring after calibration
+
+The adapted five-task scoring stage is ordered after successful calibration.
+It reuses the completed `readouts-chat` gates and verifies their checksum is
+unchanged by scoring. Completion requires all expected lens/family/layer/raw-or-z/
+recall@1-or-10 cells, including any-layer summaries, complete calibration, and
+correct label-tuned marking. Zero-item families remain unknown, not zero recall.
+The stage also computes the existing calibrated FDR and sparse-pursuit outputs.
+The registered 3,600-second / 100-MB allowance is unbenchmarked for scoring this
+nine-test-item cohort. No scores have been measured yet. The full suite passed
+165 tests in 7.11 seconds; the subsequent stricter metric-grid check passed both
+targeted controller tests, including a missing-cell rejection.
+
 ## Extending calibration without erasing completed costs
 
 J++ calibration will reuse the existing 100,000-activation-per-layer cache.
