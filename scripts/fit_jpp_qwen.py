@@ -6,7 +6,8 @@ from ilslens.model import load_local
 from ilslens.data import wikitext_sequences
 from ilslens.budget import baseline_count
 from ilslens.reference import load_reference,token_adapter
-from ilslens.jpp import load_jpp,fit_experts,fit_labeled_weights,readout_filter
+from ilslens.jpp import (load_jpp,fit_experts,fit_labeled_weights,readout_filter,
+    save_fp32_experts,require_fp32_experts)
 from ilslens.hooks import capture_blocks
 from ilslens.eval.readout_tasks import candidate_ids,normalize
 
@@ -27,15 +28,16 @@ def main():
     expert_path=root/'experts.pt'
     expert_provenance_path=root/'experts-provenance.json'
     expert_provenance=dict(primary_fingerprint=manifest['fingerprint'],fitting_rows=rows,
-                          clusters=8,pca=64,seed=config['seed'])
+                          clusters=8,pca=64,seed=config['seed'],storage_protocol='fp32-experts-v1')
     if expert_path.exists():
         if not expert_provenance_path.exists() or json.loads(expert_provenance_path.read_text())!=expert_provenance:
             raise ValueError('J++ expert fitting corpus/configuration is unverified or changed; use a new output directory')
         from workspace_lens.fitting.condense_experts.expert_jacobians import ExpertJacobians
         experts=ExpertJacobians.load(str(expert_path))
+        require_fp32_experts(experts)
     else:
         experts,_=fit_experts(model,adapter,ids,root,seed=config['seed'],projection_dim=64)
-        experts.save(str(expert_path))
+        save_fp32_experts(experts,expert_path)
         expert_provenance_path.write_text(json.dumps(expert_provenance,indent=2)+'\n')
     gates=json.loads(Path(args.gates).read_text())
     selected=[r['item'] for r in gates if r['retained'] and r['item']['split']=='dev']

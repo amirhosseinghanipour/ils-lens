@@ -1,0 +1,29 @@
+{
+  "behavior": {
+    "difference": 0.021875000000000002,
+    "ci": [
+      0.0,
+      0.043750000000000004
+    ],
+    "prompts": 32,
+    "bootstrap_unit": "prompt",
+    "statistically_detected": false
+  },
+  "detection_status": "not_requested",
+  "trait_verified": false,
+  "fingerprint": "7d0ec3525ef7360fecb3fc187aa2b61d2cc040a983622f2a01311a51f3c4a1f1",
+  "seconds_this_invocation": 248.0561465610008,
+  "disk_bytes": 2619882,
+  "generation_counts": {
+    "base": {
+      "hits": 2,
+      "draws": 320
+    },
+    "tuned": {
+      "hits": 9,
+      "draws": 320
+    }
+  },
+  "adapter_sha256": "57e4e9374254c98c537b39f909f72723a2a1cfecdcec9abeb5ef941d841b5311",
+  "interpretation": "Trait not verified by the registered prompt-bootstrap rule. Detection measurements remain pending; draws within a prompt are not independent trials."
+}

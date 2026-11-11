@@ -50,6 +50,24 @@ as a separate protocol rather than overwriting this failed filtering run.
 
 ## Registered unattended training
 
+The resumed [planted behavioral evaluation](artifacts/qwen-planted-behavior.json)
+finished in 248.06 seconds with the original adapter checksum unchanged.
+Owl mentions were 2/320 in the base arm and 9/320 in the tuned arm. The paired
+prompt-level difference is 0.021875, with a 95% bootstrap CI [0, 0.04375] over
+32 prompts. The predeclared rule does not verify a positive trait effect.
+This null behavioral finding is retained; no retraining or hyperparameter
+selection followed it. Planned lens/model-difference detection is still required
+and must be interpreted conditionally on the unverified planting.
+
+The pinned upstream J++ `ExpertJacobians.save` explicitly rounds expert and
+pooled matrices to fp16. A round-trip probe reproduced loss of 9.536743e-7
+on a small fp32 value. Our serializer now keeps the same upstream keys in fp32,
+and loading through the upstream class preserves those values bit-for-bit.
+Resume provenance records `fp32-experts-v1` and rejects rounded/unverified caches.
+This is an explicit storage adaptation to satisfy the proposal's fp32 rule,
+not a change to clustering, R-lens propagation or labeled-dev optimization.
+No production J++ experts had been fitted. The full local suite passes 156 tests.
+
 The unattended run completed all 120 available calibration maps (five lens banks
 times 24 layers), with 100,000 reference activations per layer, in 120,954.55
 seconds (33.60 hours). J++ remains unavailable because no labeled dev items

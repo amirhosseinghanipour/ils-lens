@@ -77,3 +77,7 @@ differences are explicit; these are not a claim of causal readout superiority.
 `qwen-capability-original-audit.json` verifies the original raw-continuation
 filter's stored scores. Expected-answer mentions are diagnostics, not a relaxed
 scoring criterion or evidence that any item passed capability filtering.
+
+`qwen-planted-behavior.json` records the resumed behavioral test of the fixed
+200-step adapter. Its confidence interval includes zero, so the trait is not
+verified under the registered rule. Lens/graph detection is not represented.

@@ -4,6 +4,24 @@ import sys
 import torch
 from .hooks import capture_blocks
 
+def require_fp32_experts(experts):
+    for maps in (experts.experts_L_dict_EFN,experts.pooled_jacobian_L_dict_FN):
+        for matrix in maps.values():
+            if matrix.dtype!=torch.float32 or not torch.isfinite(matrix).all():
+                raise ValueError('J++ requires finite fp32 expert checkpoints; rounded caches must be refitted')
+
+def save_fp32_experts(experts,path):
+    """Keep upstream checkpoint keys without its unconditional fp16 rounding."""
+    from .experiment import save_tensor
+    require_fp32_experts(experts)
+    cpu=lambda values:{layer:value.detach().cpu() for layer,value in values.items()}
+    save_tensor(path,dict(experts=cpu(experts.experts_L_dict_EFN),
+        pooled=cpu(experts.pooled_jacobian_L_dict_FN),
+        position_counts=cpu(experts.position_counts_L_dict_E),
+        weight_sums=cpu(experts.weight_sums_L_dict_E),
+        fallback=cpu(experts.fallback_L_dict_Bool_E),config=experts.config.to_dict(),
+        min_kept_positions=experts.min_kept_positions,storage_protocol='fp32-experts-v1'))
+
 def load_jpp(path):
     source=Path(path).resolve()/'src'
     if not (source/'workspace_lens').is_dir():raise FileNotFoundError(source)
